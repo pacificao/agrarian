@@ -1,0 +1,8 @@
+/usr/bin/agrarian-cli		--	gen_context(system_u:object_r:agrarian_exec_t,s0)
+/usr/sbin/agrariand		--	gen_context(system_u:object_r:agrarian_exec_t,s0)
+/usr/lib(64)?/agrarian/agrariand		--	gen_context(system_u:object_r:agrarian_exec_t,s0)
+
+/etc/agrarian(/.*)?		gen_context(system_u:object_r:agrarian_conf_t,s0)
+/var/lib/agrarian(/.*)?		gen_context(system_u:object_r:agrarian_var_lib_t,s0)
+
+(/var)?/run/agrariand(/.*)?   gen_context(system_u:object_r:agrarian_var_run_t,s0)

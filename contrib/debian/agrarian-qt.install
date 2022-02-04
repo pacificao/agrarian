@@ -1,0 +1,6 @@
+usr/local/bin/agrarian-qt usr/bin
+share/pixmaps/agrarian32.xpm usr/share/pixmaps
+share/pixmaps/agrarian16.xpm usr/share/pixmaps
+share/pixmaps/agrarian128.png usr/share/pixmaps
+debian/agrarian-qt.desktop usr/share/applications
+debian/agrarian-qt.protocol usr/share/kde4/services/

@@ -1,0 +1,3 @@
+usr/local/bin/agrariand usr/bin
+usr/local/bin/agrarian-cli usr/bin
+debian/examples/agrarian.conf etc/agrarian

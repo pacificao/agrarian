@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Agrarian Core
+Comment=Agrarian P2P Cryptocurrency
+Comment[fr]=Agrarian, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=Agrarian, eşten eşe kriptografik sanal para birimi
+Exec=agrarian-qt %u
+Terminal=false
+Type=Application
+Icon=agrarian128
+MimeType=x-scheme-handler/agrarian;
+Categories=Office;Finance;
+StartupWMClass=Agrarian-qt
