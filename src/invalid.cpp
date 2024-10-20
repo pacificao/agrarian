@@ -5,7 +5,7 @@
 #include "invalid.h"
 #include "invalid_outpoints.json.h"
 #include "invalid_serials.json.h"
-#include "invslid_outpoints.h"
+#include "invalid_outpoints.h"
 
 namespace invalid_out
 {
