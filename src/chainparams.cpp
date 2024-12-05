@@ -126,11 +126,11 @@ public:
         nTargetSpacing = 10 * 60;
         nMaturity = 20;
         nMasternodeCountDrift = 20;
-        nMaxMoneyOut = 9999999999 * COIN;
+        nMaxMoneyOut = 999999999999 * COIN;
 
         /** Height or Time Based Activations **/
         nLastPOWBlock = 100000000;
-        nModifierUpdateBlock = 0;
+        nModifierUpdateBlock = 2; //The block at which PoS rules activate
         nZerocoinStartHeight = 0;
         nZerocoinStartTime = 1643790201;
         nBlockEnforceSerialRange = 1; //Enforce serial range starting this block
@@ -180,10 +180,8 @@ public:
         assert(hashGenesisBlock == uint256("0x000003452250d81f8b07d42e127c92729802e3c48f3c7b9834256fd0fb9a0c2e"));
         assert(genesis.hashMerkleRoot == uint256("0x3bb054bb772e1bee1547d4b0e06c0ce34d636ee1daf56b37f1a017ce8136da00"));
 
-        vSeeds.clear(); // Clear any existing seeds, if needed
-        vSeeds.push_back(CDNSSeedData("agr1.seed.pacificao.com", "agr1.seed.pacificao.com"));
-        vSeeds.push_back(CDNSSeedData("agr2.seed.pacificao.com", "agr2.seed.pacificao.com"));
-        vSeeds.push_back(CDNSSeedData("agr3.seed.pacificao.com", "agr3.seed.pacificao.com"));
+        vSeeds.push_back(CDNSSeedData("pacificao.com", "agr1.pacificao.com"));
+        vSeeds.push_back(CDNSSeedData("n2.pacificao.com", "agr2.pacificao.com"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 23);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 24);

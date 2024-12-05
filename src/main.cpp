@@ -4088,6 +4088,22 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
         return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
             REJECT_INVALID, "time-too-new");
 
+    // Add concurrent PoW and PoS validation logic
+    if (block.IsProofOfWork() || block.IsProofOfStake()) {
+        // Allow PoS starting at block 2
+        if (block.IsProofOfStake() && block.GetBlockHeight() < 2)
+            return state.DoS(100, error("CheckBlock() : PoS not allowed before block 2"),
+                REJECT_INVALID, "bad-pos-before-2");
+
+        // Ensure the block is valid as PoW or PoS
+        if (!block.IsProofOfWork() && !block.IsProofOfStake())
+            return state.DoS(100, error("CheckBlock() : Invalid block type, not PoW or PoS"),
+                REJECT_INVALID, "bad-block-type");
+    } else {
+        return state.DoS(100, error("CheckBlock() : Block must be PoW or PoS"),
+            REJECT_INVALID, "bad-block-type");
+    }
+
     // Check the merkle root.
     if (fCheckMerkleRoot) {
         bool mutated;
