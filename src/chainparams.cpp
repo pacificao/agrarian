@@ -129,7 +129,7 @@ public:
         nMaxMoneyOut = 999999999999 * COIN;
 
         /** Height or Time Based Activations **/
-        nLastPOWBlock = 100000000;
+        nLastPOWBlock = 100;
         nModifierUpdateBlock = 2; //The block at which PoS rules activate
         nZerocoinStartHeight = 0;
         nZerocoinStartTime = 1643790201;
