@@ -131,25 +131,6 @@ static bool SelectBlockFromCandidates(
         LogPrintf("SelectBlockFromCandidates: selection hash=%s\n", hashBest.ToString().c_str());
     return fSelected;
 }
-        // the selection hash is divided by 2**32 so that proof-of-stake block
-        // is always favored over proof-of-work block. this is to preserve
-        // the energy efficiency property
-        if (pindex->IsProofOfStake())
-            hashSelection >>= 32;
-
-        if (fSelected && hashSelection < hashBest) {
-            hashBest = hashSelection;
-            *pindexSelected = (const CBlockIndex*)pindex;
-        } else if (!fSelected) {
-            fSelected = true;
-            hashBest = hashSelection;
-            *pindexSelected = (const CBlockIndex*)pindex;
-        }
-    }
-    if (GetBoolArg("-printstakemodifier", false))
-        LogPrintf("SelectBlockFromCandidates: selection hash=%s\n", hashBest.ToString().c_str());
-    return fSelected;
-}
 
 // Stake Modifier (hash modifier of proof-of-stake):
 // The purpose of stake modifier is to prevent a txout (coin) owner from

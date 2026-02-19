@@ -131,7 +131,14 @@ public:
         nMaxMoneyOut = 999999999999 * COIN;
 
         /** Height or Time Based Activations **/
-        nLastPOWBlock = 100;
+        //
+        // Hybrid PoW/PoS schedule:
+        //   - PoW is permitted for ~50 years (based on target spacing)
+        //   - After that, the chain becomes PoS-only
+        //
+        // We use the Julian year (365.25 days) for a deterministic conversion.
+        static const int64_t JULIAN_YEAR_SECONDS = 31557600; // 365.25 * 24 * 60 * 60
+        nLastPOWBlock = (int)((50LL * JULIAN_YEAR_SECONDS) / nTargetSpacing);
 
         // Hybrid consensus: PoW mining and PoS staking are both permitted beginning at block 2.
         // PoW remains permitted until nLastPOWBlock.
