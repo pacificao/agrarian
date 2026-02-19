@@ -1,13 +1,15 @@
 // Copyright (c) 2012-2013 The PPCoin developers
 // Copyright (c) 2015-2019 The PIVX developers
+// Copyright (c) 2026 Agrarian Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
-#ifndef BITCOIN_KERNEL_H
-#define BITCOIN_KERNEL_H
-
+#ifndef AGRARIAN_BITCOIN_KERNEL_H
+#define AGRARIAN_BITCOIN_KERNEL_H
 #include "main.h"
 #include "stakeinput.h"
+#include <cstdint>
+#include <cstddef>
+#include <cstdint>
 
 
 // MODIFIER_INTERVAL: time to elapse before new modifier is computed
@@ -46,4 +48,4 @@ int64_t GetWeight(int64_t nIntervalBeginning, int64_t nIntervalEnd);
 
 bool ContextualCheckZerocoinStake(int nPreviousBlockHeight, CStakeInput* stake);
 
-#endif // BITCOIN_KERNEL_H
+#endif // AGRARIAN_BITCOIN_KERNEL_H

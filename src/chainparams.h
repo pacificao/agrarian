@@ -2,6 +2,7 @@
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2019 The PIVX developers
+// Copyright (c) 2026 Agrarian Developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -15,6 +16,7 @@
 #include "uint256.h"
 
 #include "libzerocoin/Params.h"
+
 #include <vector>
 
 typedef unsigned char MessageStartChars[MESSAGE_START_SIZE];
@@ -63,7 +65,7 @@ public:
     /** Make miner wait to have peers to avoid wasting work */
     bool MiningRequiresPeers() const { return fMiningRequiresPeers; }
     /** Headers first syncing is disabled */
-    bool HeadersFirstSyncingActive() const { return fHeadersFirstSyncingActive; };
+    bool HeadersFirstSyncingActive() const { return fHeadersFirstSyncingActive; }
     /** Default value for -checkmempool and -checkblockindex argument */
     bool DefaultConsistencyChecks() const { return fDefaultConsistencyChecks; }
     /** Allow mining of a min-difficulty block */
@@ -119,7 +121,13 @@ public:
 
     /** Height or Time Based Activations **/
     int ModifierUpgradeBlock() const { return nModifierUpdateBlock; }
+
+    // Hybrid consensus activations.
+    // - PoS blocks are permitted starting at FIRST_POS_BLOCK().
+    // - PoW blocks are permitted up to and including LAST_POW_BLOCK().
+    int FIRST_POS_BLOCK() const { return nFirstPoSBlock; }
     int LAST_POW_BLOCK() const { return nLastPOWBlock; }
+
     int Zerocoin_StartHeight() const { return nZerocoinStartHeight; }
     int Zerocoin_Block_EnforceSerialRange() const { return nBlockEnforceSerialRange; }
     int Zerocoin_Block_RecalculateAccumulators() const { return nBlockRecalculateAccumulators; }
@@ -134,7 +142,7 @@ public:
     CAmount GetSupplyBeforeFakeSerial() const { return nSupplyBeforeFakeSerial; }
 
     int Zerocoin_Block_Double_Accumulated() const { return nBlockDoubleAccumulated; }
-    CAmount InvalidAmountFiltered() const { return nInvalidAmountFiltered; };
+    CAmount InvalidAmountFiltered() const { return nInvalidAmountFiltered; }
 
     int Zerocoin_Block_Public_Spend_Enabled() const { return nPublicZCSpends; }
 
@@ -154,7 +162,11 @@ protected:
     int nToCheckBlockUpgradeMajority;
     int64_t nTargetTimespan;
     int64_t nTargetSpacing;
+
+    // Hybrid PoW/PoS window controls.
+    int nFirstPoSBlock;
     int nLastPOWBlock;
+
     int nMasternodeCountDrift;
     int nMaturity;
     int nModifierUpdateBlock;
@@ -216,7 +228,6 @@ protected:
  * to test specific features more easily. Test cases should always restore the previous
  * values after finalization.
  */
-
 class CModifiableParams
 {
 public:
@@ -229,7 +240,6 @@ public:
     virtual void setAllowMinDifficultyBlocks(bool aAllowMinDifficultyBlocks) = 0;
     virtual void setSkipProofOfWorkCheck(bool aSkipProofOfWorkCheck) = 0;
 };
-
 
 /**
  * Return the currently selected parameters. This won't change after app startup

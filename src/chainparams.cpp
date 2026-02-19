@@ -2,11 +2,14 @@
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2019 The PIVX developers
+// Copyright (c) 2026 Agrarian Developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "libzerocoin/Params.h"
+
 #include "chainparams.h"
+#include "chainparamsseeds.h"
 #include "random.h"
 #include "util.h"
 #include "utilstrencodings.h"
@@ -22,8 +25,6 @@ struct SeedSpec6 {
     uint8_t addr[16];
     uint16_t port;
 };
-
-#include "chainparamsseeds.h"
 
 /**
  * Main network
@@ -57,9 +58,9 @@ static Checkpoints::MapCheckpoints mapCheckpoints =
 static const Checkpoints::CCheckpointData data = {
     &mapCheckpoints,
     1643790201, // * UNIX timestamp of last checkpoint block
-    0,    // * total number of transactions between genesis and last checkpoint
+    0,          // * total number of transactions between genesis and last checkpoint
                 //   (the tx=... number in the SetBestChain debug.log lines)
-    0        // * estimated number of transactions per day after checkpoint
+    0           // * estimated number of transactions per day after checkpoint
 };
 
 static Checkpoints::MapCheckpoints mapCheckpointsTestnet =
@@ -69,7 +70,8 @@ static const Checkpoints::CCheckpointData dataTestnet = {
     &mapCheckpointsTestnet,
     1643790201,
     0,
-    0};
+    0
+};
 
 static Checkpoints::MapCheckpoints mapCheckpointsRegtest =
     boost::assign::map_list_of(0, uint256("0x001"));
@@ -77,24 +79,24 @@ static const Checkpoints::CCheckpointData dataRegtest = {
     &mapCheckpointsRegtest,
     1643790201,
     0,
-    0};
+    0
+};
 
 libzerocoin::ZerocoinParams* CChainParams::Zerocoin_Params(bool useModulusV1) const
 {
     assert(this);
+
     static CBigNum bnHexModulus = 0;
     if (!bnHexModulus)
         bnHexModulus.SetHex(zerocoinModulus);
     static libzerocoin::ZerocoinParams ZCParamsHex = libzerocoin::ZerocoinParams(bnHexModulus);
+
     static CBigNum bnDecModulus = 0;
     if (!bnDecModulus)
         bnDecModulus.SetDec(zerocoinModulus);
     static libzerocoin::ZerocoinParams ZCParamsDec = libzerocoin::ZerocoinParams(bnDecModulus);
 
-    if (useModulusV1)
-        return &ZCParamsHex;
-
-    return &ZCParamsDec;
+    return useModulusV1 ? &ZCParamsHex : &ZCParamsDec;
 }
 
 class CMainParams : public CChainParams
@@ -130,26 +132,33 @@ public:
 
         /** Height or Time Based Activations **/
         nLastPOWBlock = 100;
-        nModifierUpdateBlock = 2; //The block at which PoS rules activate
+
+        // Hybrid consensus: PoW mining and PoS staking are both permitted beginning at block 2.
+        // PoW remains permitted until nLastPOWBlock.
+        nFirstPoSBlock = 2;
+
+        // PIVX-style modifier upgrade: keep aligned with PoS activation.
+        nModifierUpdateBlock = 2;
+
         nZerocoinStartHeight = 0;
         nZerocoinStartTime = 1643790201;
-        nBlockEnforceSerialRange = 1; //Enforce serial range starting this block
-        nBlockRecalculateAccumulators = 999999999; //Trigger a recalculation of accumulators
-        nBlockFirstFraudulent = 999999999; //First block that bad serials emerged
-        nBlockLastGoodCheckpoint = 999999999; //Last valid accumulator checkpoint
-        nBlockEnforceInvalidUTXO = 999999999; //Start enforcing the invalid UTXO's
-        nInvalidAmountFiltered = 0; //Amount of invalid coins filtered through exchanges, that should be considered valid
+        nBlockEnforceSerialRange = 1;          // Enforce serial range starting this block
+        nBlockRecalculateAccumulators = 999999999; // Trigger a recalculation of accumulators
+        nBlockFirstFraudulent = 999999999;     // First block that bad serials emerged
+        nBlockLastGoodCheckpoint = 999999999;  // Last valid accumulator checkpoint
+        nBlockEnforceInvalidUTXO = 999999999;  // Start enforcing the invalid UTXO's
+        nInvalidAmountFiltered = 0;            // Amount of invalid coins filtered through exchanges, that should be considered valid
         nBlockZerocoinV2 = 999999999;
         nBlockDoubleAccumulated = 999999999;
         nEnforceNewSporkKey = 1643790201;
-        nRejectOldSporkKey = 1527811200; 
+        nRejectOldSporkKey = 1527811200;
 
         // Public coin spend enforcement
         nPublicZCSpends = 1;
 
         // Fake Serial Attack
         nFakeSerialBlockheightEnd = 0;
-        nSupplyBeforeFakeSerial = 0;   // zerocoin supply at block nFakeSerialBlockheightEnd
+        nSupplyBeforeFakeSerial = 0; // zerocoin supply at block nFakeSerialBlockheightEnd
 
         /**
          * Build the genesis block. Note that the output of the genesis coinbase cannot
@@ -165,7 +174,9 @@ public:
         CMutableTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
-        txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+        txNew.vin[0].scriptSig = CScript() << 486604799 << CScriptNum(4)
+                                          << vector<unsigned char>((const unsigned char*)pszTimestamp,
+                                                                   (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
         txNew.vout[0].nValue = 50 * COIN;
         txNew.vout[0].scriptPubKey = CScript() << ParseHex("04fe3d7e5608ebba6d822948eff929c822ad35b5f8ecd00977d0e59ed67da697bd88e0ed8bd58797bde6fe6750236f5dae4cf403af0925c8339f0a91b682254b39") << OP_CHECKSIG;
         genesis.vtx.push_back(txNew);
@@ -211,22 +222,22 @@ public:
 
         /** Zerocoin */
         zerocoinModulus = "25195908475657893494027183240048398571429282126204032027777137836043662020707595556264018525880784"
-            "4069182906412495150821892985591491761845028084891200728449926873928072877767359714183472702618963750149718246911"
-            "6507761337985909570009733045974880842840179742910064245869181719511874612151517265463228221686998754918242243363"
-            "7259085141865462043576798423387184774447920739934236584823824281198163815010674810451660377306056201619676256133"
-            "8441436038339044149526344321901146575444541784240209246165157233507787077498171257724679629263863563732899121548"
-            "31438167899885040445364023527381951378636564391212010397122822120720357";
-        nMaxZerocoinSpendsPerTransaction = 7; // Assume about 20kb each
+                          "4069182906412495150821892985591491761845028084891200728449926873928072877767359714183472702618963750149718246911"
+                          "6507761337985909570009733045974880842840179742910064245869181719511874612151517265463228221686998754918242243363"
+                          "7259085141865462043576798423387184774447920739934236584823824281198163815010674810451660377306056201619676256133"
+                          "8441436038339044149526344321901146575444541784240209246165157233507787077498171257724679629263863563732899121548"
+                          "31438167899885040445364023527381951378636564391212010397122822120720357";
+        nMaxZerocoinSpendsPerTransaction = 7;         // Assume about 20kb each
         nMaxZerocoinPublicSpendsPerTransaction = 637; // Assume about 220 bytes each input
-        nMinZerocoinMintFee = 1 * CENT; //high fee required for zerocoin mints
-        nMintRequiredConfirmations = 20; //the maximum amount of confirmations until accumulated in 19
+        nMinZerocoinMintFee = 1 * CENT;               // high fee required for zerocoin mints
+        nMintRequiredConfirmations = 20;              // the maximum amount of confirmations until accumulated in 19
         nRequiredAccumulation = 1;
-        nDefaultSecurityLevel = 100; //full security level for accumulators
-        nZerocoinHeaderVersion = 4; //Block headers must be this version once zerocoin is active
-        nZerocoinRequiredStakeDepth = 200; //The required confirmations for a zagr to be stakable
+        nDefaultSecurityLevel = 100;                  // full security level for accumulators
+        nZerocoinHeaderVersion = 4;                   // Block headers must be this version once zerocoin is active
+        nZerocoinRequiredStakeDepth = 200;            // The required confirmations for a zagr to be stakable
 
-        nBudget_Fee_Confirmations = 6; // Number of confirmations for the finalization fee
-        nProposalEstablishmentTime = 60 * 60 * 24; // Proposals must be at least a day old to make it into a budget
+        nBudget_Fee_Confirmations = 6;                // Number of confirmations for the finalization fee
+        nProposalEstablishmentTime = 60 * 60 * 24;    // Proposals must be at least a day old to make it into a budget
     }
 
     const Checkpoints::CCheckpointData& Checkpoints() const
@@ -258,22 +269,30 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 10 * 60;
         nTargetSpacing = 10 * 60;
+
         nLastPOWBlock = 200;
+
+        // Hybrid consensus: PoS staking permitted from block 2 in testnet as well.
+        nFirstPoSBlock = 2;
+
         nMaturity = 15;
         nMasternodeCountDrift = 4;
-        nModifierUpdateBlock = 0;
+
+        // Keep aligned with PoS activation in this chain.
+        nModifierUpdateBlock = 2;
+
         nMaxMoneyOut = 43199500 * COIN;
         nZerocoinStartHeight = 0;
         nZerocoinStartTime = 1643790201;
-        nBlockEnforceSerialRange = 1; //Enforce serial range starting this block
-        nBlockRecalculateAccumulators = 999999999; //Trigger a recalculation of accumulators
-        nBlockFirstFraudulent = 999999999; //First block that bad serials emerged
-        nBlockLastGoodCheckpoint = 999999999; //Last valid accumulator checkpoint
-        nBlockEnforceInvalidUTXO = 999999999; //Start enforcing the invalid UTXO's
-        nInvalidAmountFiltered = 0; //Amount of invalid coins filtered through exchanges, that should be considered valid
-        nBlockZerocoinV2 = 999999999; //!> The block that zerocoin v2 becomes active
+        nBlockEnforceSerialRange = 1;                 // Enforce serial range starting this block
+        nBlockRecalculateAccumulators = 999999999;    // Trigger a recalculation of accumulators
+        nBlockFirstFraudulent = 999999999;            // First block that bad serials emerged
+        nBlockLastGoodCheckpoint = 999999999;         // Last valid accumulator checkpoint
+        nBlockEnforceInvalidUTXO = 999999999;         // Start enforcing the invalid UTXO's
+        nInvalidAmountFiltered = 0;                   // Amount of invalid coins filtered through exchanges, that should be considered valid
+        nBlockZerocoinV2 = 999999999;                 //!> The block that zerocoin v2 becomes active
         nEnforceNewSporkKey = 1643790201;
-        nRejectOldSporkKey = 1522454400; 
+        nRejectOldSporkKey = 1522454400;
 
         // Public coin spend enforcement
         nPublicZCSpends = 1;
@@ -292,12 +311,12 @@ public:
         vFixedSeeds.clear();
         vSeeds.clear();
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 38); 
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 39);  
-        base58Prefixes[SECRET_KEY] = std::vector<unsigned char>(1, 166);     
-        
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 38);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 39);
+        base58Prefixes[SECRET_KEY] = std::vector<unsigned char>(1, 166);
+
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x3a)(0x80)(0x61)(0xa0).convert_to_container<std::vector<unsigned char> >();
-        
+
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x3a)(0x80)(0x58)(0x37).convert_to_container<std::vector<unsigned char> >();
         // Testnet agrarian BIP44 coin type is '1' (All coin's testnet default)
         base58Prefixes[EXT_COIN_TYPE] = boost::assign::list_of(0x80)(0x00)(0x00)(0x01).convert_to_container<std::vector<unsigned char> >();
@@ -322,6 +341,7 @@ public:
 
         nProposalEstablishmentTime = 60 * 5; // Proposals must be at least 5 mns old to make it into a test budget
     }
+
     const Checkpoints::CCheckpointData& Checkpoints() const
     {
         return dataTestnet;
@@ -352,18 +372,26 @@ public:
         nTargetTimespan = 24 * 60 * 60; // Agrarian: 1 day
         nTargetSpacing = 1 * 60;        // Agrarian: 1 minutes
         bnProofOfWorkLimit = ~uint256(0) >> 1;
+
         nLastPOWBlock = 250;
+
+        // Hybrid consensus: PoS staking permitted from block 2 in regtest as well.
+        nFirstPoSBlock = 2;
+
         nMaturity = 20;
         nMasternodeCountDrift = 4;
-        nModifierUpdateBlock = 0; //approx Mon, 17 Apr 2017 04:00:00 GMT
+
+        // Keep aligned with PoS activation in this chain.
+        nModifierUpdateBlock = 2;
+
         nMaxMoneyOut = 43199500 * COIN;
         nZerocoinStartHeight = 300;
         nBlockZerocoinV2 = 300;
         nZerocoinStartTime = 1643790201;
-        nBlockEnforceSerialRange = 1; //Enforce serial range starting this block
-        nBlockRecalculateAccumulators = 999999999; //Trigger a recalculation of accumulators
-        nBlockFirstFraudulent = 999999999; //First block that bad serials emerged
-        nBlockLastGoodCheckpoint = 999999999; //Last valid accumulator checkpoint
+        nBlockEnforceSerialRange = 1;              // Enforce serial range starting this block
+        nBlockRecalculateAccumulators = 999999999; // Trigger a recalculation of accumulators
+        nBlockFirstFraudulent = 999999999;         // First block that bad serials emerged
+        nBlockLastGoodCheckpoint = 999999999;      // Last valid accumulator checkpoint
 
         // Public coin spend enforcement
         nPublicZCSpends = 350;
@@ -390,6 +418,7 @@ public:
         fSkipProofOfWorkCheck = true;
         fTestnetToBeDeprecatedFieldRPC = false;
     }
+
     const Checkpoints::CCheckpointData& Checkpoints() const
     {
         return dataRegtest;
@@ -433,7 +462,6 @@ public:
     virtual void setSkipProofOfWorkCheck(bool afSkipProofOfWorkCheck) { fSkipProofOfWorkCheck = afSkipProofOfWorkCheck; }
 };
 static CUnitTestParams unitTestParams;
-
 
 static CChainParams* pCurrentParams = 0;
 

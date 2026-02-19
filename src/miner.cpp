@@ -2,6 +2,7 @@
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2019 The PIVX developers
+// Copyright (c) 2026 Agrarian Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -32,9 +33,6 @@
 
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
-
-using namespace std;
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // AgrarianMiner
@@ -105,7 +103,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
     // Create new block
     unique_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
     if (!pblocktemplate.get())
-        return NULL;
+        return nullptr;
     CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
     // Tip
@@ -166,7 +164,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
         if (!fStakeFound) {
             LogPrint("staking", "CreateNewBlock(): stake not found\n");
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -214,7 +212,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
                 continue;
             }
 
-            COrphan* porphan = NULL;
+            COrphan* porphan = nullptr;
             double dPriority = 0;
             CAmount nTotalIn = 0;
             bool fMissingInputs = false;
@@ -243,7 +241,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
                     double nTimePriority = std::pow(GetAdjustedTime() - nTimeSeen, 6);
 
                     // zAGR spends can have very large priority, use non-overflowing safe functions
-                    dPriority = double_safe_addition(dPriority, (nTimePriority * nConfs));
+                    dPriority = double_safe_addition(dPriority, (nTimePriority* nConfs));
                     dPriority = double_safe_multiplication(dPriority, nTotalIn);
 
                     continue;
@@ -291,12 +289,12 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
                 int nConf = nHeight - coins->nHeight;
 
                 // zAGR spends can have very large priority, use non-overflowing safe functions
-                dPriority = double_safe_addition(dPriority, ((double)nValueIn * nConf));
+                dPriority = double_safe_addition(dPriority, ((double)nValueIn* nConf));
 
             }
             if (fMissingInputs) continue;
 
-            // Priority is sum(valuein * age) / modified_txsize
+            // Priority is sum(valuein* age) / modified_txsize
             unsigned int nTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
             dPriority = tx.ComputePriority(dPriority, nTxSize);
 
@@ -521,17 +519,17 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
                 CKey key;
                 if (!pwallet->GetZerocoinKey(bnSerial, key)) {
                     LogPrintf("%s: failed to find zAGR with serial %s, unable to sign block\n", __func__, bnSerial.GetHex());
-                    return NULL;
+                    return nullptr;
                 }
 
                 //Sign block with the zAGR key
                 if (!SignBlockWithKey(*pblock, key)) {
                     LogPrintf("BitcoinMiner(): Signing new block with zAGR key failed \n");
-                    return NULL;
+                    return nullptr;
                 }
             } else if (!SignBlock(*pblock, *pwallet)) {
                 LogPrintf("BitcoinMiner(): Signing new block with UTXO key failed \n");
-                return NULL;
+                return nullptr;
             }
         }
 
@@ -539,7 +537,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         if (!TestBlockValidity(state, *pblock, pindexPrev, false, false)) {
             //LogPrintf("CreateNewBlock() : TestBlockValidity failed\n");
             mempool.clear();
-            return NULL;
+            return nullptr;
         }
 
 //        if (pblock->IsZerocoinStake()) {
@@ -581,7 +579,7 @@ CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet* pwallet,
 {
     CPubKey pubkey;
     if (!reservekey.GetReservedKey(pubkey))
-        return NULL;
+        return nullptr;
 
     CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
     return CreateNewBlock(scriptPubKey, pwallet, fProofOfStake);
@@ -613,7 +611,7 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
     // Process this block the same as if we had received it from another node
     CValidationState state;
-    if (!ProcessNewBlock(state, NULL, pblock)) {
+    if (!ProcessNewBlock(state, nullptr, pblock)) {
         if (pblock->IsZerocoinStake()) {
             pwalletMain->zagrTracker->RemovePending(pblock->vtx[1].GetHash());
             pwalletMain->zagrTracker->ListMints(true, true, true); //update the state
@@ -831,7 +829,7 @@ void static ThreadBitcoinMiner(void* parg)
 
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
 {
-    static boost::thread_group* minerThreads = NULL;
+    static boost::thread_group* minerThreads = nullptr;
     fGenerateBitcoins = fGenerate;
 
     if (nThreads < 0) {
@@ -842,10 +840,10 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
             nThreads = boost::thread::hardware_concurrency();
     }
 
-    if (minerThreads != NULL) {
+    if (minerThreads != nullptr) {
         minerThreads->interrupt_all();
         delete minerThreads;
-        minerThreads = NULL;
+        minerThreads = nullptr;
     }
 
     if (nThreads == 0 || !fGenerate)

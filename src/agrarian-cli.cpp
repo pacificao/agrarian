@@ -2,6 +2,7 @@
 // Copyright (c) 2009-2015 The Bitcoin developers
 // Copyright (c) 2009-2015 The Dash developers
 // Copyright (c) 2015-2018 The PIVX developers
+// Copyright (c) 2026 Agrarian Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -23,9 +24,6 @@
 #include <univalue.h>
 
 #define _(x) std::string(x) /* Keep the _() around in case gettext or such will be used later to translate non-UI */
-
-using namespace std;
-
 static const int DEFAULT_HTTP_CLIENT_TIMEOUT=900;
 
 std::string HelpMessageCli()
@@ -116,13 +114,12 @@ struct HTTPReply
     std::string body;
 };
 
-static void http_request_done(struct evhttp_request *req, void *ctx)
+static void http_request_done(struct evhttp_request* req, void* ctx)
 {
-    HTTPReply *reply = static_cast<HTTPReply*>(ctx);
+    HTTPReply* reply = static_cast<HTTPReply*>(ctx);
 
-    if (req == NULL) {
-        /* If req is NULL, it means an error occurred while connecting, but
-         * I'm not sure how to find out which one. We also don't really care.
+    if (req == nullptr) {
+        /* If req is nullptr, it means an error occurred while connecting, but* I'm not sure how to find out which one. We also don't really care.
          */
         reply->status = 0;
         return;
@@ -130,11 +127,11 @@ static void http_request_done(struct evhttp_request *req, void *ctx)
 
     reply->status = evhttp_request_get_response_code(req);
 
-    struct evbuffer *buf = evhttp_request_get_input_buffer(req);
+    struct evbuffer* buf = evhttp_request_get_input_buffer(req);
     if (buf)
     {
         size_t size = evbuffer_get_length(buf);
-        const char *data = (const char*)evbuffer_pullup(buf, size);
+        const char* data = (const char*)evbuffer_pullup(buf, size);
         if (data)
             reply->body = std::string(data, size);
         evbuffer_drain(buf, size);
@@ -147,19 +144,19 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
     int port = GetArg("-rpcport", BaseParams().RPCPort());
 
     // Create event base
-    struct event_base *base = event_base_new(); // TODO RAII
+    struct event_base* base = event_base_new(); // TODO RAII
     if (!base)
         throw runtime_error("cannot create event_base");
 
     // Synchronously look up hostname
-    struct evhttp_connection *evcon = evhttp_connection_base_new(base, NULL, host.c_str(), port); // TODO RAII
-    if (evcon == NULL)
+    struct evhttp_connection* evcon = evhttp_connection_base_new(base, nullptr, host.c_str(), port); // TODO RAII
+    if (evcon == nullptr)
         throw runtime_error("create connection failed");
     evhttp_connection_set_timeout(evcon, GetArg("-rpcclienttimeout", DEFAULT_HTTP_CLIENT_TIMEOUT));
 
     HTTPReply response;
-    struct evhttp_request *req = evhttp_request_new(http_request_done, (void*)&response); // TODO RAII
-    if (req == NULL)
+    struct evhttp_request* req = evhttp_request_new(http_request_done, (void*)&response); // TODO RAII
+    if (req == nullptr)
         throw runtime_error("create http request failed");
 
     // Get credentials
@@ -176,7 +173,7 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
         strRPCUserColonPass = mapArgs["-rpcuser"] + ":" + mapArgs["-rpcpassword"];
     }
 
-    struct evkeyvalq *output_headers = evhttp_request_get_output_headers(req);
+    struct evkeyvalq* output_headers = evhttp_request_get_output_headers(req);
     assert(output_headers);
     evhttp_add_header(output_headers, "Host", host.c_str());
     evhttp_add_header(output_headers, "Connection", "close");
@@ -184,7 +181,7 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
 
     // Attach request data
     std::string strRequest = JSONRPCRequest(strMethod, params, 1);
-    struct evbuffer * output_buffer = evhttp_request_get_output_buffer(req);
+    struct evbuffer* output_buffer = evhttp_request_get_output_buffer(req);
     assert(output_buffer);
     evbuffer_add(output_buffer, strRequest.data(), strRequest.size());
 
@@ -280,7 +277,7 @@ int CommandLineRPC(int argc, char* argv[])
         strPrint = string("error: ") + e.what();
         nRet = EXIT_FAILURE;
     } catch (...) {
-        PrintExceptionContinue(NULL, "CommandLineRPC()");
+        PrintExceptionContinue(nullptr, "CommandLineRPC()");
         throw;
     }
 
@@ -305,7 +302,7 @@ int main(int argc, char* argv[])
         PrintExceptionContinue(&e, "AppInitRPC()");
         return EXIT_FAILURE;
     } catch (...) {
-        PrintExceptionContinue(NULL, "AppInitRPC()");
+        PrintExceptionContinue(nullptr, "AppInitRPC()");
         return EXIT_FAILURE;
     }
 
@@ -315,7 +312,7 @@ int main(int argc, char* argv[])
     } catch (std::exception& e) {
         PrintExceptionContinue(&e, "CommandLineRPC()");
     } catch (...) {
-        PrintExceptionContinue(NULL, "CommandLineRPC()");
+        PrintExceptionContinue(nullptr, "CommandLineRPC()");
     }
     return ret;
 }

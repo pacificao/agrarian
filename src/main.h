@@ -2,6 +2,7 @@
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2019 The PIVX developers
+// Copyright (c) 2026 Agrarian Developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -20,8 +21,6 @@
 #include "pow.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
-#include "zagr/zerocoin.h"
-#include "zagr/zagrmodule.h"
 #include "script/script.h"
 #include "script/sigcache.h"
 #include "script/standard.h"
@@ -30,6 +29,8 @@
 #include "txmempool.h"
 #include "uint256.h"
 #include "undo.h"
+#include "zagr/zerocoin.h"
+#include "zagr/zagrmodule.h"
 
 #include <algorithm>
 #include <exception>
@@ -108,7 +109,7 @@ static const unsigned int DATABASE_WRITE_INTERVAL = 3600;
 static const unsigned int MAX_REJECT_MESSAGE_LENGTH = 111;
 
 /** Enable bloom filter */
- static const bool DEFAULT_PEERBLOOMFILTERS = true;
+static const bool DEFAULT_PEERBLOOMFILTERS = true;
 static const bool DEFAULT_PEERBLOOMFILTERS_ZC = false;
 
 /** If the tip is older than this (in seconds), the node is considered to be in initial block download. */
@@ -175,7 +176,7 @@ extern int64_t nReserveBalance;
 
 extern std::map<uint256, int64_t> mapRejectedBlocks;
 extern std::map<unsigned int, unsigned int> mapHashedBlocks;
-extern std::map<uint256, int64_t> mapZerocoinspends; //txid, time received
+extern std::map<uint256, int64_t> mapZerocoinspends; // txid, time received
 
 /** Best header we've seen so far (used for getheaders queries' starting points). */
 extern CBlockIndex* pindexBestHeader;
@@ -241,11 +242,16 @@ std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256& hash, CTransaction& tx, uint256& hashBlock, bool fAllowSlow = false, CBlockIndex* blockIndex = nullptr);
 /** Retrieve an output (from memory pool, or from disk, if possible) */
 bool GetOutput(const uint256& hash, unsigned int index, CValidationState& state, CTxOut& out);
-/** Find the best known block, and make it the tip of the block chain */
 
-// ***TODO***
+/** TODO (legacy) */
 double ConvertBitsToDouble(unsigned int nBits);
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZAGRStake);
+
+/**
+ * Hybrid difficulty selection.
+ * Implementations should route to the correct target calculation (PoW vs PoS)
+ * based on the fProofOfStake flag rather than height-era assumptions.
+ */
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake);
 
 bool ActivateBestChain(CValidationState& state, CBlock* pblock = NULL, bool fAlreadyChecked = false);
@@ -261,7 +267,6 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats& stats);
 void Misbehaving(NodeId nodeid, int howmuch);
 /** Flush all state, indexes and buffers to disk. */
 void FlushStateToDisk();
-
 
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee = false, bool ignoreFees = false);
@@ -291,14 +296,8 @@ struct CDiskTxPos : public CDiskBlockPos {
         READWRITE(VARINT(nTxOffset));
     }
 
-    CDiskTxPos(const CDiskBlockPos& blockIn, unsigned int nTxOffsetIn) : CDiskBlockPos(blockIn.nFile, blockIn.nPos), nTxOffset(nTxOffsetIn)
-    {
-    }
-
-    CDiskTxPos()
-    {
-        SetNull();
-    }
+    CDiskTxPos(const CDiskBlockPos& blockIn, unsigned int nTxOffsetIn) : CDiskBlockPos(blockIn.nFile, blockIn.nPos), nTxOffset(nTxOffsetIn) {}
+    CDiskTxPos() { SetNull(); }
 
     void SetNull()
     {
@@ -307,21 +306,8 @@ struct CDiskTxPos : public CDiskBlockPos {
     }
 };
 
-
 CAmount GetMinRelayFee(const CTransaction& tx, unsigned int nBytes, bool fAllowFree);
 bool MoneyRange(CAmount nValueOut);
-
-/**
- * Check transaction inputs, and make sure any
- * pay-to-script-hash transactions are evaluating IsStandard scripts
- *
- * Why bother? To avoid denial-of-service attacks; an attacker
- * can submit a standard HASH... OP_EQUAL transaction,
- * which will get accepted into blocks. The redemption
- * script can be anything; an attacker could use a very
- * expensive-to-check-upon-redemption script like:
- *   DUP CHECKSIG DROP ... repeated 100 times... OP_1
- */
 
 /**
  * Check for standard transaction types
@@ -345,7 +331,6 @@ unsigned int GetLegacySigOpCount(const CTransaction& tx);
  * @see CTransaction::FetchInputs
  */
 unsigned int GetP2SHSigOpCount(const CTransaction& tx, const CCoinsViewCache& mapInputs);
-
 
 /**
  * Check whether all inputs of this transaction are valid (no double spends, scripts & sigs, amounts)
@@ -413,7 +398,6 @@ public:
     bool ReadFromDisk(const CDiskBlockPos& pos, const uint256& hashBlock);
 };
 
-
 /**
  * Closure representing one script verification
  * Note that this stores references to the spending transaction
@@ -430,8 +414,15 @@ private:
 
 public:
     CScriptCheck() : ptxTo(0), nIn(0), nFlags(0), cacheStore(false), error(SCRIPT_ERR_UNKNOWN_ERROR) {}
-    CScriptCheck(const CCoins& txFromIn, const CTransaction& txToIn, unsigned int nInIn, unsigned int nFlagsIn, bool cacheIn) : scriptPubKey(txFromIn.vout[txToIn.vin[nInIn].prevout.n].scriptPubKey),
-                                                                                                                                ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn), cacheStore(cacheIn), error(SCRIPT_ERR_UNKNOWN_ERROR) {}
+    CScriptCheck(const CCoins& txFromIn, const CTransaction& txToIn, unsigned int nInIn, unsigned int nFlagsIn, bool cacheIn)
+        : scriptPubKey(txFromIn.vout[txToIn.vin[nInIn].prevout.n].scriptPubKey),
+          ptxTo(&txToIn),
+          nIn(nInIn),
+          nFlags(nFlagsIn),
+          cacheStore(cacheIn),
+          error(SCRIPT_ERR_UNKNOWN_ERROR)
+    {
+    }
 
     bool operator()();
 
@@ -448,12 +439,10 @@ public:
     ScriptError GetScriptError() const { return error; }
 };
 
-
 /** Functions for disk access for blocks */
 bool WriteBlockToDisk(CBlock& block, CDiskBlockPos& pos);
 bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos);
 bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
-
 
 /** Functions for validating blocks and updating the block tree */
 
@@ -479,12 +468,11 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
 bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindexPrev);
 
 /** Check a block is completely valid from start to finish (only works on top of our current best block, with cs_main held) */
-bool TestBlockValidity(CValidationState& state, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
+bool TestBlockValidity(CValidationState& state, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW = true, bool fCheckMerkleRoot = true, bool fCheckSig = true);
 
 /** Store block on disk. If dbp is provided, the file is known to already reside on disk */
 bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** pindex, CDiskBlockPos* dbp = NULL, bool fAlreadyCheckedBlock = false);
 bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex** ppindex = NULL);
-
 
 class CBlockFileInfo
 {
@@ -522,10 +510,7 @@ public:
         nTimeLast = 0;
     }
 
-    CBlockFileInfo()
-    {
-        SetNull();
-    }
+    CBlockFileInfo() { SetNull(); }
 
     std::string ToString() const;
 
@@ -560,6 +545,7 @@ private:
 
 public:
     CValidationState() : mode(MODE_VALID), nDoS(0), chRejectCode(0), corruptionPossible(false) {}
+
     bool DoS(int level, bool ret = false, unsigned char chRejectCodeIn = 0, std::string strRejectReasonIn = "", bool corruptionIn = false)
     {
         chRejectCode = chRejectCodeIn;
@@ -571,12 +557,12 @@ public:
         mode = MODE_INVALID;
         return ret;
     }
-    bool Invalid(bool ret = false,
-        unsigned char _chRejectCode = 0,
-        std::string _strRejectReason = "")
+
+    bool Invalid(bool ret = false, unsigned char _chRejectCode = 0, std::string _strRejectReason = "")
     {
         return DoS(0, ret, _chRejectCode, _strRejectReason);
     }
+
     bool Error(std::string strRejectReasonIn = "")
     {
         if (mode == MODE_VALID)
@@ -584,23 +570,17 @@ public:
         mode = MODE_ERROR;
         return false;
     }
+
     bool Abort(const std::string& msg)
     {
         AbortNode(msg);
         return Error(msg);
     }
-    bool IsValid() const
-    {
-        return mode == MODE_VALID;
-    }
-    bool IsInvalid() const
-    {
-        return mode == MODE_INVALID;
-    }
-    bool IsError() const
-    {
-        return mode == MODE_ERROR;
-    }
+
+    bool IsValid() const { return mode == MODE_VALID; }
+    bool IsInvalid() const { return mode == MODE_INVALID; }
+    bool IsError() const { return mode == MODE_ERROR; }
+
     bool IsInvalid(int& nDoSOut) const
     {
         if (IsInvalid()) {
@@ -609,10 +589,8 @@ public:
         }
         return false;
     }
-    bool CorruptionPossible() const
-    {
-        return corruptionPossible;
-    }
+
+    bool CorruptionPossible() const { return corruptionPossible; }
     unsigned char GetRejectCode() const { return chRejectCode; }
     std::string GetRejectReason() const { return strRejectReason; }
 };

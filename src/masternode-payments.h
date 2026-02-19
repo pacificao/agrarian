@@ -1,16 +1,19 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2019 The PIVX developers
+// Copyright (c) 2026 Agrarian Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef MASTERNODE_PAYMENTS_H
-#define MASTERNODE_PAYMENTS_H
+#ifndef AGRARIAN_MASTERNODE_PAYMENTS_H
+#define AGRARIAN_MASTERNODE_PAYMENTS_H
 
 #include "key.h"
 #include "main.h"
 #include "masternode.h"
 
-using namespace std;
+#include <map>
+#include <string>
+#include <vector>
 
 extern CCriticalSection cs_vecPayments;
 extern CCriticalSection cs_mapMasternodeBlocks;
@@ -33,8 +36,7 @@ void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStak
 
 void DumpMasternodePayments();
 
-/** Save Masternode Payment Data (mnpayments.dat)
- */
+/** Save Masternode Payment Data (mnpayments.dat) */
 class CMasternodePaymentDB
 {
 private:
@@ -63,17 +65,8 @@ public:
     CScript scriptPubKey;
     int nVotes;
 
-    CMasternodePayee()
-    {
-        scriptPubKey = CScript();
-        nVotes = 0;
-    }
-
-    CMasternodePayee(CScript payee, int nVotesIn)
-    {
-        scriptPubKey = payee;
-        nVotes = nVotesIn;
-    }
+    CMasternodePayee() : scriptPubKey(CScript()), nVotes(0) {}
+    CMasternodePayee(const CScript& payee, int nVotesIn) : scriptPubKey(payee), nVotes(nVotesIn) {}
 
     ADD_SERIALIZE_METHODS;
 
@@ -92,18 +85,10 @@ public:
     int nBlockHeight;
     std::vector<CMasternodePayee> vecPayments;
 
-    CMasternodeBlockPayees()
-    {
-        nBlockHeight = 0;
-        vecPayments.clear();
-    }
-    CMasternodeBlockPayees(int nBlockHeightIn)
-    {
-        nBlockHeight = nBlockHeightIn;
-        vecPayments.clear();
-    }
+    CMasternodeBlockPayees() : nBlockHeight(0), vecPayments() {}
+    explicit CMasternodeBlockPayees(int nBlockHeightIn) : nBlockHeight(nBlockHeightIn), vecPayments() {}
 
-    void AddPayee(CScript payeeIn, int nIncrement)
+    void AddPayee(const CScript& payeeIn, int nIncrement)
     {
         LOCK(cs_vecPayments);
 
@@ -114,8 +99,7 @@ public:
             }
         }
 
-        CMasternodePayee c(payeeIn, nIncrement);
-        vecPayments.push_back(c);
+        vecPayments.emplace_back(payeeIn, nIncrement);
     }
 
     bool GetPayee(CScript& payee)
@@ -133,12 +117,14 @@ public:
         return (nVotes > -1);
     }
 
-    bool HasPayeeWithVotes(CScript payee, int nVotesReq)
+    bool HasPayeeWithVotes(const CScript& payee, int nVotesReq)
     {
         LOCK(cs_vecPayments);
 
         for (CMasternodePayee& p : vecPayments) {
-            if (p.nVotes >= nVotesReq && p.scriptPubKey == payee) return true;
+            if (p.nVotes >= nVotesReq && p.scriptPubKey == payee) {
+                return true;
+            }
         }
 
         return false;
@@ -157,29 +143,17 @@ public:
     }
 };
 
-// for storing the winning payments
+// For storing the winning payments
 class CMasternodePaymentWinner
 {
 public:
     CTxIn vinMasternode;
-
     int nBlockHeight;
     CScript payee;
     std::vector<unsigned char> vchSig;
 
-    CMasternodePaymentWinner()
-    {
-        nBlockHeight = 0;
-        vinMasternode = CTxIn();
-        payee = CScript();
-    }
-
-    CMasternodePaymentWinner(CTxIn vinIn)
-    {
-        nBlockHeight = 0;
-        vinMasternode = vinIn;
-        payee = CScript();
-    }
+    CMasternodePaymentWinner() : vinMasternode(CTxIn()), nBlockHeight(0), payee(CScript()), vchSig() {}
+    explicit CMasternodePaymentWinner(const CTxIn& vinIn) : vinMasternode(vinIn), nBlockHeight(0), payee(CScript()), vchSig() {}
 
     uint256 GetHash()
     {
@@ -187,7 +161,6 @@ public:
         ss << payee;
         ss << nBlockHeight;
         ss << vinMasternode.prevout;
-
         return ss.GetHash();
     }
 
@@ -196,11 +169,7 @@ public:
     bool SignatureValid();
     void Relay();
 
-    void AddPayee(CScript payeeIn)
-    {
-        payee = payeeIn;
-    }
-
+    void AddPayee(const CScript& payeeIn) { payee = payeeIn; }
 
     ADD_SERIALIZE_METHODS;
 
@@ -215,7 +184,7 @@ public:
 
     std::string ToString()
     {
-        std::string ret = "";
+        std::string ret;
         ret += vinMasternode.ToString();
         ret += ", " + std::to_string(nBlockHeight);
         ret += ", " + payee.ToString();
@@ -228,7 +197,6 @@ public:
 // Masternode Payments Class
 // Keeps track of who should get paid for which blocks
 //
-
 class CMasternodePayments
 {
 private:
@@ -238,13 +206,12 @@ private:
 public:
     std::map<uint256, CMasternodePaymentWinner> mapMasternodePayeeVotes;
     std::map<int, CMasternodeBlockPayees> mapMasternodeBlocks;
-    std::map<uint256, int> mapMasternodesLastVote; //prevout.hash + prevout.n, nBlockHeight
 
-    CMasternodePayments()
-    {
-        nSyncedFromPeer = 0;
-        nLastBlockHeight = 0;
-    }
+    // NOTE: This legacy keying scheme (outpoint.hash + outpoint.n) can theoretically collide.
+    // Changing it requires a coordinated refactor of both header and implementation.
+    std::map<uint256, int> mapMasternodesLastVote; // prevout.hash + prevout.n, nBlockHeight
+
+    CMasternodePayments() : nSyncedFromPeer(0), nLastBlockHeight(0) {}
 
     void Clear()
     {
@@ -264,18 +231,19 @@ public:
     bool IsTransactionValid(const CTransaction& txNew, int nBlockHeight);
     bool IsScheduled(CMasternode& mn, int nNotBlockHeight);
 
-    bool CanVote(COutPoint outMasternode, int nBlockHeight)
+    bool CanVote(const COutPoint& outMasternode, int nBlockHeight)
     {
         LOCK(cs_mapMasternodePayeeVotes);
 
-        if (mapMasternodesLastVote.count(outMasternode.hash + outMasternode.n)) {
-            if (mapMasternodesLastVote[outMasternode.hash + outMasternode.n] == nBlockHeight) {
+        const uint256 key = outMasternode.hash + outMasternode.n;
+        if (mapMasternodesLastVote.count(key)) {
+            if (mapMasternodesLastVote[key] == nBlockHeight) {
                 return false;
             }
         }
 
-        //record this masternode voted
-        mapMasternodesLastVote[outMasternode.hash + outMasternode.n] = nBlockHeight;
+        // record this masternode voted
+        mapMasternodesLastVote[key] = nBlockHeight;
         return true;
     }
 
@@ -297,5 +265,4 @@ public:
     }
 };
 
-
-#endif
+#endif // AGRARIAN_MASTERNODE_PAYMENTS_H

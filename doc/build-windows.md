@@ -1,151 +1,198 @@
-WINDOWS BUILD NOTES
-====================
+Copyright (c) 2026 Agrarian Developers
 
-Below are some notes on how to build Agrarian Core for Windows.
+============================================================
+                Agrarian Core – Windows Build Notes
+============================================================
 
-The options known to work for building Agrarian Core on Windows are:
+This document describes how to build Agrarian Core for Windows.
 
-* On Linux, using the [Mingw-w64](https://mingw-w64.org/doku.php) cross compiler tool chain. Ubuntu Bionic 18.04 is required
-and is the platform used to build the Agrarian Core Windows release binaries.
-* On Windows, using [Windows
-Subsystem for Linux (WSL)](https://msdn.microsoft.com/commandline/wsl/about) and the Mingw-w64 cross compiler tool chain.
-
-Other options which may work, but which have not been extensively tested are (please contribute instructions):
-
-* On Windows, using a POSIX compatibility layer application such as [cygwin](http://www.cygwin.com/) or [msys2](http://www.msys2.org/).
-* On Windows, using a native compiler tool chain such as [Visual Studio](https://www.visualstudio.com).
-
-Installing Windows Subsystem for Linux
----------------------------------------
-
-With Windows 10, Microsoft has released a new feature named the [Windows
-Subsystem for Linux (WSL)](https://msdn.microsoft.com/commandline/wsl/about). This
-feature allows you to run a bash shell directly on Windows in an Ubuntu-based
-environment. Within this environment you can cross compile for Windows without
-the need for a separate Linux VM or server. Note that while WSL can be installed with
-other Linux variants, such as OpenSUSE, the following instructions have only been
-tested with Ubuntu.
-
-This feature is not supported in versions of Windows prior to Windows 10 or on
-Windows Server SKUs. In addition, it is available [only for 64-bit versions of
-Windows](https://msdn.microsoft.com/en-us/commandline/wsl/install_guide).
-
-Full instructions to install WSL are available on the above link.
-To install WSL on Windows 10 with Fall Creators Update installed (version >= 16215.0) do the following:
-
-1. Enable the Windows Subsystem for Linux feature
-  * Open the Windows Features dialog (`OptionalFeatures.exe`)
-  * Enable 'Windows Subsystem for Linux'
-  * Click 'OK' and restart if necessary
-2. Install Ubuntu
-  * Open Microsoft Store and search for "Ubuntu 18.04" or use [this link](https://www.microsoft.com/store/productId/9N9TNGVNDL3Q)
-  * Click Install
-3. Complete Installation
-  * Open a cmd prompt and type "Ubuntu1804"
-  * Create a new UNIX user account (this is a separate account from your Windows account)
-
-After the bash shell is active, you can follow the instructions below, starting
-with the "Cross-compilation" section. Compiling the 64-bit version is
-recommended, but it is possible to compile the 32-bit version.
-
-Cross-compilation for Ubuntu and Windows Subsystem for Linux
+------------------------------------------------------------
+SUPPORTED BUILD METHODS
 ------------------------------------------------------------
 
-The steps below can be performed on Ubuntu (including in a VM) or WSL. The depends system
-will also work on other Linux distributions, however the commands for
-installing the toolchain will be different.
+The following methods are known to work:
 
-First, install the general dependencies:
+1. Linux (Ubuntu 18.04 Bionic recommended)
+   Using the Mingw-w64 cross-compilation toolchain.
+   This is the method used to produce official Windows release binaries.
+
+2. Windows 10+
+   Using Windows Subsystem for Linux (WSL) with Mingw-w64.
+
+------------------------------------------------------------
+UNTESTED / PARTIALLY TESTED OPTIONS
+------------------------------------------------------------
+
+The following may work but are not officially supported:
+
+• Cygwin
+• MSYS2
+• Native Visual Studio toolchain
+
+Contributions for these methods are welcome.
+
+============================================================
+WINDOWS SUBSYSTEM FOR LINUX (WSL)
+============================================================
+
+WSL allows running a Linux environment directly on Windows without a VM.
+
+Requirements:
+• Windows 10 (64-bit only)
+• Not supported on Windows Server
+• Ubuntu recommended (tested on Ubuntu 18.04)
+
+------------------------------------------------------------
+INSTALLING WSL
+------------------------------------------------------------
+
+1. Enable WSL
+   - Run: OptionalFeatures.exe
+   - Enable "Windows Subsystem for Linux"
+   - Restart if prompted
+
+2. Install Ubuntu
+   - Open Microsoft Store
+   - Install "Ubuntu 18.04"
+
+3. Complete Setup
+   - Open command prompt
+   - Run: Ubuntu1804
+   - Create a UNIX user account
+
+Once WSL is active, continue with cross-compilation instructions below.
+
+============================================================
+CROSS-COMPILATION (Ubuntu or WSL)
+============================================================
+
+The steps below work on:
+• Native Ubuntu
+• Ubuntu VM
+• WSL
+
+------------------------------------------------------------
+GENERAL DEPENDENCIES
+------------------------------------------------------------
 
     sudo apt update
     sudo apt upgrade
-    sudo apt install build-essential libtool autotools-dev automake pkg-config bsdmainutils curl git
+    sudo apt install build-essential libtool autotools-dev \
+        automake pkg-config bsdmainutils curl git
 
-A host toolchain (`build-essential`) is necessary because some dependency
-packages (such as `protobuf`) need to build host utilities that are used in the
-build process.
+A host toolchain (build-essential) is required because some dependencies
+(e.g., protobuf) build host utilities during the process.
 
-See [dependencies.md](dependencies.md) for a complete overview.
-
-If you want to build the windows installer with `make deploy` you need [NSIS](https://nsis.sourceforge.io/Main_Page):
+If building the Windows installer (`make deploy`):
 
     sudo apt install nsis
 
-Acquire the source in the usual way:
+------------------------------------------------------------
+SOURCE CODE
+------------------------------------------------------------
 
     git clone https://github.com/agrarian-project/agrarian.git
     cd agrarian
 
-## Building for 64-bit Windows
+============================================================
+BUILDING FOR 64-BIT WINDOWS
+============================================================
 
-The first step is to install the mingw-w64 cross-compilation tool chain:
+Install Mingw-w64 toolchain:
 
     sudo apt install g++-mingw-w64-x86-64
 
-Ubuntu Bionic 18.04 <sup>[1](#footnote1)</sup>:
+Ubuntu 18.04:
 
-    sudo update-alternatives --config x86_64-w64-mingw32-g++ # Set the default mingw32 g++ compiler option to posix.
+    sudo update-alternatives --config x86_64-w64-mingw32-g++
 
-Once the toolchain is installed the build steps are common:
+Select the POSIX thread model (required).
 
-Note that for WSL the Agrarian Core source path MUST be somewhere in the default mount file system, for
-example /usr/src/agrarian, AND not under /mnt/d/. If this is not the case the dependency autoconf scripts will fail.
-This means you cannot use a directory that is located directly on the host Windows file system to perform the build.
+------------------------------------------------------------
+IMPORTANT (WSL USERS)
+------------------------------------------------------------
 
-Build using:
+The source directory MUST reside inside the Linux filesystem
+(e.g., /usr/src/agrarian).
 
-    PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') # strip out problematic Windows %PATH% imported var
+DO NOT build from /mnt/c or any mounted Windows path.
+Autoconf scripts will fail.
+
+------------------------------------------------------------
+BUILD COMMANDS
+------------------------------------------------------------
+
+    PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
     cd depends
     make HOST=x86_64-w64-mingw32
     cd ..
-    ./autogen.sh # not required when building from tarball
-    CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/
+    ./autogen.sh
+    CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site \
+        ./configure --prefix=/
     make
 
-## Building for 32-bit Windows
+============================================================
+BUILDING FOR 32-BIT WINDOWS
+============================================================
 
-To build executables for Windows 32-bit, install the following dependencies:
+Install toolchain:
 
     sudo apt install g++-mingw-w64-i686 mingw-w64-i686-dev
 
-Ubuntu Bionic 18.04 <sup>[1](#footnote1)</sup>:
+Ubuntu 18.04:
 
-    sudo update-alternatives --config i686-w64-mingw32-g++  # Set the default mingw32 g++ compiler option to posix.
+    sudo update-alternatives --config i686-w64-mingw32-g++
 
-Build using:
+Select the POSIX thread model.
 
-    PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g') # strip out problematic Windows %PATH% imported var
+------------------------------------------------------------
+BUILD COMMANDS
+------------------------------------------------------------
+
+    PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
     cd depends
     make HOST=i686-w64-mingw32
     cd ..
-    ./autogen.sh # not required when building from tarball
-    CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site ./configure --prefix=/
+    ./autogen.sh
+    CONFIG_SITE=$PWD/depends/i686-w64-mingw32/share/config.site \
+        ./configure --prefix=/
     make
 
-## Depends system
+============================================================
+DEPENDS SYSTEM
+============================================================
 
-For further documentation on the depends system see [README.md](../depends/README.md) in the depends directory.
+For additional documentation, see:
 
-Installation
--------------
+    depends/README.md
 
-After building using the Windows subsystem it can be useful to copy the compiled
-executables to a directory on the Windows drive in the same directory structure
-as they appear in the release `.zip` archive. This can be done in the following
-way. This will install to `c:\workspace\agrarian`, for example:
+============================================================
+INSTALLATION
+============================================================
+
+To install into a Windows-accessible directory:
 
     make install DESTDIR=/mnt/c/workspace/agrarian
 
-You can also create an installer using:
+To build a Windows installer:
 
     make deploy
 
-Footnotes
----------
+============================================================
+THREAD MODEL NOTE
+============================================================
 
-<a name="footnote1">1</a>: Starting from Ubuntu Xenial 16.04, both the 32 and 64 bit Mingw-w64 packages install two different
-compiler options to allow a choice between either posix or win32 threads. The default option is win32 threads which is the more
-efficient since it will result in binary code that links directly with the Windows kernel32.lib. Unfortunately, the headers
-required to support win32 threads conflict with some of the classes in the C++11 standard library, in particular std::mutex.
-It's not possible to build the Agrarian Core code using the win32 version of the Mingw-w64 cross compilers (at least not without
-modifying headers in the Agrarian Core source code).
+Ubuntu Mingw-w64 packages include two thread models:
+
+• win32 (default)
+• posix
+
+The win32 model conflicts with certain C++11 headers
+(e.g., std::mutex) used by Agrarian Core.
+
+You MUST select the POSIX thread model when prompted by
+update-alternatives.
+
+============================================================
+END OF DOCUMENT
+============================================================

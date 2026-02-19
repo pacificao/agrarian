@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Agrarian Developers
 #include <windows.h>             // needed for VERSIONINFO
 #include "clientversion.h"       // holds the needed client version information
 

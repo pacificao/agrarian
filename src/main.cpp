@@ -2,6 +2,7 @@
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2019 The PIVX developers
+// Copyright (c) 2026 The Agrarian developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -1986,22 +1987,40 @@ double ConvertBitsToDouble(unsigned int nBits)
     return dDiff;
 }
 
+int64_t GetBlockValue(int nHeight, bool fProofOfStake)
+{
+    // NOTE:
+    // - Height 0 is genesis and uses the special, pre-mined value.
+    // - During the hybrid window, both PoW and PoS blocks may be created.
+    //   Subsidy policy is therefore selected by block type, not by height alone.
+    //
+    // Current Agrarian policy:
+    //   * PoW blocks (height > 0 && height <= LAST_POW_BLOCK): 50 AGR
+    //   * PoS blocks (height >= FIRST_POS_BLOCK):              10 AGR
+    //   * PoW blocks are not valid beyond LAST_POW_BLOCK (enforced elsewhere).
+    if (nHeight == 0) {
+        return 5000000000 * COIN;
+    }
+
+    if (fProofOfStake) {
+        return 10 * COIN;
+    }
+
+    if (nHeight > 0 && nHeight <= Params().LAST_POW_BLOCK()) {
+        return 50 * COIN;
+    }
+
+    // Should not be reachable for valid blocks (PoW is disallowed beyond LAST_POW_BLOCK).
+    return 0;
+}
+
+// Backward-compatible wrapper for call sites that only know height.
+// Prefer GetBlockValue(height, isPoS) when block type is available.
 int64_t GetBlockValue(int nHeight)
 {
-    int64_t nSubsidy = 0;
-    
-    if (nHeight == 0) {
-     nSubsidy = 5000000000 * COIN;
-    }
-    else if (nHeight <= Params().LAST_POW_BLOCK() && nHeight > 0) {
-     nSubsidy = 50 * COIN;
-    }
-    else if (nHeight > Params().LAST_POW_BLOCK()) {
-     nSubsidy = 10 * COIN;
-    }
-    
-    return nSubsidy;
+    return GetBlockValue(nHeight, false);
 }
+
 
 CAmount GetSeeSaw(const CAmount& blockValue, int nMasternodeCount, int nHeight)
 {
@@ -2911,15 +2930,17 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         return true;
     }
 
-    if (pindex->nHeight <= Params().LAST_POW_BLOCK() && block.IsProofOfStake())
-        return state.DoS(100, error("ConnectBlock() : PoS period not active"),
-            REJECT_INVALID, "PoS-early");
+    // Hybrid consensus:
+// - PoS blocks are permitted starting at Params().FIRST_POS_BLOCK().
+// - PoW blocks are permitted up to and including Params().LAST_POW_BLOCK().
+if (block.IsProofOfStake() && pindex->nHeight < Params().FIRST_POS_BLOCK())
+    return state.DoS(100, error("ConnectBlock() : PoS period not active"),
+        REJECT_INVALID, "PoS-early");
 
-    if (pindex->nHeight > Params().LAST_POW_BLOCK() && block.IsProofOfWork())
-        return state.DoS(100, error("ConnectBlock() : PoW period ended"),
-            REJECT_INVALID, "PoW-ended");
-
-    bool fScriptChecks = pindex->nHeight >= Checkpoints::GetTotalBlocksEstimate();
+if (block.IsProofOfWork() && pindex->nHeight > Params().LAST_POW_BLOCK())
+    return state.DoS(100, error("ConnectBlock() : PoW period ended"),
+        REJECT_INVALID, "PoW-ended");
+bool fScriptChecks = pindex->nHeight >= Checkpoints::GetTotalBlocksEstimate();
 
     // If scripts won't be checked anyways, don't bother seeing if CLTV is activated
     bool fCLTVHasMajority = false;
@@ -3132,7 +3153,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime1 - nTimeStart), 0.001 * (nTime1 - nTimeStart) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime1 - nTimeStart) / (nInputs - 1), nTimeConnect * 0.000001);
 
     //PoW phase redistributed fees to miner. PoS stage destroys fees.
-    CAmount nExpectedMint = GetBlockValue(pindex->pprev->nHeight);
+    CAmount nExpectedMint = GetBlockValue(pindex->nHeight, block.IsProofOfStake());
     if (block.IsProofOfWork())
         nExpectedMint += nFees;
 

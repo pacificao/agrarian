@@ -1,10 +1,11 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015-2019 The PIVX developers
+// Copyright (c) 2026 Agrarian Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef MASTERNODE_BUDGET_H
-#define MASTERNODE_BUDGET_H
+#ifndef AGRARIAN_MASTERNODE_BUDGET_H
+#define AGRARIAN_MASTERNODE_BUDGET_H
 
 #include "base58.h"
 #include "init.h"
@@ -14,9 +15,11 @@
 #include "net.h"
 #include "sync.h"
 #include "util.h"
-
-using namespace std;
-
+#include <cstdint>
+#include <std::map>
+#include <std::string>
+#include <utility>
+#include <std::vector>
 extern CCriticalSection cs_budget;
 
 class CBudgetManager;
@@ -41,7 +44,7 @@ static const CAmount PROPOSAL_FEE_TX = (50 * COIN);
 static const CAmount BUDGET_FEE_TX_OLD = (50 * COIN);
 static const CAmount BUDGET_FEE_TX = (5 * COIN);
 static const int64_t BUDGET_VOTE_UPDATE_MIN = 60 * 60;
-static map<uint256, int> mapPayment_History;
+static std::map<uint256, int> mapPayment_History;
 
 extern std::vector<CBudgetProposalBroadcast> vecImmatureBudgetProposals;
 extern std::vector<CFinalizedBudgetBroadcast> vecImmatureFinalizedBudgets;
@@ -179,16 +182,16 @@ class CBudgetManager
 {
 private:
     //hold txes until they mature enough to use
-    // XX42    map<uint256, CTransaction> mapCollateral;
-    map<uint256, uint256> mapCollateralTxids;
+    // XX42    std::map<uint256, CTransaction> mapCollateral;
+    std::map<uint256, uint256> mapCollateralTxids;
 
 public:
     // critical section to protect the inner data structures
     mutable CCriticalSection cs;
 
     // keep track of the scanning errors I've seen
-    map<uint256, CBudgetProposal> mapProposals;
-    map<uint256, CFinalizedBudget> mapFinalizedBudgets;
+    std::map<uint256, CBudgetProposal> mapProposals;
+    std::map<uint256, CFinalizedBudget> mapFinalizedBudgets;
 
     std::map<uint256, CBudgetProposalBroadcast> mapSeenMasternodeBudgetProposals;
     std::map<uint256, CBudgetVote> mapSeenMasternodeBudgetVotes;
@@ -321,7 +324,7 @@ public:
     std::string strBudgetName;
     int nBlockStart;
     std::vector<CTxBudgetPayment> vecBudgetPayments;
-    map<uint256, CFinalizedBudgetVote> mapVotes;
+    std::map<uint256, CFinalizedBudgetVote> mapVotes;
     uint256 nFeeTXHash;
     int64_t nTime;
 
@@ -372,7 +375,7 @@ public:
     void SubmitVote();
 
     //checks the hashes to make sure we know about them
-    string GetStatus();
+    std::string GetStatus();
 
     uint256 GetHash()
     {
@@ -413,24 +416,24 @@ public:
     CFinalizedBudgetBroadcast(const CFinalizedBudget& other);
     CFinalizedBudgetBroadcast(std::string strBudgetNameIn, int nBlockStartIn, std::vector<CTxBudgetPayment> vecBudgetPaymentsIn, uint256 nFeeTXHashIn);
 
-    void swap(CFinalizedBudgetBroadcast& first, CFinalizedBudgetBroadcast& second) // nothrow
+    void std::swap(CFinalizedBudgetBroadcast& first, CFinalizedBudgetBroadcast& second) // nothrow
     {
         // enable ADL (not necessary in our case, but good practice)
         using std::swap;
 
         // by swapping the members of two classes,
         // the two classes are effectively swapped
-        swap(first.strBudgetName, second.strBudgetName);
-        swap(first.nBlockStart, second.nBlockStart);
-        first.mapVotes.swap(second.mapVotes);
-        first.vecBudgetPayments.swap(second.vecBudgetPayments);
-        swap(first.nFeeTXHash, second.nFeeTXHash);
-        swap(first.nTime, second.nTime);
+        std::swap(first.strBudgetName, second.strBudgetName);
+        std::swap(first.nBlockStart, second.nBlockStart);
+        first.mapVotes.std::swap(second.mapVotes);
+        first.vecBudgetPayments.std::swap(second.vecBudgetPayments);
+        std::swap(first.nFeeTXHash, second.nFeeTXHash);
+        std::swap(first.nTime, second.nTime);
     }
 
     CFinalizedBudgetBroadcast& operator=(CFinalizedBudgetBroadcast from)
     {
-        swap(*this, from);
+        std::swap(*this, from);
         return *this;
     }
 
@@ -478,7 +481,7 @@ public:
     int64_t nTime;
     uint256 nFeeTXHash;
 
-    map<uint256, CBudgetVote> mapVotes;
+    std::map<uint256, CBudgetVote> mapVotes;
     //cache object
 
     CBudgetProposal();
@@ -559,27 +562,27 @@ public:
     CBudgetProposalBroadcast(const CBudgetProposalBroadcast& other) : CBudgetProposal(other) {}
     CBudgetProposalBroadcast(std::string strProposalNameIn, std::string strURLIn, int nPaymentCount, CScript addressIn, CAmount nAmountIn, int nBlockStartIn, uint256 nFeeTXHashIn);
 
-    void swap(CBudgetProposalBroadcast& first, CBudgetProposalBroadcast& second) // nothrow
+    void std::swap(CBudgetProposalBroadcast& first, CBudgetProposalBroadcast& second) // nothrow
     {
         // enable ADL (not necessary in our case, but good practice)
         using std::swap;
 
         // by swapping the members of two classes,
         // the two classes are effectively swapped
-        swap(first.strProposalName, second.strProposalName);
-        swap(first.nBlockStart, second.nBlockStart);
-        swap(first.strURL, second.strURL);
-        swap(first.nBlockEnd, second.nBlockEnd);
-        swap(first.nAmount, second.nAmount);
-        swap(first.address, second.address);
-        swap(first.nTime, second.nTime);
-        swap(first.nFeeTXHash, second.nFeeTXHash);
-        first.mapVotes.swap(second.mapVotes);
+        std::swap(first.strProposalName, second.strProposalName);
+        std::swap(first.nBlockStart, second.nBlockStart);
+        std::swap(first.strURL, second.strURL);
+        std::swap(first.nBlockEnd, second.nBlockEnd);
+        std::swap(first.nAmount, second.nAmount);
+        std::swap(first.address, second.address);
+        std::swap(first.nTime, second.nTime);
+        std::swap(first.nFeeTXHash, second.nFeeTXHash);
+        first.mapVotes.std::swap(second.mapVotes);
     }
 
     CBudgetProposalBroadcast& operator=(CBudgetProposalBroadcast from)
     {
-        swap(*this, from);
+        std::swap(*this, from);
         return *this;
     }
 
@@ -604,4 +607,4 @@ public:
 };
 
 
-#endif
+#endif // AGRARIAN_MASTERNODE_BUDGET_H

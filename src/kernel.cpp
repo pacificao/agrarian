@@ -1,5 +1,6 @@
 // Copyright (c) 2012-2013 The PPCoin developers
 // Copyright (c) 2015-2019 The PIVX developers
+// Copyright (c) 2026 Agrarian Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -13,9 +14,6 @@
 #include "stakeinput.h"
 #include "utilmoneystr.h"
 #include "zagrchain.h"
-
-using namespace std;
-
 bool fTestNet = false; // Params().NetworkID() == CBaseChainParams::TESTNET;
 
 // Modifier interval: time to elapse before new modifier is computed
@@ -313,7 +311,7 @@ bool stakeTargetHit(const uint256& hashProofOfStake, const int64_t& nValueIn, co
     uint256 bnCoinDayWeight = uint256(nValueIn) / 100;
 
     // Check if proof-of-stake hash meets the target protocol
-    return hashProofOfStake < (bnCoinDayWeight * bnTargetPerCoinDay);
+    return hashProofOfStake < (bnCoinDayWeight* bnTargetPerCoinDay);
 }
 
 bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint64_t nStakeModifier, const uint256& bnTarget,
