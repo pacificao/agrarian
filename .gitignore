@@ -142,3 +142,5 @@ qrc_*.cpp
 # -----------------------------
 tags
 TAGS
+installer/logs/
+installer/tests/tmp/

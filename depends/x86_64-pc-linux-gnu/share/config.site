@@ -1,0 +1,14 @@
+# Autoconf site defaults for Agrarian depends (generated)
+depends_prefix='/home/nathan/agrarian/depends/x86_64-pc-linux-gnu'
+with_boost='/home/nathan/agrarian/depends/x86_64-pc-linux-gnu'
+CPPFLAGS='-I/home/nathan/agrarian/depends/x86_64-pc-linux-gnu/include'
+LDFLAGS='-L/home/nathan/agrarian/depends/x86_64-pc-linux-gnu/lib'
+BOOST_CPPFLAGS='-I/home/nathan/agrarian/depends/x86_64-pc-linux-gnu/include'
+BOOST_LDFLAGS='-L/home/nathan/agrarian/depends/x86_64-pc-linux-gnu/lib'
+PKG_CONFIG='/usr/bin/pkg-config --static'
+PKG_CONFIG_LIBDIR='/home/nathan/agrarian/depends/x86_64-pc-linux-gnu/lib/pkgconfig:/home/nathan/agrarian/depends/x86_64-pc-linux-gnu/share/pkgconfig'
+PKG_CONFIG_PATH=""
+export PKG_CONFIG_LIBDIR
+export PKG_CONFIG_PATH
+BDB_CFLAGS='-I/home/nathan/agrarian/depends/x86_64-pc-linux-gnu/include'
+BDB_LIBS='-L/home/nathan/agrarian/depends/x86_64-pc-linux-gnu/lib -ldb_cxx-4.8 -ldb-4.8'

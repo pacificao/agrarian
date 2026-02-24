@@ -64,7 +64,7 @@ include funcs.mk
 # --------------------------------------------------------------------
 
 .PHONY: all
-all: $(packages)
+all: install
 
 # Optional convenience targets (only build what you need)
 .PHONY: base wallet zmq upnp qt
@@ -83,8 +83,10 @@ download: $(addsuffix _fetched,$(all_packages))
 # and generate share/config.site for top-level ./configure.
 # --------------------------------------------------------------------
 
-.PHONY: install install-clean reinstall
-install: all
+.PHONY: install install-clean reinstall install-prefix
+install: install-prefix
+
+install-prefix: $(packages)
 	@echo "== Installing depends into: $(host_prefix)"
 	@rm -rf "$(host_prefix)"
 	@mkdir -p "$(host_prefix)"
@@ -102,10 +104,17 @@ install: all
 	@mkdir -p "$(host_prefix)/share"
 	@{ \
 	  echo "# Autoconf site defaults for Agrarian depends (generated)"; \
+	  echo "depends_prefix='$(host_prefix)'"; \
+	  echo "with_boost='$(host_prefix)'"; \
 	  echo "CPPFLAGS='-I$(host_prefix)/include'"; \
 	  echo "LDFLAGS='-L$(host_prefix)/lib'"; \
+	  echo "BOOST_CPPFLAGS='-I$(host_prefix)/include'"; \
+	  echo "BOOST_LDFLAGS='-L$(host_prefix)/lib'"; \
+	  echo "PKG_CONFIG='`which pkg-config` --static'"; \
 	  echo "PKG_CONFIG_LIBDIR='$(host_prefix)/lib/pkgconfig:$(host_prefix)/share/pkgconfig'"; \
 	  echo "PKG_CONFIG_PATH=\"$$PKG_CONFIG_LIBDIR\""; \
+	  echo "export PKG_CONFIG_LIBDIR"; \
+	  echo "export PKG_CONFIG_PATH"; \
 	  echo "BDB_CFLAGS='-I$(host_prefix)/include'"; \
 	  echo "BDB_LIBS='-L$(host_prefix)/lib -ldb_cxx-4.8 -ldb-4.8'"; \
 	} > "$(host_prefix)/share/config.site"
