@@ -18,3 +18,18 @@ build_$(build_arch)_$(build_os)_$1 += $(build_$(build_os)_$1)
 build_$1=$$(build_$(build_arch)_$(build_os)_$1)
 endef
 $(foreach flags, CFLAGS CXXFLAGS LDFLAGS, $(eval $(call add_build_flags_func,$(flags))))
+
+# -----------------------------------------------------------------------------
+# Network / download defaults
+# -----------------------------------------------------------------------------
+#
+# Some older depends trees relied on these being provided via the environment.
+# On newer distros, passing curl options without numeric values will hard-fail
+# (e.g. "--connect-timeout" or "--retry" with an empty argument).
+
+DOWNLOAD_CONNECT_TIMEOUT ?= 30
+DOWNLOAD_RETRIES ?= 3
+
+# Generic source mirror used when a primary upstream is down.
+# You can override this at make time: make FALLBACK_DOWNLOAD_PATH=...
+FALLBACK_DOWNLOAD_PATH ?= https://bitcoincore.org/depends-sources
