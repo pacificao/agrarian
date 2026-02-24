@@ -1,0 +1,144 @@
+# -----------------------------
+# OS / editor / IDE
+# -----------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig
+*~
+.vscode/
+.idea/
+*.iml
+
+# -----------------------------
+# Logs / runtime artifacts
+# -----------------------------
+*.log
+*.pid
+*.pid.*
+*.core
+core
+core.*
+
+# -----------------------------
+# Autotools / configure outputs
+# -----------------------------
+/autom4te.cache/
+/aclocal.m4
+/ar-lib
+/compile
+/config.cache
+/config.guess
+/config.log
+/config.status
+/config.sub
+/configure
+/configure~
+/depcomp
+/install-sh
+/ltmain.sh
+/m4/libtool.m4
+/m4/lt*.m4
+/m4/ltsugar.m4
+/m4/ltversion.m4
+/m4/lt~obsolete.m4
+/missing
+/test-driver
+/libtool
+/Makefile
+/Makefile.in
+/**/Makefile
+/**/Makefile.in
+
+# Autotools-generated headers
+/src/config/bitcoin-config.h
+/src/config/bitcoin-config.h.in
+
+# -----------------------------
+# Build outputs
+# -----------------------------
+*.o
+*.obj
+*.a
+*.la
+*.lo
+*.s
+*.d
+*.d.*
+*.gcno
+*.gcda
+*.gcov
+*.profraw
+*.profdata
+*.lto
+*.Plo
+*.Po
+
+# Common build dirs
+/build/
+/build-*/
+/**/build/
+/**/build-*/
+.cmake/
+CMakeCache.txt
+CMakeFiles/
+compile_commands.json
+ninja-build/
+.ninja_deps
+.ninja_log
+
+# Qt build artifacts (if applicable)
+*.qrc.depends
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# -----------------------------
+# Depends system outputs (do not commit)
+# Keep sources/ if you want caching on the same machine, but not in git.
+# -----------------------------
+/depends/built/
+/depends/work/
+/depends/sources/
+/depends/SDKs/
+/depends/x86_64-pc-linux-gnu/
+/depends/i686-w64-mingw32/
+/depends/x86_64-w64-mingw32/
+/depends/*-apple-darwin*/
+/depends/*-unknown-linux-gnu*/
+/depends/*-pc-linux-gnu*/
+/depends/*-w64-mingw32*/
+
+# -----------------------------
+# Binaries / generated manpages (if your tree generates these)
+# -----------------------------
+/src/*d
+/src/*-cli
+/src/*-qt
+/src/*.exe
+/share/man/man1/*.1
+
+# -----------------------------
+# Packaging / release outputs
+# -----------------------------
+/dist/
+/release/
+/releases/
+/pkg/
+/packages/
+*.tar.gz
+*.zip
+*.deb
+*.rpm
+*.dmg
+*.msi
+*.exe
+
+# -----------------------------
+# Misc
+# -----------------------------
+tags
+TAGS
