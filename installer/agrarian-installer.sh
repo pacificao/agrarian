@@ -6,6 +6,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 HOST="x86_64-pc-linux-gnu"
 ACTION="all"
+QT_TARGET="native"
 WALLET="1"
 JOBS="$(nproc)"
 DO_UPDATE=0
@@ -13,6 +14,8 @@ RESET_DEPENDS=0
 ASSUME_YES=0
 USER_LOG_PATH=""
 TEST_MODE="${AGRARIAN_INSTALLER_TEST_MODE:-0}"
+DRY_RUN="0"
+SUPPORTED_HOSTS=()
 
 usage() {
   cat <<'USAGE'
@@ -24,12 +27,15 @@ Options:
   --host <triplet>          Build host triplet (default: x86_64-pc-linux-gnu)
   --action <depends|daemon|qt|all>
                             Action to run (default: all)
+  --qt-target <native|win64|win32|armhf|aarch64|all>
+                            Qt wallet target (default: native)
   --wallet <0|1>            Enable wallet-related dependencies/build flags (default: 1)
   --jobs <n>                Parallel build jobs (default: nproc)
   --update                  Run git pull --rebase before build
   --reset-depends           Remove depends/work, depends/built, depends/<host>
   --yes                     Assume yes for prompts
   --log <path>              Log output path
+  --dry-run                 Print commands without executing them
   -h, --help                Show this help
 USAGE
 }
@@ -37,6 +43,12 @@ USAGE
 fail() {
   echo "ERROR: $*" >&2
   exit 1
+}
+
+join_by() {
+  local IFS="$1"
+  shift
+  echo "$*"
 }
 
 check_ubuntu() {
@@ -71,11 +83,108 @@ confirm() {
 
 run_cmd() {
   echo "+ $*"
-  if [[ "$TEST_MODE" == "1" ]]; then
-    echo "[test-mode] skipped"
+  if is_dry_run; then
+    echo "[dry-run] skipped"
     return 0
   fi
   "$@"
+}
+
+detect_supported_hosts() {
+  local host_dir="${REPO_ROOT}/depends/hosts"
+  local name
+  local skip
+  local generic
+  local known_generics=("default" "linux" "mingw32" "darwin")
+
+  [[ -d "${host_dir}" ]] || fail "Missing depends hosts directory: ${host_dir}"
+
+  SUPPORTED_HOSTS=()
+  for path in "${host_dir}"/*.mk; do
+    [[ -f "${path}" ]] || continue
+    name="$(basename "${path}" .mk)"
+    skip=0
+    for generic in "${known_generics[@]}"; do
+      if [[ "${name}" == "${generic}" ]]; then
+        skip=1
+        break
+      fi
+    done
+    (( skip == 0 )) && SUPPORTED_HOSTS+=("${name}")
+  done
+
+  ((${#SUPPORTED_HOSTS[@]} > 0)) || fail "No supported host definitions found in ${host_dir}"
+}
+
+ensure_supported_host() {
+  local host="$1"
+  local supported
+  supported="$(join_by ", " "${SUPPORTED_HOSTS[@]}")"
+  if [[ ! " ${SUPPORTED_HOSTS[*]} " =~ [[:space:]]${host}[[:space:]] ]]; then
+    fail "Unsupported host '${host}'. Supported hosts: ${supported}"
+  fi
+}
+
+add_missing_toolchain() {
+  local tool="$1"
+  local package="$2"
+
+  if ! command -v "${tool}" >/dev/null 2>&1; then
+    MISSING_TOOLS+=("${tool}")
+    MISSING_PACKAGES+=("${package}")
+  fi
+}
+
+check_toolchains_for_host() {
+  local host="$1"
+  case "${host}" in
+    x86_64-w64-mingw32)
+      add_missing_toolchain "x86_64-w64-mingw32-g++" "g++-mingw-w64-x86-64"
+      ;;
+    i686-w64-mingw32)
+      add_missing_toolchain "i686-w64-mingw32-g++" "g++-mingw-w64-i686"
+      ;;
+    arm-linux-gnueabihf)
+      add_missing_toolchain "arm-linux-gnueabihf-g++" "g++-arm-linux-gnueabihf"
+      add_missing_toolchain "arm-linux-gnueabihf-ar" "binutils-arm-linux-gnueabihf"
+      ;;
+    aarch64-unknown-linux-gnu)
+      add_missing_toolchain "aarch64-linux-gnu-g++" "g++-aarch64-linux-gnu"
+      add_missing_toolchain "aarch64-linux-gnu-ar" "binutils-aarch64-linux-gnu"
+      ;;
+    *)
+      ;;
+  esac
+}
+
+ensure_toolchains_for_hosts() {
+  local hosts=("$@")
+  local unique_packages=()
+  local host
+  local pkg
+
+  MISSING_TOOLS=()
+  MISSING_PACKAGES=()
+
+  for host in "${hosts[@]}"; do
+    check_toolchains_for_host "${host}"
+  done
+
+  if ((${#MISSING_TOOLS[@]} == 0)); then
+    return 0
+  fi
+
+  for pkg in "${MISSING_PACKAGES[@]}"; do
+    if [[ ! " ${unique_packages[*]} " =~ [[:space:]]${pkg}[[:space:]] ]]; then
+      unique_packages+=("${pkg}")
+    fi
+  done
+
+  echo "ERROR: Missing required cross toolchain binaries:" >&2
+  printf '  - %s\n' "${MISSING_TOOLS[@]}" >&2
+  echo "Install with:" >&2
+  echo "  sudo apt-get update && sudo apt-get install -y $(join_by " " "${unique_packages[@]}")" >&2
+  exit 1
 }
 
 ensure_configure() {
@@ -98,16 +207,26 @@ reset_depends_paths() {
 }
 
 build_depends() {
-  local args=("HOST=${HOST}" "-j${JOBS}")
-  if [[ "$WALLET" == "0" ]]; then
-    args+=("USE_WALLET=0")
-  fi
+  local host="$1"
+  local args=("HOST=${host}" "USE_WALLET=${WALLET}" "-j${JOBS}")
+  run_cmd make -C "${REPO_ROOT}/depends" "${args[@]}"
+}
+
+build_depends_qt() {
+  local host="$1"
+  local args=("HOST=${host}" "USE_WALLET=${WALLET}" "-j${JOBS}" "qt")
   run_cmd make -C "${REPO_ROOT}/depends" "${args[@]}"
 }
 
 ensure_depends_prereqs() {
-  local prefix="${REPO_ROOT}/depends/${HOST}"
+  local host="$1"
+  local prefix="${REPO_ROOT}/depends/${host}"
   local missing=()
+
+  if is_dry_run; then
+    echo "[dry-run] skipping depends prefix checks for ${host}"
+    return 0
+  fi
 
   [[ -f "${prefix}/share/config.site" ]] || missing+=("${prefix}/share/config.site")
   [[ -f "${prefix}/include/boost/thread.hpp" ]] || missing+=("${prefix}/include/boost/thread.hpp")
@@ -127,41 +246,172 @@ ensure_depends_prereqs() {
   if (( ${#missing[@]} > 0 )); then
     echo "ERROR: depends prefix is missing required files:" >&2
     printf '  - %s\n' "${missing[@]}" >&2
-    echo "Fix: make -C ${REPO_ROOT}/depends HOST=${HOST} USE_WALLET=${WALLET} -j${JOBS}" >&2
+    echo "Fix: make -C ${REPO_ROOT}/depends HOST=${host} USE_WALLET=${WALLET} -j${JOBS}" >&2
+    exit 1
+  fi
+}
+
+ensure_qt_pkgconfig_prereqs() {
+  local host="$1"
+  local prefix="${REPO_ROOT}/depends/${host}"
+  local missing=()
+  local module
+  local found_path
+
+  if is_dry_run; then
+    echo "[dry-run] skipping Qt pkg-config checks for ${host}"
+    return 0
+  fi
+
+  for module in Qt5Core Qt5Gui Qt5Network Qt5Widgets; do
+    found_path=""
+    if [[ -f "${prefix}/lib/pkgconfig/${module}.pc" ]]; then
+      found_path="${prefix}/lib/pkgconfig/${module}.pc"
+    elif [[ -f "${prefix}/share/pkgconfig/${module}.pc" ]]; then
+      found_path="${prefix}/share/pkgconfig/${module}.pc"
+    fi
+    [[ -n "${found_path}" ]] || missing+=("${module}.pc in ${prefix}/(lib|share)/pkgconfig")
+  done
+
+  if (( ${#missing[@]} > 0 )); then
+    echo "ERROR: Qt pkg-config files are missing from depends prefix:" >&2
+    printf '  - %s\n' "${missing[@]}" >&2
+    echo "Fix: make -C ${REPO_ROOT}/depends HOST=${host} USE_WALLET=${WALLET} -j${JOBS} qt" >&2
     exit 1
   fi
 }
 
 configure_project() {
   local mode="$1"
-  local config_site="${REPO_ROOT}/depends/${HOST}/share/config.site"
-  local cfg_args=("--prefix=${REPO_ROOT}/depends/${HOST}")
+  local host="$2"
+  local config_site="${REPO_ROOT}/depends/${host}/share/config.site"
+  local cfg_args=(
+    "--build=${host}"
+    "--host=${host}"
+    "--prefix=${REPO_ROOT}/depends/${host}"
+    "--with-boost=${REPO_ROOT}/depends/${host}"
+  )
 
   [[ "$WALLET" == "0" ]] && cfg_args+=("--disable-wallet")
   [[ "$mode" == "daemon" ]] && cfg_args+=("--without-gui")
 
   ensure_configure
-  ensure_depends_prereqs
+  ensure_depends_prereqs "${host}"
   run_cmd env CONFIG_SITE="${config_site}" "${REPO_ROOT}/configure" "${cfg_args[@]}"
 }
 
 build_daemon() {
-  configure_project daemon
+  configure_project daemon "${HOST}"
   run_cmd make -C "${REPO_ROOT}/src" "-j${JOBS}" agrariand
 }
 
-build_qt() {
-  configure_project qt
+qt_target_host() {
+  local target="$1"
+  case "${target}" in
+    native)
+      echo "${HOST}"
+      ;;
+    win64)
+      echo "x86_64-w64-mingw32"
+      ;;
+    win32)
+      echo "i686-w64-mingw32"
+      ;;
+    armhf)
+      echo "arm-linux-gnueabihf"
+      ;;
+    aarch64)
+      echo "aarch64-unknown-linux-gnu"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+qt_target_output() {
+  local host="$1"
+  if [[ "${host}" == *mingw32 ]]; then
+    echo "${REPO_ROOT}/src/qt/agrarian-qt.exe"
+  else
+    echo "${REPO_ROOT}/src/qt/agrarian-qt"
+  fi
+}
+
+qt_target_list() {
+  local target="$1"
+  case "${target}" in
+    all)
+      echo "native win64 win32 armhf aarch64"
+      ;;
+    *)
+      echo "${target}"
+      ;;
+  esac
+}
+
+build_qt_for_host() {
+  local target="$1"
+  local host="$2"
+  local prefix="${REPO_ROOT}/depends/${host}"
+  local output_path
+
+  output_path="$(qt_target_output "${host}")"
+
+  echo "Qt wallet build target:"
+  echo "  target: ${target}"
+  echo "  host: ${host}"
+  echo "  depends prefix: ${prefix}"
+  echo "  output: ${output_path}"
+
+  build_depends_qt "${host}"
+  ensure_qt_pkgconfig_prereqs "${host}"
+  configure_project qt "${host}"
   run_cmd make -C "${REPO_ROOT}/src/qt" "-j${JOBS}" agrarian-qt
 }
 
+build_qt() {
+  local target
+  local host
+  local qt_targets
+  local unique_hosts=()
+  local entry
+
+  qt_targets="$(qt_target_list "${QT_TARGET}")"
+  for target in ${qt_targets}; do
+    host="$(qt_target_host "${target}")"
+    if [[ -z "${host}" ]]; then
+      fail "Invalid --qt-target value: ${target}"
+    fi
+    for entry in "${unique_hosts[@]}"; do
+      if [[ "${entry}" == "${host}" ]]; then
+        host=""
+        break
+      fi
+    done
+    [[ -n "${host}" ]] && unique_hosts+=("${host}")
+  done
+
+  ensure_toolchains_for_hosts "${unique_hosts[@]}"
+
+  for target in ${qt_targets}; do
+    host="$(qt_target_host "${target}")"
+    build_qt_for_host "${target}" "${host}"
+  done
+}
+
 build_all() {
-  configure_project all
+  configure_project all "${HOST}"
   run_cmd make -C "${REPO_ROOT}" "-j${JOBS}"
 }
 
 needs_depends() {
-  [[ ! -f "${REPO_ROOT}/depends/${HOST}/share/config.site" ]]
+  local host="$1"
+  [[ ! -f "${REPO_ROOT}/depends/${host}/share/config.site" ]]
+}
+
+is_dry_run() {
+  [[ "${TEST_MODE}" == "1" || "${DRY_RUN}" == "1" ]]
 }
 
 while [[ $# -gt 0 ]]; do
@@ -174,6 +424,11 @@ while [[ $# -gt 0 ]]; do
     --action)
       [[ $# -ge 2 ]] || fail "Missing value for --action"
       ACTION="$2"
+      shift 2
+      ;;
+    --qt-target)
+      [[ $# -ge 2 ]] || fail "Missing value for --qt-target"
+      QT_TARGET="$2"
       shift 2
       ;;
     --wallet)
@@ -203,6 +458,11 @@ while [[ $# -gt 0 ]]; do
       USER_LOG_PATH="$2"
       shift 2
       ;;
+    --dry-run)
+      DRY_RUN=1
+      TEST_MODE=1
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -216,6 +476,11 @@ done
 case "$ACTION" in
   depends|daemon|qt|all) ;;
   *) fail "Invalid --action: ${ACTION}" ;;
+esac
+
+case "$QT_TARGET" in
+  native|win64|win32|armhf|aarch64|all) ;;
+  *) fail "Invalid --qt-target: ${QT_TARGET}" ;;
 esac
 
 case "$WALLET" in
@@ -241,14 +506,32 @@ echo "Agrarian installer"
 echo "  repo: ${REPO_ROOT}"
 echo "  host: ${HOST}"
 echo "  action: ${ACTION}"
+echo "  qt_target: ${QT_TARGET}"
 echo "  wallet: ${WALLET}"
 echo "  jobs: ${JOBS}"
 echo "  update: ${DO_UPDATE}"
 echo "  reset_depends: ${RESET_DEPENDS}"
-echo "  test_mode: ${TEST_MODE}"
+echo "  dry_run: $(is_dry_run && echo 1 || echo 0)"
 echo "  log: ${LOG_PATH}"
 
 check_ubuntu
+detect_supported_hosts
+
+if [[ "${ACTION}" != "qt" && "${QT_TARGET}" != "native" ]]; then
+  fail "--qt-target is only supported with --action qt"
+fi
+
+if [[ "${ACTION}" == "qt" ]]; then
+  qt_targets="$(qt_target_list "${QT_TARGET}")"
+  for target in ${qt_targets}; do
+    host="$(qt_target_host "${target}")"
+    [[ -n "${host}" ]] || fail "Invalid --qt-target value: ${target}"
+    ensure_supported_host "${host}"
+  done
+else
+  ensure_supported_host "${HOST}"
+  ensure_toolchains_for_hosts "${HOST}"
+fi
 
 confirm "Proceed with selected installer action?"
 
@@ -263,22 +546,19 @@ fi
 
 case "$ACTION" in
   depends)
-    build_depends
+    build_depends "${HOST}"
     ;;
   daemon)
-    if needs_depends; then
-      build_depends
+    if needs_depends "${HOST}"; then
+      build_depends "${HOST}"
     fi
     build_daemon
     ;;
   qt)
-    if needs_depends; then
-      build_depends
-    fi
     build_qt
     ;;
   all)
-    build_depends
+    build_depends "${HOST}"
     build_all
     ;;
 esac
