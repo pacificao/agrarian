@@ -4109,13 +4109,9 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
         return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
             REJECT_INVALID, "time-too-new");
 
-    // Add concurrent PoW and PoS validation logic
+    // Add concurrent PoW and PoS validation logic. Height-dependent PoS/PoW
+    // window checks are handled in ConnectBlock, where block height is known.
     if (block.IsProofOfWork() || block.IsProofOfStake()) {
-        // Allow PoS starting at block 2
-        if (block.IsProofOfStake() && block.GetBlockHeight() < 2)
-            return state.DoS(100, error("CheckBlock() : PoS not allowed before block 2"),
-                REJECT_INVALID, "bad-pos-before-2");
-
         // Ensure the block is valid as PoW or PoS
         if (!block.IsProofOfWork() && !block.IsProofOfStake())
             return state.DoS(100, error("CheckBlock() : Invalid block type, not PoW or PoS"),
@@ -4928,7 +4924,7 @@ bool ProcessNewBlock(CValidationState& state, CNode* pfrom, CBlock* pblock, CDis
     return true;
 }
 
-bool TestBlockValidity(CValidationState& state, const CBlock& block, CBlockIndex* const pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot)
+bool TestBlockValidity(CValidationState& state, const CBlock& block, CBlockIndex* const pindexPrev, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig)
 {
     AssertLockHeld(cs_main);
     assert(pindexPrev);
@@ -4945,7 +4941,7 @@ bool TestBlockValidity(CValidationState& state, const CBlock& block, CBlockIndex
     // NOTE: CheckBlockHeader is called by CheckBlock
     if (!ContextualCheckBlockHeader(block, state, pindexPrev))
         return false;
-    if (!CheckBlock(block, state, fCheckPOW, fCheckMerkleRoot))
+    if (!CheckBlock(block, state, fCheckPOW, fCheckMerkleRoot, fCheckSig))
         return false;
     if (!ContextualCheckBlock(block, state, pindexPrev))
         return false;

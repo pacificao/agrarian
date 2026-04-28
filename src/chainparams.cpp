@@ -9,7 +9,6 @@
 #include "libzerocoin/Params.h"
 
 #include "chainparams.h"
-#include "chainparamsseeds.h"
 #include "random.h"
 #include "util.h"
 #include "utilstrencodings.h"
@@ -25,6 +24,8 @@ struct SeedSpec6 {
     uint8_t addr[16];
     uint16_t port;
 };
+
+#include "chainparamsseeds.h"
 
 /**
  * Main network

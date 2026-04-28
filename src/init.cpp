@@ -343,14 +343,16 @@ bool static Bind(const CService& addr, unsigned int flags)
     return true;
 }
 
+static boost::signals2::connection rpcBlockNotifyConnection;
+
 void OnRPCStarted()
 {
-    uiInterface.NotifyBlockTip.connect(RPCNotifyBlockChange);
+    rpcBlockNotifyConnection = uiInterface.NotifyBlockTip.connect(RPCNotifyBlockChange);
 }
 
 void OnRPCStopped()
 {
-    uiInterface.NotifyBlockTip.disconnect(RPCNotifyBlockChange);
+    rpcBlockNotifyConnection.disconnect();
     //RPCNotifyBlockChange(0);
     cvBlockChange.notify_all();
     LogPrint("rpc", "RPC stopped.\n");

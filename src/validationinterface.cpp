@@ -6,6 +6,9 @@
 
 #include "validationinterface.h"
 
+using boost::placeholders::_1;
+using boost::placeholders::_2;
+
 static CMainSignals g_signals;
 
 CMainSignals& GetMainSignals()

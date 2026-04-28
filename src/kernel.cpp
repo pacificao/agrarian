@@ -253,7 +253,7 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
     nStakeModifierTime = pindexFrom->GetBlockTime();
 
     // Enforce PoS start height
-    if (pindexFrom->nHeight < Params().PoSStartHeight()) {
+    if (pindexFrom->nHeight < Params().FIRST_POS_BLOCK()) {
         return error("GetKernelStakeModifier(): PoS not active at block height %d", pindexFrom->nHeight);
     }
 
@@ -310,8 +310,8 @@ bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockF
     int nHeightStart = chainActive.Height();
 
     // Ensure staking begins at the correct height
-    if (nHeightStart < Params().PoSStartHeight()) {
-        return error("Stake(): PoS staking attempted before allowed start height %d", Params().PoSStartHeight());
+    if (nHeightStart < Params().FIRST_POS_BLOCK()) {
+        return error("Stake(): PoS staking attempted before allowed start height %d", Params().FIRST_POS_BLOCK());
     }
 
     if (Params().NetworkID() != CBaseChainParams::REGTEST) {
@@ -501,4 +501,3 @@ bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierCheck
     }
     return true;
 }
-

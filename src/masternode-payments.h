@@ -155,7 +155,7 @@ public:
     CMasternodePaymentWinner() : vinMasternode(CTxIn()), nBlockHeight(0), payee(CScript()), vchSig() {}
     explicit CMasternodePaymentWinner(const CTxIn& vinIn) : vinMasternode(vinIn), nBlockHeight(0), payee(CScript()), vchSig() {}
 
-    uint256 GetHash()
+    uint256 GetHash() const
     {
         CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
         ss << payee;

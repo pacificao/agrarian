@@ -26,6 +26,9 @@
 #define _(x) std::string(x) /* Keep the _() around in case gettext or such will be used later to translate non-UI */
 static const int DEFAULT_HTTP_CLIENT_TIMEOUT=900;
 
+using std::runtime_error;
+using std::string;
+
 std::string HelpMessageCli()
 {
     string strUsage;
