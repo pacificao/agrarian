@@ -76,12 +76,16 @@ core.*
 *.lto
 *.Plo
 *.Po
+*.lai
 
 # Common build dirs
 /build/
 /build-*/
 /**/build/
 /**/build-*/
+/**/.deps/
+/**/.libs/
+/**/.dirstamp
 .cmake/
 CMakeCache.txt
 CMakeFiles/
@@ -117,6 +121,7 @@ qrc_*.cpp
 # -----------------------------
 /src/*d
 /src/*-cli
+/src/*-tx
 /src/*-qt
 /src/*.exe
 /share/man/man1/*.1
