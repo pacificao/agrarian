@@ -16,7 +16,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -29,6 +29,7 @@
 
 using namespace RPCServer;
 using namespace std;
+using boost::placeholders::_1;
 
 static bool fRPCRunning = false;
 static bool fRPCInWarmup = true;
