@@ -129,7 +129,9 @@ public:
         nTargetSpacing = 10 * 60;
         nMaturity = 20;
         nMasternodeCountDrift = 20;
-        nMaxMoneyOut = 999999999999 * COIN;
+        // Preserve the historical mainnet cap produced by the old overflowing
+        // expression `999999999999 * COIN` on 64-bit builds.
+        nMaxMoneyOut = 7766279631352241920LL;
 
         /** Height or Time Based Activations **/
         //
