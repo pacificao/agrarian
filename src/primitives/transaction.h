@@ -226,6 +226,7 @@ public:
     /** Convert a CMutableTransaction into a CTransaction. */
     CTransaction(const CMutableTransaction &tx);
 
+    CTransaction(const CTransaction& tx);
     CTransaction& operator=(const CTransaction& tx);
 
     ADD_SERIALIZE_METHODS;

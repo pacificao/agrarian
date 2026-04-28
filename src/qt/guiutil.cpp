@@ -52,7 +52,9 @@
 #include <QDoubleValidator>
 #include <QFileDialog>
 #include <QFont>
+#include <QGuiApplication>
 #include <QLineEdit>
+#include <QScreen>
 #include <QSettings>
 #include <QTextDocument> // for Qt::mightBeRichText
 #include <QThread>
@@ -787,7 +789,12 @@ void restoreWindowGeometry(const QString& strSetting, const QSize& defaultSize, 
     QSize size = settings.value(strSetting + "Size", defaultSize).toSize();
 
     if (!pos.x() && !pos.y()) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+        QScreen* screenHandle = QGuiApplication::primaryScreen();
+        QRect screen = screenHandle ? screenHandle->geometry() : QRect(QPoint(), size);
+#else
         QRect screen = QApplication::desktop()->screenGeometry();
+#endif
         pos.setX((screen.width() - size.width()) / 2);
         pos.setY((screen.height() - size.height()) / 2);
     }

@@ -1283,7 +1283,11 @@ void BitcoinGUI::updateTorIcon()
     bool tor_enabled = clientModel->getTorInfo(ip_port);
 
     if (tor_enabled) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        if (labelTorIcon->pixmap(Qt::ReturnByValue).isNull()) {
+#else
         if (labelTorIcon->pixmap() == 0) {
+#endif
             QString ip_port_q = QString::fromStdString(ip_port);
             labelTorIcon->setPixmap(QIcon(":/icons/onion").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
             labelTorIcon->setToolTip(tr("Tor is <b>enabled</b>: %1").arg(ip_port_q));

@@ -8,6 +8,7 @@
 #include "hash.h"
 #include "uint256.h"
 
+#include <algorithm>
 #include <assert.h>
 #include <boost/variant/apply_visitor.hpp>
 #include <boost/variant/static_visitor.hpp>
@@ -270,7 +271,7 @@ CTxDestination CBitcoinAddress::Get() const
     if (!IsValid())
         return CNoDestination();
     uint160 id;
-    memcpy(&id, &vchData[0], 20);
+    std::copy(vchData.begin(), vchData.end(), id.begin());
     if (vchVersion == Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
         return CKeyID(id);
     else if (vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS))
@@ -284,7 +285,7 @@ bool CBitcoinAddress::GetKeyID(CKeyID& keyID) const
     if (!IsValid() || vchVersion != Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
         return false;
     uint160 id;
-    memcpy(&id, &vchData[0], 20);
+    std::copy(vchData.begin(), vchData.end(), id.begin());
     keyID = CKeyID(id);
     return true;
 }

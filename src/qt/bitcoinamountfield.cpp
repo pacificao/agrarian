@@ -98,7 +98,11 @@ public:
 
             const QFontMetrics fm(fontMetrics());
             int h = lineEdit()->minimumSizeHint().height();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+            int w = fm.horizontalAdvance(BitcoinUnits::format(BitcoinUnits::AGR, BitcoinUnits::maxMoney(), false, BitcoinUnits::separatorAlways));
+#else
             int w = fm.width(BitcoinUnits::format(BitcoinUnits::AGR, BitcoinUnits::maxMoney(), false, BitcoinUnits::separatorAlways));
+#endif
             w += 2; // cursor blinking space
 
             QStyleOptionSpinBox opt;
@@ -159,7 +163,7 @@ protected:
 
     StepEnabled stepEnabled() const
     {
-        StepEnabled rv = 0;
+        StepEnabled rv = StepEnabled();
         if (isReadOnly()) // Disable steps when AmountSpinBox is read-only
             return StepNone;
         if (text().isEmpty()) // Allow step-up with empty field

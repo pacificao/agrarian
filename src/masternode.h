@@ -47,6 +47,7 @@ public:
 
     CMasternodePing();
     CMasternodePing(CTxIn& newVin);
+    CMasternodePing(const CMasternodePing& other) = default;
 
     ADD_SERIALIZE_METHODS;
 

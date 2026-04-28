@@ -10,10 +10,12 @@
 #include "pubkey.h"
 #include "script/standard.h"
 
+#include <algorithm>
+
 bool CScriptCompressor::IsToKeyID(CKeyID& hash) const
 {
     if (script.size() == 25 && script[0] == OP_DUP && script[1] == OP_HASH160 && script[2] == 20 && script[23] == OP_EQUALVERIFY && script[24] == OP_CHECKSIG) {
-        memcpy(&hash, &script[3], 20);
+        std::copy(script.begin() + 3, script.begin() + 23, hash.begin());
         return true;
     }
     return false;
@@ -22,7 +24,7 @@ bool CScriptCompressor::IsToKeyID(CKeyID& hash) const
 bool CScriptCompressor::IsToScriptID(CScriptID& hash) const
 {
     if (script.size() == 23 && script[0] == OP_HASH160 && script[1] == 20 && script[22] == OP_EQUAL) {
-        memcpy(&hash, &script[2], 20);
+        std::copy(script.begin() + 2, script.begin() + 22, hash.begin());
         return true;
     }
     return false;

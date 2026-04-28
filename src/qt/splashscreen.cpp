@@ -20,7 +20,9 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDesktopWidget>
+#include <QGuiApplication>
 #include <QPainter>
+#include <QScreen>
 
 SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle* networkStyle) : QWidget(0, f), curAlignment(0)
 {
@@ -52,7 +54,11 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle* networkStyle) 
     // check font size and drawing with
     pixPaint.setFont(QFont(font, 28 * fontFactor));
     QFontMetrics fm = pixPaint.fontMetrics();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+    int titleTextWidth = fm.horizontalAdvance(titleText);
+#else
     int titleTextWidth = fm.width(titleText);
+#endif
     if (titleTextWidth > 160) {
         // strange font rendering, Arial probably not found
         fontFactor = 0.75;
@@ -79,7 +85,11 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle* networkStyle) 
         boldFont.setWeight(QFont::Bold);
         pixPaint.setFont(boldFont);
         fm = pixPaint.fontMetrics();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+        int titleAddTextWidth = fm.horizontalAdvance(titleAddText);
+#else
         int titleAddTextWidth = fm.width(titleAddText);
+#endif
         pixPaint.drawText(pixmap.width() - titleAddTextWidth - 10, pixmap.height() - 25, titleAddText);
     }
 
@@ -92,7 +102,13 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle* networkStyle) 
     QRect r(QPoint(), pixmap.size());
     resize(r.size());
     setFixedSize(r.size());
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    QScreen* screenHandle = QGuiApplication::primaryScreen();
+    QRect screen = screenHandle ? screenHandle->geometry() : QRect(QPoint(), r.size());
+    move(screen.center() - r.center());
+#else
     move(QApplication::desktop()->screenGeometry().center() - r.center());
+#endif
 
     subscribeToCoreSignals();
 }

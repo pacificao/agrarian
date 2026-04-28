@@ -36,6 +36,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QSslCertificate>
+#include <QSslConfiguration>
 #include <QSslError>
 #include <QSslSocket>
 #include <QStringList>
@@ -129,9 +130,11 @@ void PaymentServer::LoadRootCAs(X509_STORE* _store)
     if (certFile != "-system-") {
         certList = QSslCertificate::fromPath(certFile);
         // Use those certificates when fetching payment requests, too:
-        QSslSocket::setDefaultCaCertificates(certList);
+        QSslConfiguration sslConfiguration = QSslConfiguration::defaultConfiguration();
+        sslConfiguration.setCaCertificates(certList);
+        QSslConfiguration::setDefaultConfiguration(sslConfiguration);
     } else
-        certList = QSslSocket::systemCaCertificates();
+        certList = QSslConfiguration::systemCaCertificates();
 
     int nRootCerts = 0;
     const QDateTime currentTime = QDateTime::currentDateTime();
@@ -372,7 +375,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
         if (uri.hasQueryItem("r")) // payment request URI
         {
             QByteArray temp;
-            temp.append(uri.queryItemValue("r"));
+            temp.append(uri.queryItemValue("r").toUtf8());
             QString decoded = QUrl::fromPercentEncoding(temp);
             QUrl fetchUrl(decoded, QUrl::StrictMode);
 
@@ -507,7 +510,7 @@ bool PaymentServer::processPaymentRequest(PaymentRequestPlus& request, SendCoins
     QList<std::pair<CScript, CAmount> > sendingTos = request.getPayTo();
     QStringList addresses;
 
-    foreach (const PAIRTYPE(CScript, CAmount) & sendingTo, sendingTos) {
+    for (const auto& sendingTo : sendingTos) {
         // Extract and check destination addresses
         CTxDestination dest;
         if (ExtractDestination(sendingTo.first, dest)) {
@@ -597,7 +600,7 @@ void PaymentServer::fetchPaymentACK(CWallet* wallet, SendCoinsRecipient recipien
         }
     }
 
-    int length = payment.ByteSize();
+    int length = static_cast<int>(payment.ByteSizeLong());
     netRequest.setHeader(QNetworkRequest::ContentLengthHeader, length);
     QByteArray serData(length, '\0');
     if (payment.SerializeToArray(serData.data(), length)) {

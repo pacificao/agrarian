@@ -159,6 +159,8 @@ CTransaction::CTransaction(const CMutableTransaction &tx) : nVersion(tx.nVersion
     UpdateHash();
 }
 
+CTransaction::CTransaction(const CTransaction &tx) : hash(tx.hash), nVersion(tx.nVersion), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) { }
+
 CTransaction& CTransaction::operator=(const CTransaction &tx) {
     *const_cast<int*>(&nVersion) = tx.nVersion;
     *const_cast<std::vector<CTxIn>*>(&vin) = tx.vin;
