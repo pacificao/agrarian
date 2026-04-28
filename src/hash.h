@@ -153,7 +153,7 @@ inline std::string Hash(std::string input)
     unsigned char hash[CSHA256::OUTPUT_SIZE];
     CSHA256().Write((const unsigned char*)input.data(), input.size()).Finalize(hash);
     stringstream ss;
-    for (int i = 0; i < CSHA256::OUTPUT_SIZE; i++) {
+    for (size_t i = 0; i < CSHA256::OUTPUT_SIZE; i++) {
         ss << hex << setw(2) << setfill('0') << (int)hash[i];
     }
     return ss.str();

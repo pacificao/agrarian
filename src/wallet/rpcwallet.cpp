@@ -3365,7 +3365,7 @@ UniValue importzerocoins(const UniValue& params, bool fHelp)
         const UniValue &val = arrMints[idx];
         const UniValue &o = val.get_obj();
 
-        const UniValue& vDenom = find_value(o, "d");
+        const UniValue vDenom = find_value(o, "d");
         if (!vDenom.isNum())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, missing d key");
         int d = vDenom.get_int();
@@ -3389,7 +3389,7 @@ UniValue importzerocoins(const UniValue& params, bool fHelp)
 
         //Assume coin is version 1 unless it has the version actually set
         uint8_t nVersion = 1;
-        const UniValue& vVersion = find_value(o, "v");
+        const UniValue vVersion = find_value(o, "v");
         if (vVersion.isNum())
             nVersion = static_cast<uint8_t>(vVersion.get_int());
 

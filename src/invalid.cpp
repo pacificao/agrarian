@@ -33,7 +33,7 @@ namespace invalid_out
             const UniValue &val = v[idx];
             const UniValue &o = val.get_obj();
 
-            const UniValue &vTxid = find_value(o, "txid");
+            const UniValue vTxid = find_value(o, "txid");
             if (!vTxid.isStr())
                 return false;
 
@@ -41,7 +41,7 @@ namespace invalid_out
             if (txid == 0)
                 return false;
 
-            const UniValue &vN = find_value(o, "n");
+            const UniValue vN = find_value(o, "n");
             if (!vN.isNum())
                 return false;
 
@@ -63,7 +63,7 @@ namespace invalid_out
             const UniValue &val = v[idx];
             const UniValue &o = val.get_obj();
 
-            const UniValue &vSerial = find_value(o, "s");
+            const UniValue vSerial = find_value(o, "s");
             if (!vSerial.isStr())
                 return false;
 
@@ -87,4 +87,3 @@ namespace invalid_out
         return static_cast<bool>(setInvalidSerials.count(bnSerial));
     }
 }
-

@@ -39,7 +39,7 @@ namespace AccumulatorCheckpoints
             const UniValue &val = v[idx];
             const UniValue &o = val.get_obj();
 
-            const UniValue &vHeight = find_value(o, "height");
+            const UniValue vHeight = find_value(o, "height");
             if (!vHeight.isNum())
                 return false;
 
@@ -49,7 +49,7 @@ namespace AccumulatorCheckpoints
 
             Checkpoint checkpoint;
             for (auto denom : libzerocoin::zerocoinDenomList) {
-                const UniValue& vDenomValue = find_value(o, std::to_string(denom));
+                const UniValue vDenomValue = find_value(o, std::to_string(denom));
                 if (!vDenomValue.isStr()) {
                     return false;
                 }
@@ -82,4 +82,3 @@ namespace AccumulatorCheckpoints
         return Checkpoint();
     }
 }
-
