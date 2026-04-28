@@ -10,9 +10,9 @@
 #include "utilstrencodings.h"
 #include "random.h"
 
-#include <openssl/aes.h>
-#include <openssl/sha.h>
+#include <openssl/evp.h>
 #include <secp256k1.h>
+#include <stdexcept>
 #include <string>
 
 
@@ -25,11 +25,34 @@
  * 6) Encrypted Part 2 - 16 bytes - 32 chars - strKey[46..77]
  */
 
+static bool AES256ECBTransform(const unsigned char* input, const unsigned char* key, unsigned char* output, bool encrypt)
+{
+    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+    if (!ctx)
+        return false;
+
+    int outLen = 0;
+    int finalLen = 0;
+    bool ok = EVP_CipherInit_ex(ctx, EVP_aes_256_ecb(), NULL, key, NULL, encrypt ? 1 : 0) == 1 &&
+              EVP_CIPHER_CTX_set_padding(ctx, 0) == 1 &&
+              EVP_CipherUpdate(ctx, output, &outLen, input, 16) == 1 &&
+              EVP_CipherFinal_ex(ctx, output + outLen, &finalLen) == 1 &&
+              outLen + finalLen == 16;
+
+    EVP_CIPHER_CTX_free(ctx);
+    return ok;
+}
+
+static void EncryptAES(uint256 blockIn, uint256 encryptionKey, unsigned char* output)
+{
+    if (!AES256ECBTransform(blockIn.begin(), encryptionKey.begin(), output, true))
+        throw std::runtime_error("AES-256-ECB encrypt failed");
+}
+
 void DecryptAES(uint256 encryptedIn, uint256 decryptionKey, uint256& output)
 {
-    AES_KEY key;
-    AES_set_decrypt_key(decryptionKey.begin(), 256, &key);
-    AES_decrypt(encryptedIn.begin(), output.begin(), &key);
+    if (!AES256ECBTransform(encryptedIn.begin(), decryptionKey.begin(), output.begin(), false))
+        throw std::runtime_error("AES-256-ECB decrypt failed");
 }
 
 void ComputePreFactor(std::string strPassphrase, std::string strSalt, uint256& prefactor)
@@ -119,9 +142,7 @@ std::string BIP38_Encrypt(std::string strAddress, std::string strPassphrase, uin
 
     //encrypt part 1
     uint512 encrypted1;
-    AES_KEY key;
-    AES_set_encrypt_key(derivedHalf2.begin(), 256, &key);
-    AES_encrypt(block1.begin(), encrypted1.begin(), &key);
+    EncryptAES(block1, derivedHalf2, encrypted1.begin());
 
     //block2 = (pointb[17...32] xor derivedhalf1[16...31]
     uint256 p2 = privKey >> 128;
@@ -130,7 +151,7 @@ std::string BIP38_Encrypt(std::string strAddress, std::string strPassphrase, uin
 
     //encrypt part 2
     uint512 encrypted2;
-    AES_encrypt(block2.begin(), encrypted2.begin(), &key);
+    EncryptAES(block2, derivedHalf2, encrypted2.begin());
 
     string strPrefix = "0142";
     strPrefix += (fCompressed ? "E0" : "C0");
