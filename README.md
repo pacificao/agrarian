@@ -90,6 +90,8 @@ To see configuration options:
 ./configure --help
 ```
 
+For a current Ubuntu daemon build, see `doc/build-ubuntu-24.md`.
+
 ---
 
 ## Running Tests

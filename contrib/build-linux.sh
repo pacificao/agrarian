@@ -2,20 +2,20 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-HOST="x86_64-pc-linux-gnu"
-DEP="$ROOT/depends/$HOST"
+JOBS="${JOBS:-1}"
 
 cd "$ROOT"
 
-make -C depends -j"$(nproc)" NO_QT=1
-make -C depends NO_QT=1 install
-
 ./autogen.sh
 
-CONFIG_SITE="$DEP/share/config.site" \
-./configure --build="$HOST" --host="$HOST" \
-  --prefix="$DEP" \
-  --disable-tests --disable-bench
+./configure \
+  --without-gui \
+  --disable-tests \
+  --disable-bench \
+  --disable-zmq \
+  --with-miniupnpc=no \
+  --with-incompatible-bdb \
+  CXXFLAGS="${CXXFLAGS:--O0 -g0 --param ggc-min-expand=1 --param ggc-min-heapsize=32768}"
 
-make -j"$(nproc)"
+make -j"$JOBS"
 echo "Build complete."
