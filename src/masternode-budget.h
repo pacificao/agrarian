@@ -16,10 +16,10 @@
 #include "sync.h"
 #include "util.h"
 #include <cstdint>
-#include <std::map>
-#include <std::string>
+#include <map>
+#include <string>
 #include <utility>
-#include <std::vector>
+#include <vector>
 extern CCriticalSection cs_budget;
 
 class CBudgetManager;
@@ -416,7 +416,7 @@ public:
     CFinalizedBudgetBroadcast(const CFinalizedBudget& other);
     CFinalizedBudgetBroadcast(std::string strBudgetNameIn, int nBlockStartIn, std::vector<CTxBudgetPayment> vecBudgetPaymentsIn, uint256 nFeeTXHashIn);
 
-    void std::swap(CFinalizedBudgetBroadcast& first, CFinalizedBudgetBroadcast& second) // nothrow
+    friend void swap(CFinalizedBudgetBroadcast& first, CFinalizedBudgetBroadcast& second) // nothrow
     {
         // enable ADL (not necessary in our case, but good practice)
         using std::swap;
@@ -425,15 +425,16 @@ public:
         // the two classes are effectively swapped
         std::swap(first.strBudgetName, second.strBudgetName);
         std::swap(first.nBlockStart, second.nBlockStart);
-        first.mapVotes.std::swap(second.mapVotes);
-        first.vecBudgetPayments.std::swap(second.vecBudgetPayments);
+        first.mapVotes.swap(second.mapVotes);
+        first.vecBudgetPayments.swap(second.vecBudgetPayments);
         std::swap(first.nFeeTXHash, second.nFeeTXHash);
         std::swap(first.nTime, second.nTime);
     }
 
     CFinalizedBudgetBroadcast& operator=(CFinalizedBudgetBroadcast from)
     {
-        std::swap(*this, from);
+        using std::swap;
+        swap(*this, from);
         return *this;
     }
 
@@ -562,7 +563,7 @@ public:
     CBudgetProposalBroadcast(const CBudgetProposalBroadcast& other) : CBudgetProposal(other) {}
     CBudgetProposalBroadcast(std::string strProposalNameIn, std::string strURLIn, int nPaymentCount, CScript addressIn, CAmount nAmountIn, int nBlockStartIn, uint256 nFeeTXHashIn);
 
-    void std::swap(CBudgetProposalBroadcast& first, CBudgetProposalBroadcast& second) // nothrow
+    friend void swap(CBudgetProposalBroadcast& first, CBudgetProposalBroadcast& second) // nothrow
     {
         // enable ADL (not necessary in our case, but good practice)
         using std::swap;
@@ -577,12 +578,13 @@ public:
         std::swap(first.address, second.address);
         std::swap(first.nTime, second.nTime);
         std::swap(first.nFeeTXHash, second.nFeeTXHash);
-        first.mapVotes.std::swap(second.mapVotes);
+        first.mapVotes.swap(second.mapVotes);
     }
 
     CBudgetProposalBroadcast& operator=(CBudgetProposalBroadcast from)
     {
-        std::swap(*this, from);
+        using std::swap;
+        swap(*this, from);
         return *this;
     }
 

@@ -7,10 +7,10 @@
 #ifndef AGRARIAN_BITCOIN_MINER_H
 #define AGRARIAN_BITCOIN_MINER_H
 #include <cstdint>
-#include <std::string>
-#include <std::vector>
 #include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 class CBlock;
 class CBlockHeader;
 class CBlockIndex;
