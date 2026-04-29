@@ -31105,8 +31105,8 @@ fi
 		LDFLAGS="$LDFLAGS $BOOST_LDFLAGS"
 		export LDFLAGS
 
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the Boost::System library is available" >&5
-printf %s "checking whether the Boost::System library is available... " >&6; }
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether Boost::System headers are available" >&5
+printf %s "checking whether Boost::System headers are available... " >&6; }
 if test ${ax_cv_boost_system+y}
 then :
   printf %s "(cached) " >&6
@@ -31155,160 +31155,8 @@ printf "%s\n" "$ax_cv_boost_system" >&6; }
 
 printf "%s\n" "#define HAVE_BOOST_SYSTEM /**/" >>confdefs.h
 
-            BOOSTLIBDIR=`echo $BOOST_LDFLAGS | sed -e 's/[^\/]*//'`
+			BOOST_SYSTEM_LIB=""
 
-			LDFLAGS_SAVE=$LDFLAGS
-            if test "x$ax_boost_user_system_lib" = "x"; then
-                ax_lib=
-                for libextension in `ls -r $BOOSTLIBDIR/libboost_system* 2>/dev/null | sed 's,.*/lib,,' | sed 's,\..*,,'` ; do
-                     ax_lib=${libextension}
-				    as_ac_Lib=`printf "%s\n" "ac_cv_lib_$ax_lib""_exit" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for exit in -l$ax_lib" >&5
-printf %s "checking for exit in -l$ax_lib... " >&6; }
-if eval test \${$as_ac_Lib+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-l$ax_lib  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-namespace conftest {
-  extern "C" int exit ();
-}
-int
-main (void)
-{
-return conftest::exit ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"
-then :
-  eval "$as_ac_Lib=yes"
-else $as_nop
-  eval "$as_ac_Lib=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-eval ac_res=\$$as_ac_Lib
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_Lib"\" = x"yes"
-then :
-  BOOST_SYSTEM_LIB="-l$ax_lib";  link_system="yes"; break
-else $as_nop
-  link_system="no"
-fi
-
-				done
-                if test "x$link_system" != "xyes"; then
-                for libextension in `ls -r $BOOSTLIBDIR/boost_system* 2>/dev/null | sed 's,.*/,,' | sed -e 's,\..*,,'` ; do
-                     ax_lib=${libextension}
-				    as_ac_Lib=`printf "%s\n" "ac_cv_lib_$ax_lib""_exit" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for exit in -l$ax_lib" >&5
-printf %s "checking for exit in -l$ax_lib... " >&6; }
-if eval test \${$as_ac_Lib+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-l$ax_lib  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-namespace conftest {
-  extern "C" int exit ();
-}
-int
-main (void)
-{
-return conftest::exit ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"
-then :
-  eval "$as_ac_Lib=yes"
-else $as_nop
-  eval "$as_ac_Lib=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-eval ac_res=\$$as_ac_Lib
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_Lib"\" = x"yes"
-then :
-  BOOST_SYSTEM_LIB="-l$ax_lib";  link_system="yes"; break
-else $as_nop
-  link_system="no"
-fi
-
-				done
-                fi
-
-            else
-               for ax_lib in $ax_boost_user_system_lib boost_system-$ax_boost_user_system_lib; do
-				      as_ac_Lib=`printf "%s\n" "ac_cv_lib_$ax_lib""_exit" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for exit in -l$ax_lib" >&5
-printf %s "checking for exit in -l$ax_lib... " >&6; }
-if eval test \${$as_ac_Lib+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-l$ax_lib  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-namespace conftest {
-  extern "C" int exit ();
-}
-int
-main (void)
-{
-return conftest::exit ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"
-then :
-  eval "$as_ac_Lib=yes"
-else $as_nop
-  eval "$as_ac_Lib=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-eval ac_res=\$$as_ac_Lib
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_Lib"\" = x"yes"
-then :
-  BOOST_SYSTEM_LIB="-l$ax_lib";  link_system="yes"; break
-else $as_nop
-  link_system="no"
-fi
-
-                  done
-
-            fi
-            if test "x$ax_lib" = "x"; then
-                as_fn_error $? "Could not find a version of the boost_system library!" "$LINENO" 5
-            fi
-			if test "x$link_system" = "xno"; then
-				as_fn_error $? "Could not link against $ax_lib !" "$LINENO" 5
-			fi
 		fi
 
 		CPPFLAGS="$CPPFLAGS_SAVED"

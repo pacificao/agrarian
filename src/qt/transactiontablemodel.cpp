@@ -28,6 +28,10 @@
 #include <QIcon>
 #include <QList>
 
+using boost::placeholders::_1;
+using boost::placeholders::_2;
+using boost::placeholders::_3;
+
 // Amount column is right-aligned it contains numbers
 static int column_alignments[] = {
     Qt::AlignLeft | Qt::AlignVCenter, /* status */

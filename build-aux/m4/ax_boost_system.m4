@@ -64,7 +64,7 @@ AC_DEFUN([AX_BOOST_SYSTEM],
 		LDFLAGS="$LDFLAGS $BOOST_LDFLAGS"
 		export LDFLAGS
 
-        AC_CACHE_CHECK(whether the Boost::System library is available,
+        AC_CACHE_CHECK(whether Boost::System headers are available,
 					   ax_cv_boost_system,
         [AC_LANG_PUSH([C++])
 			 CXXFLAGS_SAVE=$CXXFLAGS
@@ -80,40 +80,8 @@ AC_DEFUN([AX_BOOST_SYSTEM],
 			AC_SUBST(BOOST_CPPFLAGS)
 
 			AC_DEFINE(HAVE_BOOST_SYSTEM,,[define if the Boost::System library is available])
-            BOOSTLIBDIR=`echo $BOOST_LDFLAGS | sed -e 's/@<:@^\/@:>@*//'`
-
-			LDFLAGS_SAVE=$LDFLAGS
-            if test "x$ax_boost_user_system_lib" = "x"; then
-                ax_lib=
-                for libextension in `ls -r $BOOSTLIBDIR/libboost_system* 2>/dev/null | sed 's,.*/lib,,' | sed 's,\..*,,'` ; do
-                     ax_lib=${libextension}
-				    AC_CHECK_LIB($ax_lib, exit,
-                                 [BOOST_SYSTEM_LIB="-l$ax_lib"; AC_SUBST(BOOST_SYSTEM_LIB) link_system="yes"; break],
-                                 [link_system="no"])
-				done
-                if test "x$link_system" != "xyes"; then
-                for libextension in `ls -r $BOOSTLIBDIR/boost_system* 2>/dev/null | sed 's,.*/,,' | sed -e 's,\..*,,'` ; do
-                     ax_lib=${libextension}
-				    AC_CHECK_LIB($ax_lib, exit,
-                                 [BOOST_SYSTEM_LIB="-l$ax_lib"; AC_SUBST(BOOST_SYSTEM_LIB) link_system="yes"; break],
-                                 [link_system="no"])
-				done
-                fi
-
-            else
-               for ax_lib in $ax_boost_user_system_lib boost_system-$ax_boost_user_system_lib; do
-				      AC_CHECK_LIB($ax_lib, exit,
-                                   [BOOST_SYSTEM_LIB="-l$ax_lib"; AC_SUBST(BOOST_SYSTEM_LIB) link_system="yes"; break],
-                                   [link_system="no"])
-                  done
-
-            fi
-            if test "x$ax_lib" = "x"; then
-                AC_MSG_ERROR(Could not find a version of the boost_system library!)
-            fi
-			if test "x$link_system" = "xno"; then
-				AC_MSG_ERROR(Could not link against $ax_lib !)
-			fi
+			BOOST_SYSTEM_LIB=""
+			AC_SUBST(BOOST_SYSTEM_LIB)
 		fi
 
 		CPPFLAGS="$CPPFLAGS_SAVED"

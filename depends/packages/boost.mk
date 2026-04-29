@@ -1,11 +1,11 @@
 package=boost
-$(package)_version=1_64_0
+$(package)_version=1_91_0
 # Bintray was shut down; use the official Boost archives mirror.
 # NOTE: download_path should NOT end with a trailing slash because the fetch
 # helper appends "/$(file)".
-$(package)_download_path=https://archives.boost.io/release/1.64.0/source
+$(package)_download_path=https://archives.boost.io/release/1.91.0/source
 $(package)_file_name=$(package)_$($(package)_version).tar.bz2
-$(package)_sha256_hash=7bcc5caace97baa948931d712ea5f37038dbb1c5d89b43ad4def4ed7cb683332
+$(package)_sha256_hash=de5e6b0e4913395c6bdfa90537febd9028ea4c0735d2cdb0cd9b45d5f51264f5
 
 define $(package)_set_vars
 $(package)_config_opts_release=variant=release
@@ -26,7 +26,7 @@ $(package)_toolset_$(host_os)=gcc
 $(package)_archiver_$(host_os)=$($(package)_ar)
 $(package)_toolset_darwin=darwin
 $(package)_archiver_darwin=$($(package)_libtool)
-$(package)_config_libraries=chrono,filesystem,program_options,system,thread,test
+$(package)_config_libraries=chrono,filesystem,program_options,thread,test
 $(package)_cxxflags=-std=c++11 -fvisibility=hidden
 $(package)_cxxflags_linux=-fPIC
 endef

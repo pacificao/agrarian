@@ -24,6 +24,9 @@
 #include <QPainter>
 #include <QScreen>
 
+using boost::placeholders::_1;
+using boost::placeholders::_2;
+
 SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle* networkStyle) : QWidget(0, f), curAlignment(0)
 {
     // set reference point, paddings

@@ -57,6 +57,10 @@
 #include <QUrlQuery>
 #include <QVBoxLayout>
 
+using boost::placeholders::_1;
+using boost::placeholders::_2;
+using boost::placeholders::_3;
+
 const QString BitcoinGUI::DEFAULT_WALLET = "~Default";
 
 BitcoinGUI::BitcoinGUI(const NetworkStyle* networkStyle, QWidget* parent) : QMainWindow(parent),
