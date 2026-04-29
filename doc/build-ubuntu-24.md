@@ -75,6 +75,17 @@ Qt 5.15 and protobuf 3.x emit compatibility/deprecation warnings in a few Qt
 translation units. Those warnings are expected while the Windows build remains
 pinned to Qt 5.9.7 and protobuf 2.6.1.
 
+Functional smoke test
+---------------------
+
+After building the daemon, run the isolated regtest smoke test:
+
+    ./contrib/smoke-test-daemon.sh
+
+The script starts `agrariand` with a temporary regtest datadir, confirms RPC and
+wallet calls work, mines one block with `generate`, checks the block count, and
+stops the daemon.
+
 OpenSSL 3
 ---------
 

@@ -113,20 +113,11 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         pindexPrev = chainActive.Tip();
     }
 
-    const int nHeight = pindexPrev->nHeight + 1;
-
-    // Make sure to create the correct block version after zerocoin is enabled
-    bool fZerocoinActive = nHeight >= Params().Zerocoin_StartHeight();
     pblock->nVersion = 5;   // Supports CLTV activation
 
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
     if (Params().MineBlocksOnDemand()) {
-        if (fZerocoinActive)
-            pblock->nVersion = 5;
-        else
-            pblock->nVersion = 3;
-
         pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
     }
 
@@ -458,7 +449,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
             if (txNew.vout.size() > 1) {
                 pblock->payee = txNew.vout[1].scriptPubKey;
             } else {
-                CAmount blockValue = nFees + GetBlockValue(pindexPrev->nHeight);
+                CAmount blockValue = nFees + GetBlockValue(nHeight, false);
                 txNew.vout[0].nValue = blockValue;
                 txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
             }
@@ -483,6 +474,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         pblock->nNonce = 0;
 
         //Calculate the accumulator checkpoint only if the previous cached checkpoint need to be updated
+        bool fZerocoinActive = nHeight >= Params().Zerocoin_StartHeight();
         if (fZerocoinActive) {
             uint256 nCheckpoint;
             uint256 hashBlockLastAccumulated = chainActive[max(0, nHeight - (nHeight % 10) - 10)]->GetBlockHash();

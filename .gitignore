@@ -56,6 +56,9 @@ core.*
 # Autotools-generated headers
 /src/config/bitcoin-config.h
 /src/config/bitcoin-config.h.in
+/src/config/agrarian-config.h
+/src/config/agrarian-config.h.in
+/test/config.ini
 
 # -----------------------------
 # Build outputs
