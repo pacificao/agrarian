@@ -12,9 +12,8 @@ SUPPORTED BUILD METHODS
 
 The following methods are known to work:
 
-1. Linux (Ubuntu 18.04 Bionic recommended)
+1. Linux (Ubuntu 24.04 tested)
    Using the Mingw-w64 cross-compilation toolchain.
-   This is the method used to produce official Windows release binaries.
 
 2. Windows 10+
    Using Windows Subsystem for Linux (WSL) with Mingw-w64.
@@ -40,7 +39,7 @@ WSL allows running a Linux environment directly on Windows without a VM.
 Requirements:
 • Windows 10 (64-bit only)
 • Not supported on Windows Server
-• Ubuntu recommended (tested on Ubuntu 18.04)
+• Ubuntu recommended
 
 ------------------------------------------------------------
 INSTALLING WSL
@@ -53,7 +52,7 @@ INSTALLING WSL
 
 2. Install Ubuntu
    - Open Microsoft Store
-   - Install "Ubuntu 18.04"
+   - Install "Ubuntu"
 
 3. Complete Setup
    - Open command prompt
@@ -76,9 +75,9 @@ GENERAL DEPENDENCIES
 ------------------------------------------------------------
 
     sudo apt update
-    sudo apt upgrade
-    sudo apt install build-essential libtool autotools-dev \
-        automake pkg-config bsdmainutils curl git
+    sudo apt install -y build-essential libtool autotools-dev \
+        automake pkg-config bsdmainutils curl git make tar patch \
+        qttools5-dev-tools
 
 A host toolchain (build-essential) is required because some dependencies
 (e.g., protobuf) build host utilities during the process.
@@ -100,13 +99,16 @@ BUILDING FOR 64-BIT WINDOWS
 
 Install Mingw-w64 toolchain:
 
-    sudo apt install g++-mingw-w64-x86-64
+    sudo apt install -y \
+        mingw-w64 g++-mingw-w64-x86-64 g++-mingw-w64-x86-64-posix
 
-Ubuntu 18.04:
+Select the POSIX thread model (required):
 
-    sudo update-alternatives --config x86_64-w64-mingw32-g++
+    sudo update-alternatives --set x86_64-w64-mingw32-gcc \
+        /usr/bin/x86_64-w64-mingw32-gcc-posix
+    sudo update-alternatives --set x86_64-w64-mingw32-g++ \
+        /usr/bin/x86_64-w64-mingw32-g++-posix
 
-Select the POSIX thread model (required).
 
 ------------------------------------------------------------
 IMPORTANT (WSL USERS)
@@ -122,13 +124,33 @@ Autoconf scripts will fail.
 BUILD COMMANDS
 ------------------------------------------------------------
 
+Recommended portable helper:
+
+    JOBS=1 ./contrib/build-win64-wallet.sh
+
+The helper:
+
+• Verifies the POSIX Mingw-w64 thread model.
+• Builds the Win64 depends tree with Qt enabled.
+• Stages matching Qt host tools (`moc`, `uic`, `rcc`) into the depends prefix.
+• Builds/stages protobuf 2.6.1 `protoc` when system `protoc` is newer.
+• Configures the wallet against the generated depends prefix.
+
+Manual equivalent:
+
     PATH=$(echo "$PATH" | sed -e 's/:\/mnt.*//g')
     cd depends
-    make HOST=x86_64-w64-mingw32
+    make HOST=x86_64-w64-mingw32 NO_QT=0
     cd ..
     ./autogen.sh
     CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site \
-        ./configure --prefix=/
+        ./configure --prefix=/ \
+          --disable-maintainer-mode \
+          --disable-tests \
+          --disable-bench \
+          --with-gui=qt5 \
+          --with-qt-incdir=$PWD/depends/x86_64-w64-mingw32/include \
+          --with-qt-libdir=$PWD/depends/x86_64-w64-mingw32/lib
     make
 
 ============================================================
@@ -192,6 +214,14 @@ The win32 model conflicts with certain C++11 headers
 
 You MUST select the POSIX thread model when prompted by
 update-alternatives.
+
+============================================================
+PROTOBUF NOTE
+============================================================
+
+The Windows depends build uses protobuf 2.6.1 headers and libraries. Do not use
+a newer system `protoc` to regenerate wallet sources for this target. The helper
+builds and stages a matching native `protoc` when needed.
 
 ============================================================
 END OF DOCUMENT

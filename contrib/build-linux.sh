@@ -3,19 +3,34 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JOBS="${JOBS:-1}"
+MODE="${MODE:-daemon}"
 
 cd "$ROOT"
 
-./autogen.sh
+if [[ ! -f configure ]]; then
+  ./autogen.sh
+fi
 
-./configure \
-  --without-gui \
-  --disable-tests \
-  --disable-bench \
-  --disable-zmq \
-  --with-miniupnpc=no \
-  --with-incompatible-bdb \
-  CXXFLAGS="${CXXFLAGS:--O0 -g0 --param ggc-min-expand=1 --param ggc-min-heapsize=32768}"
+case "$MODE" in
+  daemon)
+    ./configure \
+      --without-gui \
+      --disable-tests \
+      --disable-bench \
+      --disable-zmq \
+      --with-miniupnpc=no \
+      --with-incompatible-bdb \
+      CXXFLAGS="${CXXFLAGS:--O0 -g0 --param ggc-min-expand=1 --param ggc-min-heapsize=32768}"
+    ;;
+  wallet)
+    exec "$ROOT/contrib/build-linux-wallet.sh"
+    ;;
+  *)
+    echo "Unknown MODE: $MODE" >&2
+    echo "Use MODE=daemon or MODE=wallet." >&2
+    exit 2
+    ;;
+esac
 
 make -j"$JOBS"
-echo "Build complete."
+echo "Linux $MODE build complete."
