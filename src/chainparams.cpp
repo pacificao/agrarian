@@ -201,8 +201,11 @@ public:
         assert(hashGenesisBlock == uint256("0x000003452250d81f8b07d42e127c92729802e3c48f3c7b9834256fd0fb9a0c2e"));
         assert(genesis.hashMerkleRoot == uint256("0x3bb054bb772e1bee1547d4b0e06c0ce34d636ee1daf56b37f1a017ce8136da00"));
 
-        vSeeds.push_back(CDNSSeedData("pacificao.com", "agr1.pacificao.com"));
-        vSeeds.push_back(CDNSSeedData("n2.pacificao.com", "agr2.pacificao.com"));
+        vSeeds.push_back(CDNSSeedData("node1.agrariancoin.com", "node1.agrariancoin.com"));
+        vSeeds.push_back(CDNSSeedData("node2.agrariancoin.com", "node2.agrariancoin.com"));
+        vSeeds.push_back(CDNSSeedData("node3.agrariancoin.com", "node3.agrariancoin.com"));
+        vSeeds.push_back(CDNSSeedData("node4.agrariancoin.com", "node4.agrariancoin.com"));
+        vSeeds.push_back(CDNSSeedData("node5.agrariancoin.com", "node5.agrariancoin.com"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 23);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 24);
