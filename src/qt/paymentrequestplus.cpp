@@ -116,9 +116,18 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
 
     // The first cert is the signing cert, the rest are untrusted certs that chain
     // to a valid root authority. OpenSSL needs them separately.
-    STACK_OF(X509)* chain = sk_X509_new_null();
+    STACK_OF(X509)* chain =
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+        reinterpret_cast<STACK_OF(X509)*>(OPENSSL_sk_new_null());
+#else
+        sk_X509_new_null();
+#endif
     for (int i = certs.size() - 1; i > 0; i--) {
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+        OPENSSL_sk_push(reinterpret_cast<OPENSSL_STACK*>(chain), reinterpret_cast<void*>(certs[i]));
+#else
         sk_X509_push(chain, certs[i]);
+#endif
     }
     X509* signing_cert = certs[0];
 
@@ -159,9 +168,9 @@ bool PaymentRequestPlus::getMerchant(X509_STORE* certStore, QString& merchant) c
         EVP_MD_CTX _ctx;
         EVP_MD_CTX *ctx;
         ctx = &_ctx;
+        EVP_MD_CTX_init(ctx);
 #endif
         EVP_PKEY* pubkey = X509_get_pubkey(signing_cert);
-        EVP_MD_CTX_init(ctx);
         if (!EVP_VerifyInit_ex(ctx, digestAlgorithm, NULL) ||
             !EVP_VerifyUpdate(ctx, data_to_verify.data(), data_to_verify.size()) ||
             !EVP_VerifyFinal(ctx, (const unsigned char*)paymentRequest.signature().data(), paymentRequest.signature().size(), pubkey)) {

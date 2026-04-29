@@ -286,7 +286,11 @@ RPCConsole::RPCConsole(QWidget* parent) : QDialog(parent, Qt::WindowSystemMenuHi
     connect(ui->btn_resync, SIGNAL(clicked()), this, SLOT(walletResync()));
 
     // set library version labels
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+    ui->openSSLVersion->setText(OpenSSL_version(OPENSSL_VERSION));
+#else
     ui->openSSLVersion->setText(SSLeay_version(SSLEAY_VERSION));
+#endif
 #ifdef ENABLE_WALLET
     std::string strPathCustom = GetArg("-backuppath", "");
     std::string strzAGRPathCustom = GetArg("-zagrbackuppath", "");
