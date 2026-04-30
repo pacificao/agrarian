@@ -20,6 +20,10 @@ From an existing checkout:
 
     ./contrib/agrarian-build-menu.sh
 
+Do not run the script with `sudo`. It runs checkout, compilation, daemon config,
+and the user systemd service as the current local user. It asks for sudo only
+when it needs to install Ubuntu packages or set MinGW compiler alternatives.
+
 From a fresh Ubuntu host:
 
     sudo apt-get update

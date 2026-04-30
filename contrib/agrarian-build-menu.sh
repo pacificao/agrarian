@@ -10,6 +10,20 @@ HOST_WIN64="${HOST_WIN64:-x86_64-w64-mingw32}"
 MENU_CHOICE=""
 ROOT=""
 
+if [[ "${EUID:-$(id -u)}" -eq 0 && "${ALLOW_ROOT_BUILD_MENU:-0}" != "1" ]]; then
+  cat >&2 <<EOF
+Do not run this script with sudo.
+
+Run it as your normal local user:
+  ./contrib/agrarian-build-menu.sh
+
+The script will ask for sudo only when it needs to install Ubuntu packages or
+set the MinGW POSIX compiler alternatives. Repository checkout, compilation,
+daemon config, and user systemd service setup run as the local user.
+EOF
+  exit 1
+fi
+
 has_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
