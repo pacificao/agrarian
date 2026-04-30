@@ -4505,22 +4505,22 @@ string CWallet::GetUniqueWalletBackupName(bool fzagrAuto) const
 
 void CWallet::ZPivBackupWallet()
 {
-    filesystem::path backupDir = GetDataDir() / "backups";
-    filesystem::path backupPath;
+    boost::filesystem::path backupDir = GetDataDir() / "backups";
+    boost::filesystem::path backupPath;
     string strNewBackupName;
 
     for (int i = 0; i < 10; i++) {
         strNewBackupName = strprintf("wallet-autozagrbackup-%d.dat", i);
         backupPath = backupDir / strNewBackupName;
 
-        if (filesystem::exists(backupPath)) {
+        if (boost::filesystem::exists(backupPath)) {
             //Keep up to 10 backups
             if (i <= 8) {
                 //If the next file backup exists and is newer, then iterate
-                filesystem::path nextBackupPath = backupDir / strprintf("wallet-autozagrbackup-%d.dat", i + 1);
-                if (filesystem::exists(nextBackupPath)) {
-                    time_t timeThis = filesystem::last_write_time(backupPath);
-                    time_t timeNext = filesystem::last_write_time(nextBackupPath);
+                boost::filesystem::path nextBackupPath = backupDir / strprintf("wallet-autozagrbackup-%d.dat", i + 1);
+                if (boost::filesystem::exists(nextBackupPath)) {
+                    time_t timeThis = boost::filesystem::last_write_time(backupPath);
+                    time_t timeNext = boost::filesystem::last_write_time(nextBackupPath);
                     if (timeThis > timeNext) {
                         //The next backup is created before this backup was
                         //The next backup is the correct path to use
@@ -4543,8 +4543,8 @@ void CWallet::ZPivBackupWallet()
     BackupWallet(*this, backupPath.string());
 
     if(!GetArg("-zagrbackuppath", "").empty()) {
-        filesystem::path customPath(GetArg("-zagrbackuppath", ""));
-        filesystem::create_directories(customPath);
+        boost::filesystem::path customPath(GetArg("-zagrbackuppath", ""));
+        boost::filesystem::create_directories(customPath);
 
         if(!customPath.has_extension()) {
             customPath /= GetUniqueWalletBackupName(true);

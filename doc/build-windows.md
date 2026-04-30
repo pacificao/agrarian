@@ -227,9 +227,9 @@ builds and stages a matching native `protoc` when needed.
 QT NOTE
 ============================================================
 
-The current Windows cross-build helper still targets the existing Qt5 cross
-path. The native Ubuntu wallet path has moved to Qt6. Keep those paths separate
-until the Windows Qt6 cross-build is explicitly modernized and smoke-tested.
+The Windows cross-build helper targets the Qt6 depends path. Keep the helper's
+Qt host tools (`moc`, `uic`, `rcc`) staged from the matching depends build to
+avoid mixing host Qt tools with target Qt libraries.
 
 ============================================================
 END OF DOCUMENT

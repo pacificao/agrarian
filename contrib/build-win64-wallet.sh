@@ -4,8 +4,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JOBS="${JOBS:-1}"
 HOST="${HOST:-x86_64-w64-mingw32}"
+BUILD_HOST="${BUILD_HOST:-$("$ROOT/depends/config.guess")}"
 PREFIX="$ROOT/depends/$HOST"
-NATIVE_BIN="$PREFIX/native/bin"
+NATIVE_BIN="$ROOT/depends/build/$BUILD_HOST/bin"
 PROTOBUF_VERSION="${PROTOBUF_VERSION:-2.6.1}"
 PROTOBUF_SOURCE="$ROOT/depends/sources/protobuf-$PROTOBUF_VERSION.tar.bz2"
 PROTOBUF_BUILD="${PROTOBUF_BUILD:-/tmp/agrarian-protobuf-$PROTOBUF_VERSION-native}"
@@ -27,7 +28,7 @@ require_path() {
 copy_first_match() {
   local name="$1"
   local match
-  match="$(find "$ROOT/depends/work/build/$HOST" -path "*/qtbase/bin/$name" -type f | sort | tail -n 1 || true)"
+  match="$(find "$ROOT/depends/$BUILD_HOST" \( -path "*/bin/$name" -o -path "*/libexec/$name" \) -type f | sort | tail -n 1 || true)"
   if [[ -z "$match" ]]; then
     echo "Could not find Qt host tool after depends build: $name" >&2
     exit 1
@@ -97,6 +98,15 @@ require_cmd cp
 ensure_posix_mingw
 
 echo "Building Win64 depends for $HOST..."
+echo "Building native Qt6 host tools and metadata for $BUILD_HOST..."
+make -C depends HOST="$BUILD_HOST" NO_QT=0 qt -j"$JOBS"
+qt_host_cache=( "$ROOT/depends/built/$BUILD_HOST/qt"/qt-*.tar.gz )
+if [[ ${#qt_host_cache[@]} -ne 1 || ! -f "${qt_host_cache[0]}" ]]; then
+  echo "Could not locate a single native Qt6 cache archive for $BUILD_HOST" >&2
+  exit 1
+fi
+mkdir -p "$ROOT/depends/$BUILD_HOST"
+tar --no-same-owner -xf "${qt_host_cache[0]}" -C "$ROOT/depends/$BUILD_HOST"
 make -C depends HOST="$HOST" NO_QT=0 -j"$JOBS"
 require_path "$PREFIX/share/config.site"
 ensure_native_tools
@@ -105,17 +115,20 @@ if [[ ! -f configure ]]; then
   ./autogen.sh
 fi
 
-echo "Configuring Win64 Qt wallet build..."
+echo "Configuring Win64 Qt6 wallet build..."
 CONFIG_SITE="$PREFIX/share/config.site" ./configure \
   --prefix=/ \
   --disable-maintainer-mode \
   --disable-tests \
   --disable-bench \
-  --with-gui=qt5 \
+  --with-gui=qt6 \
   --with-qt-incdir="$PREFIX/include" \
-  --with-qt-libdir="$PREFIX/lib"
+  --with-qt-libdir="$PREFIX/lib" \
+  --with-qt-plugindir="$PREFIX/plugins" \
+  --with-qt-translationdir="$PREFIX/translations" \
+  --with-qt-bindir="$NATIVE_BIN"
 
-echo "Building Win64 Qt wallet with JOBS=$JOBS..."
+echo "Building Win64 Qt6 wallet with JOBS=$JOBS..."
 make -j"$JOBS"
 
 echo "Windows wallet build complete:"

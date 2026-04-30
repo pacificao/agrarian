@@ -53,7 +53,7 @@ The wallet build is sensitive to tool version mismatches:
 
 * Native Ubuntu uses the deterministic depends Qt6, OpenSSL, Boost, protobuf,
   and supporting libraries.
-* Windows cross-target wallets currently use the existing Qt5 cross path and
+* Windows cross-target wallets use the deterministic depends Qt6 path and
   matching Qt host tools staged by depends.
 
 The helper scripts keep those rules in one place so the build is repeatable on a

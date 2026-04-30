@@ -56,7 +56,7 @@ static void convertSeed6(std::vector<CAddress>& vSeedsOut, const SeedSpec6* data
 static Checkpoints::MapCheckpoints mapCheckpoints =
     boost::assign::map_list_of
     (0, uint256("000003452250d81f8b07d42e127c92729802e3c48f3c7b9834256fd0fb9a0c2e"));
-static const Checkpoints::CCheckpointData data = {
+static const Checkpoints::CCheckpointData mainCheckpointData = {
     &mapCheckpoints,
     1643790201, // * UNIX timestamp of last checkpoint block
     0,          // * total number of transactions between genesis and last checkpoint
@@ -255,7 +255,7 @@ public:
 
     const Checkpoints::CCheckpointData& Checkpoints() const
     {
-        return data;
+        return mainCheckpointData;
     }
 };
 static CMainParams mainParams;
@@ -462,7 +462,7 @@ public:
     const Checkpoints::CCheckpointData& Checkpoints() const
     {
         // UnitTest share the same checkpoints as MAIN
-        return data;
+        return mainCheckpointData;
     }
 
     //! Published setters to allow changing values in unit test cases

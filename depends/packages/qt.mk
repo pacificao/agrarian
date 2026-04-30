@@ -29,6 +29,7 @@ $(package)_config_opts += -no-icu
 $(package)_config_opts += -no-opengl
 $(package)_config_opts += -no-pch
 $(package)_config_opts += -no-feature-sql
+$(package)_config_opts += -no-feature-vulkan
 $(package)_config_opts += -nomake examples
 $(package)_config_opts += -nomake tests
 $(package)_config_opts += -opensource
@@ -49,6 +50,19 @@ $(package)_config_opts_linux += -system-freetype
 $(package)_config_opts_linux += -no-feature-sessionmanager
 $(package)_config_opts_mingw32 = -qpa windows
 $(package)_config_opts_darwin = -qpa cocoa
+$(package)_cmake_opts_mingw32  = -DCMAKE_SYSTEM_NAME=Windows
+$(package)_cmake_opts_mingw32 += -DCMAKE_C_COMPILER=$($(package)_cc)
+$(package)_cmake_opts_mingw32 += -DCMAKE_CXX_COMPILER=$($(package)_cxx)
+$(package)_cmake_opts_mingw32 += -DCMAKE_RC_COMPILER=$(host_toolchain)windres
+$(package)_cmake_opts_mingw32 += -DOPENSSL_ROOT_DIR=$(host_prefix)
+$(package)_cmake_opts_mingw32 += -DOPENSSL_USE_STATIC_LIBS=TRUE
+$(package)_cmake_opts_mingw32 += -DZLIB_ROOT=$(host_prefix)
+$(package)_cmake_opts_mingw32 += -DQT_HOST_PATH=$(BASEDIR)/$(BUILD)
+$(package)_cmake_opts_mingw32 += -DCMAKE_FIND_ROOT_PATH=$(host_prefix)
+$(package)_cmake_opts_mingw32 += -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY
+$(package)_cmake_opts_mingw32 += -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY
+$(package)_cmake_opts_mingw32 += -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+$(package)_cmake_opts_mingw32 += -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER
 endef
 
 define $(package)_fetch_cmds
@@ -71,9 +85,9 @@ endef
 
 define $(package)_config_cmds
     export PKG_CONFIG_SYSROOT_DIR=/ && \
-    export PKG_CONFIG_LIBDIR=$(host_prefix)/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig && \
+    export PKG_CONFIG_LIBDIR=$(host_prefix)/lib/pkgconfig$(if $(filter linux,$(host_os)),:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig) && \
     export PKG_CONFIG_PATH=$(host_prefix)/share/pkgconfig && \
-  ../qtbase/configure $($(package)_config_opts) -- -G Ninja
+  ../qtbase/configure $($(package)_config_opts) -- -G Ninja $($(package)_cmake_opts) $($(package)_cmake_opts_$(host_os)) $($(package)_cmake_opts_$(host_arch)_$(host_os))
 endef
 
 define $(package)_build_cmds
@@ -85,6 +99,6 @@ define $(package)_stage_cmds
 endef
 
 define $(package)_postprocess_cmds
-  rm -rf lib/cmake share/doc share/examples share/qt6/sbom && \
+  rm -rf share/doc share/examples share/qt6/sbom && \
   rm -f lib/lib*.la lib/*.prl plugins/*/*.prl
 endef

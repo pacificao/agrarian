@@ -34,8 +34,7 @@ If wallet is enabled (default), installer preflight checks require:
 
 For the current native Ubuntu Qt wallet path, depends should also provide Qt6
 pkg-config files such as `Qt6Core.pc`, `Qt6Gui.pc`, `Qt6Network.pc`, and
-`Qt6Widgets.pc`. The Windows cross-build path still uses the existing Qt5
-depends target.
+`Qt6Widgets.pc`. The Windows cross-build path also uses the Qt6 depends target.
 
 When missing, the installer exits early and prints the exact missing path(s) plus the `make -C depends ...` command to fix them.
 

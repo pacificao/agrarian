@@ -36,6 +36,8 @@ $(package)_config_opts_m68k_linux=linux-generic32
 $(package)_config_opts_x86_64_darwin=darwin64-x86_64-cc
 $(package)_config_opts_x86_64_mingw32=mingw64
 $(package)_config_opts_i686_mingw32=mingw
+$(package)_config_env_x86_64_mingw32=WINDRES=x86_64-w64-mingw32-windres
+$(package)_config_env_i686_mingw32=WINDRES=i686-w64-mingw32-windres
 endef
 
 define $(package)_config_cmds

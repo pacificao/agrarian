@@ -12,12 +12,19 @@
 #include <windef.h> // for HWND
 
 #include <QAbstractNativeEventFilter>
+#include <QtGlobal>
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+typedef qintptr WinShutdownMonitorResult;
+#else
+typedef long WinShutdownMonitorResult;
+#endif
 
 class WinShutdownMonitor : public QAbstractNativeEventFilter
 {
 public:
     /** Implements QAbstractNativeEventFilter interface for processing Windows messages */
-    bool nativeEventFilter(const QByteArray& eventType, void* pMessage, long* pnResult);
+    bool nativeEventFilter(const QByteArray& eventType, void* pMessage, WinShutdownMonitorResult* pnResult);
 
     /** Register the reason for blocking shutdown on Windows to allow clean client exit */
     static void registerShutdownBlockReason(const QString& strReason, const HWND& mainWinId);

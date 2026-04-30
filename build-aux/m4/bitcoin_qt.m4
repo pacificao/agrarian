@@ -406,9 +406,12 @@ AC_DEFUN([_BITCOIN_QT_FIND_STATIC_PLUGINS],[
        if test -d "$qt_plugin_path/generic"; then
          QT_LIBS="$QT_LIBS -L$qt_plugin_path/generic"
        fi
+       QT_LIBS="$QT_LIBS -lQt6BundledHarfbuzz -lQt6BundledLibpng -lQt6BundledLibjpeg -lQt6BundledPcre2"
+       if test "x$TARGET_OS" = xwindows; then
+         QT_LIBS="$QT_LIBS -lQt6BundledFreetype -ld3d11 -ldxgi -ldwrite -ldwmapi -luxtheme -lversion -lauthz -luserenv -lnetapi32 -lsynchronization -lsecur32 -lwinhttp -lsetupapi -lshcore -lwtsapi32 -ld3d9 -lruntimeobject"
+       fi
        if test "x$TARGET_OS" = xlinux; then
          QT_LIBS="-lQt6XcbQpa -lQt6InputSupport -lQt6FbSupport -lQt6DeviceDiscoverySupport $QT_LIBS"
-         QT_LIBS="$QT_LIBS -lQt6BundledHarfbuzz -lQt6BundledLibpng -lQt6BundledLibjpeg -lQt6BundledPcre2"
          if test "x$PKG_CONFIG" != x; then
            QT6_XCB_LIBS=`PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig $PKG_CONFIG --libs --static x11 x11-xcb xcb xcb-cursor xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-renderutil xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xkb xkbcommon xkbcommon-x11 fontconfig freetype2 harfbuzz 2>/dev/null`
            QT_LIBS="$QT_LIBS $QT6_XCB_LIBS"
