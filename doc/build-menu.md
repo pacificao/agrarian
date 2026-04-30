@@ -44,7 +44,8 @@ instead of being required as Ubuntu system development packages.
 
 The Linux Qt wallet option also installs Ubuntu desktop development headers
 needed by Qt's xcb platform plugin, including fontconfig, freetype, xcb, and
-xkbcommon packages.
+xkbcommon packages. The wallet helper uses the matching `protoc` built by
+`depends/`, so a system protobuf compiler is not required.
 
 Defaults
 --------

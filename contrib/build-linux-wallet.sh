@@ -6,6 +6,9 @@ JOBS="${JOBS:-1}"
 HOST="${HOST:-x86_64-pc-linux-gnu}"
 PREFIX="$ROOT/depends/$HOST"
 BASE_CONFIG="$PREFIX/share/config.site"
+BUILD_HOST="${BUILD_HOST:-$("$ROOT/depends/config.guess")}"
+NATIVE_BIN="$ROOT/depends/build/$BUILD_HOST/bin"
+PROTOC="$NATIVE_BIN/protoc"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -33,6 +36,7 @@ require_cmd ninja
 echo "Building native depends for $HOST..."
 make -C depends HOST="$HOST" NO_QT=0 -j"$JOBS"
 require_path "$BASE_CONFIG"
+require_path "$PROTOC"
 
 if [[ ! -f configure ]]; then
   ./autogen.sh
@@ -44,7 +48,8 @@ CONFIG_SITE="$BASE_CONFIG" ./configure \
   --disable-tests \
   --disable-bench \
   --with-gui=qt6 \
-  --with-qtdbus=no
+  --with-qtdbus=no \
+  --with-protoc-bindir="$NATIVE_BIN"
 
 echo "Building Ubuntu Qt wallet with JOBS=$JOBS..."
 make -j"$JOBS"
