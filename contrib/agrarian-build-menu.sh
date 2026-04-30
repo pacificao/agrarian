@@ -244,6 +244,18 @@ EOF
   fi
 }
 
+install_bootstrap_packages() {
+  has_cmd apt-get || return 0
+  has_cmd git && return 0
+
+  export DEBIAN_FRONTEND=noninteractive
+  if ubuntu_sources_need_repair; then
+    repair_ubuntu_sources
+  fi
+  sudo_cmd apt-get update
+  sudo_cmd apt-get install -y ca-certificates git
+}
+
 ensure_repo() {
   WORKDIR="$(prompt "Repository directory" "$WORKDIR")"
   JOBS="$(prompt "Parallel build jobs" "$JOBS")"
@@ -437,8 +449,9 @@ show_completion() {
 main() {
   select_target
   progress 5 "Selected target: $MENU_CHOICE"
-  run_step 15 "Installing required Ubuntu packages" install_packages
+  run_step 10 "Installing bootstrap Ubuntu packages" install_bootstrap_packages
   ensure_repo
+  run_step 40 "Installing required Ubuntu packages" install_packages
   build_selected
   show_completion
 }
