@@ -32,6 +32,12 @@ From a fresh Ubuntu host:
     cd agrarian
     ./contrib/agrarian-build-menu.sh
 
+On minimal VPS images, apt sources may be incomplete. The script checks for
+missing Ubuntu `-updates` and `-security` suites before installing build
+packages. If they are missing, it asks before adding a standard
+`/etc/apt/sources.list.d/agrarian-ubuntu.sources` file for the host
+architecture.
+
 Defaults
 --------
 

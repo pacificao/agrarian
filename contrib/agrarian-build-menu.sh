@@ -116,6 +116,78 @@ sudo_cmd() {
   fi
 }
 
+apt_source_text() {
+  grep -RhsE '^(deb |Types:|URIs:|Suites:|Components:)' \
+    /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources \
+    2>/dev/null || true
+}
+
+ubuntu_sources_need_repair() {
+  [[ -r /etc/os-release ]] || return 1
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  [[ "${ID:-}" == "ubuntu" && -n "${VERSION_CODENAME:-}" ]] || return 1
+
+  local sources
+  sources="$(apt_source_text)"
+  [[ "$sources" == *"$VERSION_CODENAME-updates"* && "$sources" == *"$VERSION_CODENAME-security"* ]] && return 1
+  return 0
+}
+
+repair_ubuntu_sources() {
+  [[ -r /etc/os-release ]] || return 0
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  [[ "${ID:-}" == "ubuntu" && -n "${VERSION_CODENAME:-}" ]] || return 0
+
+  local arch uri security_uri source_file
+  arch="$(dpkg --print-architecture 2>/dev/null || true)"
+  case "$arch" in
+    arm64|armhf|ppc64el|riscv64|s390x)
+      uri="http://ports.ubuntu.com/ubuntu-ports"
+      security_uri="http://ports.ubuntu.com/ubuntu-ports"
+      ;;
+    *)
+      uri="http://archive.ubuntu.com/ubuntu"
+      security_uri="http://security.ubuntu.com/ubuntu"
+      ;;
+  esac
+  source_file="/etc/apt/sources.list.d/agrarian-ubuntu.sources"
+
+  cat >&2 <<EOF
+
+This Ubuntu image appears to be missing standard apt suites such as
+$VERSION_CODENAME-updates or $VERSION_CODENAME-security.
+
+These suites are required for normal build packages like build-essential,
+dpkg-dev, and bzip2 to resolve correctly.
+EOF
+
+  if ! confirm "Add standard Ubuntu main/universe apt sources for this architecture?"; then
+    return 0
+  fi
+
+  local temp_file
+  temp_file="$(mktemp)"
+  cat > "$temp_file" <<EOF
+Types: deb
+URIs: $uri
+Suites: $VERSION_CODENAME $VERSION_CODENAME-updates
+Components: main universe
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+
+Types: deb
+URIs: $security_uri
+Suites: $VERSION_CODENAME-security
+Components: main universe
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+EOF
+
+  sudo_cmd install -m 0644 "$temp_file" "$source_file"
+  rm -f "$temp_file"
+  echo "Added $source_file"
+}
+
 install_packages() {
   has_cmd apt-get || fail "This installer currently supports Ubuntu/Debian apt-get hosts."
 
@@ -134,6 +206,9 @@ install_packages() {
   esac
 
   export DEBIAN_FRONTEND=noninteractive
+  if ubuntu_sources_need_repair; then
+    repair_ubuntu_sources
+  fi
   sudo_cmd apt-get update
   if ! sudo_cmd apt-get install -y "${packages[@]}"; then
     cat >&2 <<EOF
