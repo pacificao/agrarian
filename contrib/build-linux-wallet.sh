@@ -29,7 +29,7 @@ reset_qt_configure_state() {
   [[ -d "$qt_work" ]] || return 0
 
   echo "Clearing stale Qt configure state for $HOST..."
-  find "$qt_work" -mindepth 2 -maxdepth 2 -type d -name qtbase-build -prune -exec rm -rf {} +
+  rm -rf "$qt_work"
 }
 
 cd "$ROOT"
