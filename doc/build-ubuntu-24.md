@@ -30,25 +30,16 @@ For a headless Qt wallet smoke test, also install:
     sudo apt-get install -y \
       xvfb
 
-Daemon-only build
------------------
+Daemon build
+------------
 
-For the pool daemon, the GUI, tests, bench, ZMQ, and UPnP can be disabled:
-
-    ./autogen.sh
-    ./configure \
-      --without-gui \
-      --disable-tests \
-      --disable-bench \
-      --disable-zmq \
-      --with-miniupnpc=no \
-      --with-incompatible-bdb \
-      CXXFLAGS="-O0 -g0 --param ggc-min-expand=1 --param ggc-min-heapsize=32768"
-    make -j1
-
-The daemon helper runs the same path:
+For the daemon and CLI tools, use:
 
     JOBS=1 ./contrib/build-linux.sh
+
+The daemon helper builds/restores the native deterministic depends prefix first
+with Qt disabled. Berkeley DB, OpenSSL, Boost, libevent, GMP, and supporting
+libraries come from `depends/`, not from Ubuntu system headers.
 
 Qt wallet build
 ---------------

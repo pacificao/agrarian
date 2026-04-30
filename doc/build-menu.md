@@ -38,6 +38,10 @@ packages. If they are missing, it asks before adding a standard
 `/etc/apt/sources.list.d/agrarian-ubuntu.sources` file for the host
 architecture.
 
+The Linux daemon option uses the deterministic native `depends/` build with Qt
+disabled, so Berkeley DB and other core libraries are built inside the checkout
+instead of being required as Ubuntu system development packages.
+
 Defaults
 --------
 
