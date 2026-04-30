@@ -58,6 +58,12 @@
 #if QT_VERSION < 0x050400
 Q_IMPORT_PLUGIN(AccessibleFactory)
 #endif
+#if defined(QT_TLS_OPENSSL)
+Q_IMPORT_PLUGIN(QTlsBackendOpenSSL);
+#endif
+#if defined(QT_QPA_PLATFORM_MINIMAL)
+Q_IMPORT_PLUGIN(QMinimalIntegrationPlugin);
+#endif
 #if defined(QT_QPA_PLATFORM_XCB)
 Q_IMPORT_PLUGIN(QXcbIntegrationPlugin);
 #elif defined(QT_QPA_PLATFORM_WINDOWS)
@@ -120,12 +126,19 @@ static void initTranslations(QTranslator& qtTranslatorBase, QTranslator& qtTrans
     // - First load the translator for the base language, without territory
     // - Then load the more specific locale translator
 
+    const QString qtTranslationsPath =
+#if QT_VERSION >= 0x060000
+        QLibraryInfo::path(QLibraryInfo::TranslationsPath);
+#else
+        QLibraryInfo::location(QLibraryInfo::TranslationsPath);
+#endif
+
     // Load e.g. qt_de.qm
-    if (qtTranslatorBase.load("qt_" + lang, QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+    if (qtTranslatorBase.load("qt_" + lang, qtTranslationsPath))
         QApplication::installTranslator(&qtTranslatorBase);
 
     // Load e.g. qt_de_DE.qm
-    if (qtTranslator.load("qt_" + lang_territory, QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+    if (qtTranslator.load("qt_" + lang_territory, qtTranslationsPath))
         QApplication::installTranslator(&qtTranslator);
 
     // Load e.g. bitcoin_de.qm (shortcut "de" needs to be defined in agrarian.qrc)
@@ -502,11 +515,11 @@ int main(int argc, char* argv[])
     Q_INIT_RESOURCE(agrarian_locale);
     Q_INIT_RESOURCE(agrarian);
 
-#if QT_VERSION > 0x050100
+#if QT_VERSION > 0x050100 && QT_VERSION < 0x060000
     // Generate high-dpi pixmaps
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
-#if QT_VERSION >= 0x050600
+#if QT_VERSION >= 0x050600 && QT_VERSION < 0x060000
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 #ifdef Q_OS_MAC

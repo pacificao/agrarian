@@ -70,8 +70,8 @@
 /* Define this symbol if the consensus lib has been built */
 #undef HAVE_CONSENSUS_LIB
 
-/* define if the compiler supports basic C++11 syntax */
-#undef HAVE_CXX11
+/* define if the compiler supports basic C++17 syntax */
+#undef HAVE_CXX17
 
 /* Define to 1 if you have the declaration of `be16toh', and to 0 if you
    don't. */
@@ -365,6 +365,9 @@
 
 /* Define this symbol if qt plugins are static */
 #undef QT_STATICPLUGIN
+
+/* Define this symbol if the Qt OpenSSL TLS backend exists */
+#undef QT_TLS_OPENSSL
 
 /* Define to 1 if all of the C90 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for

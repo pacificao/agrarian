@@ -37,6 +37,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QSslError>
 
 class OptionsModel;
 
@@ -48,7 +49,6 @@ class QByteArray;
 class QLocalServer;
 class QNetworkAccessManager;
 class QNetworkReply;
-class QSslError;
 class QUrl;
 QT_END_NAMESPACE
 

@@ -72,7 +72,7 @@ width: 70px;
 }
 
 QToolBar > QToolButton {
-Alignment: left;
+qproperty-alignment: 'AlignLeft';
 background-color: #372f44;
 selection-background-color:transparent;
 border:0.5px solid #888;

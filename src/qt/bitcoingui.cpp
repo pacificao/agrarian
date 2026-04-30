@@ -37,9 +37,12 @@
 #include <iostream>
 
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QDateTime>
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 #include <QDesktopWidget>
+#endif
 #include <QDragEnterEvent>
 #include <QIcon>
 #include <QListWidget>
@@ -305,9 +308,9 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
     overviewAction->setToolTip(overviewAction->statusTip());
     overviewAction->setCheckable(true);
 #ifdef Q_OS_MAC
-    overviewAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1));
+    overviewAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_1));
 #else
-    overviewAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_1));
+    overviewAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_1));
 #endif
     tabGroup->addAction(overviewAction);
 
@@ -316,9 +319,9 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
     sendCoinsAction->setToolTip(sendCoinsAction->statusTip());
     sendCoinsAction->setCheckable(true);
 #ifdef Q_OS_MAC
-    sendCoinsAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_2));
+    sendCoinsAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_2));
 #else
-    sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
+    sendCoinsAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_2));
 #endif
     tabGroup->addAction(sendCoinsAction);
 
@@ -327,9 +330,9 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
     receiveCoinsAction->setToolTip(receiveCoinsAction->statusTip());
     receiveCoinsAction->setCheckable(true);
 #ifdef Q_OS_MAC
-    receiveCoinsAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_3));
+    receiveCoinsAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_3));
 #else
-    receiveCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_3));
+    receiveCoinsAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_3));
 #endif
     tabGroup->addAction(receiveCoinsAction);
 
@@ -338,9 +341,9 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
     historyAction->setToolTip(historyAction->statusTip());
     historyAction->setCheckable(true);
 #ifdef Q_OS_MAC
-    historyAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_4));
+    historyAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_4));
 #else
-    historyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4));
+    historyAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_4));
 #endif
     tabGroup->addAction(historyAction);
 
@@ -349,9 +352,9 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
     privacyAction->setToolTip(privacyAction->statusTip());
     privacyAction->setCheckable(true);
 #ifdef Q_OS_MAC
-    privacyAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_5));
+    privacyAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_5));
 #else
-    privacyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
+    privacyAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_5));
 #endif
     tabGroup->addAction(privacyAction);
 
@@ -364,9 +367,9 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
         masternodeAction->setToolTip(masternodeAction->statusTip());
         masternodeAction->setCheckable(true);
 #ifdef Q_OS_MAC
-        masternodeAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_6));
+        masternodeAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_6));
 #else
-        masternodeAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
+        masternodeAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_6));
 #endif
         tabGroup->addAction(masternodeAction);
         connect(masternodeAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -378,9 +381,9 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
     governanceAction->setToolTip(governanceAction->statusTip());
     governanceAction->setCheckable(true);
 #ifdef Q_OS_MAC
-    governanceAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_7));
+    governanceAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_7));
 #else
-    governanceAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
+    governanceAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_7));
 #endif
     tabGroup->addAction(governanceAction);
 
@@ -401,7 +404,7 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setStatusTip(tr("Quit application"));
-    quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
+    quitAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q));
     quitAction->setMenuRole(QAction::QuitRole);
     aboutAction = new QAction(networkStyle->getAppIcon(), tr("&About Agrarian Core"), this);
     aboutAction->setStatusTip(tr("Show information about Agrarian Core"));

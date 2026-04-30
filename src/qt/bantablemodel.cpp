@@ -16,6 +16,7 @@
 
 #include <QDebug>
 #include <QList>
+#include <QLocale>
 
 bool BannedNodeLessThan::operator()(const CCombinedBan& left, const CCombinedBan& right) const
 {
@@ -125,9 +126,8 @@ QVariant BanTableModel::data(const QModelIndex &index, int role) const
         case Address:
             return QString::fromStdString(rec->subnet.ToString());
         case Bantime:
-            QDateTime date = QDateTime::fromMSecsSinceEpoch(0);
-            date = date.addSecs(rec->banEntry.nBanUntil);
-            return date.toString(Qt::SystemLocaleLongDate);
+            QDateTime date = QDateTime::fromSecsSinceEpoch(rec->banEntry.nBanUntil);
+            return QLocale::system().toString(date, QLocale::LongFormat);
         }
     }
 

@@ -30,7 +30,7 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
     {
-        unsigned int nDate = date.toTime_t();
+        unsigned int nDate = date.toSecsSinceEpoch();
 
         READWRITE(this->nVersion);
         nVersion = this->nVersion;
@@ -39,7 +39,7 @@ public:
         READWRITE(recipient);
 
         if (ser_action.ForRead())
-            date = QDateTime::fromTime_t(nDate);
+            date = QDateTime::fromSecsSinceEpoch(nDate);
     }
 };
 

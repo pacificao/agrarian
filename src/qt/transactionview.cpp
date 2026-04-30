@@ -175,7 +175,11 @@ TransactionView::TransactionView(QWidget* parent) : QWidget(parent), model(0), t
     mapperThirdPartyTxUrls = new QSignalMapper(this);
 
     // Connect actions
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    connect(mapperThirdPartyTxUrls, SIGNAL(mappedString(QString)), this, SLOT(openThirdPartyTxUrl(QString)));
+#else
     connect(mapperThirdPartyTxUrls, SIGNAL(mapped(QString)), this, SLOT(openThirdPartyTxUrl(QString)));
+#endif
 
     connect(dateWidget, SIGNAL(activated(int)), this, SLOT(chooseDate(int)));
     connect(typeWidget, SIGNAL(activated(int)), this, SLOT(chooseType(int)));
@@ -231,7 +235,7 @@ void TransactionView::setModel(WalletModel* model)
 
         if (model->getOptionsModel()) {
             // Add third party transaction URLs to context menu
-            QStringList listUrls = model->getOptionsModel()->getThirdPartyTxUrls().split("|", QString::SkipEmptyParts);
+            QStringList listUrls = model->getOptionsModel()->getThirdPartyTxUrls().split("|", Qt::SkipEmptyParts);
             for (int i = 0; i < listUrls.size(); ++i) {
                 QString host = QUrl(listUrls[i].trimmed(), QUrl::StrictMode).host();
                 if (!host.isEmpty()) {

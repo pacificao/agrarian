@@ -59,7 +59,12 @@ void ZPivControlDialog::updateList()
     ui->treeWidget->clear();
 
     // add a top level item for each denomination
-    QFlags<Qt::ItemFlag> flgTristate = Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsTristate;
+    QFlags<Qt::ItemFlag> flgTristate = Qt::ItemIsEnabled | Qt::ItemIsUserCheckable |
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        Qt::ItemIsAutoTristate;
+#else
+        Qt::ItemIsTristate;
+#endif
     map<libzerocoin::CoinDenomination, int> mapDenomPosition;
     for (auto denom : libzerocoin::zerocoinDenomList) {
         CZPivControlWidgetItem* itemDenom(new CZPivControlWidgetItem);

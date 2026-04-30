@@ -19,7 +19,9 @@
 
 #include <QApplication>
 #include <QCloseEvent>
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 #include <QDesktopWidget>
+#endif
 #include <QGuiApplication>
 #include <QPainter>
 #include <QScreen>

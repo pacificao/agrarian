@@ -367,7 +367,7 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent* event)
         case Qt::Key_PageUp: /* pass paging keys to messages widget */
         case Qt::Key_PageDown:
             if (obj == ui->lineEdit) {
-                QApplication::postEvent(ui->messagesWidget, new QKeyEvent(*keyevt));
+                QApplication::postEvent(ui->messagesWidget, new QKeyEvent(keyevt->type(), keyevt->key(), keyevt->modifiers(), keyevt->text(), keyevt->isAutoRepeat(), keyevt->count()));
                 return true;
             }
             break;
@@ -375,7 +375,7 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent* event)
         case Qt::Key_Enter:
             // forward these events to lineEdit
             if(obj == autoCompleter->popup()) {
-                QApplication::postEvent(ui->lineEdit, new QKeyEvent(*keyevt));
+                QApplication::postEvent(ui->lineEdit, new QKeyEvent(keyevt->type(), keyevt->key(), keyevt->modifiers(), keyevt->text(), keyevt->isAutoRepeat(), keyevt->count()));
                 return true;
             }
             break;
@@ -386,7 +386,7 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent* event)
                                                  ((mod & Qt::ControlModifier) && key == Qt::Key_V) ||
                                                  ((mod & Qt::ShiftModifier) && key == Qt::Key_Insert))) {
                 ui->lineEdit->setFocus();
-                QApplication::postEvent(ui->lineEdit, new QKeyEvent(*keyevt));
+                QApplication::postEvent(ui->lineEdit, new QKeyEvent(keyevt->type(), keyevt->key(), keyevt->modifiers(), keyevt->text(), keyevt->isAutoRepeat(), keyevt->count()));
                 return true;
             }
         }
@@ -451,7 +451,11 @@ void RPCConsole::setClientModel(ClientModel* model)
         connect(banAction24h, SIGNAL(triggered()), signalMapper, SLOT(map()));
         connect(banAction7d, SIGNAL(triggered()), signalMapper, SLOT(map()));
         connect(banAction365d, SIGNAL(triggered()), signalMapper, SLOT(map()));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        connect(signalMapper, SIGNAL(mappedInt(int)), this, SLOT(banSelectedNode(int)));
+#else
         connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(banSelectedNode(int)));
+#endif
 
         // peer table context menu signals
         connect(ui->peerWidget, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showPeersTableContextMenu(const QPoint&)));

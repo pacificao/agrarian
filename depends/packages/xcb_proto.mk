@@ -9,6 +9,15 @@ define $(package)_set_vars
   $(package)_config_opts_linux=--with-pic
 endef
 
+define $(package)_preprocess_cmds
+  sed -i.old \
+    -e 's/import sys, os, py_compile, imp/import sys, os, py_compile, importlib.util/' \
+    -e "s/hasattr(imp, 'get_tag')/True/g" \
+    -e 's/imp.cache_from_source(filepath)/importlib.util.cache_from_source(filepath)/g' \
+    -e 's/imp.cache_from_source(filepath, False)/importlib.util.cache_from_source(filepath, optimization="")/g' \
+    py-compile
+endef
+
 define $(package)_config_cmds
   $($(package)_autoconf)
 endef

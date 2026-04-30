@@ -21,14 +21,12 @@ Install the native daemon build dependencies:
     sudo apt-get update
     sudo apt-get install -y \
       build-essential pkg-config autoconf automake libtool bsdmainutils \
-      libboost-all-dev libevent-dev libgmp-dev libssl-dev \
-      libdb5.3-dev libdb5.3++-dev
+      cmake ninja-build python3 curl git
 
-For the desktop wallet, also install Qt and protobuf tools:
+For a headless Qt wallet smoke test, also install:
 
     sudo apt-get install -y \
-      qtbase5-dev qttools5-dev-tools qtchooser \
-      libqrencode-dev libprotobuf-dev protobuf-compiler
+      xvfb
 
 Daemon-only build
 -----------------
@@ -57,42 +55,40 @@ For the desktop wallet, use:
 
     JOBS=1 ./contrib/build-linux-wallet.sh
 
-The wallet helper builds/restores the native depends prefix first, then creates
-a temporary config.site that keeps the depends libraries while allowing system
-Qt 5 tools and pkg-config files to be used.
+The wallet helper builds/restores the native depends prefix first, including
+Qt 6.8.3, OpenSSL 3.5.6, and Boost 1.91.0. It then configures the project with
+the generated depends `config.site` and builds the Ubuntu Qt wallet.
 
 Defaults:
 
     HOST=x86_64-pc-linux-gnu
-    QT_BINDIR=/usr/lib/qt5/bin
-    PROTOC_BINDIR=/usr/bin
-    CONFIG_SITE_FILE=/tmp/agrarian-linux-wallet-config.site
 
 Warnings
 --------
 
-Qt 5.15 and protobuf 3.x emit compatibility/deprecation warnings in a few Qt
-translation units. Those warnings are expected while the Windows build remains
-pinned to Qt 5.9.7 and protobuf 2.6.1.
+The Qt6/OpenSSL3 path should build without Qt compatibility warnings. First-run
+runtime logs may report missing cache files such as `peers.dat`, `banlist.dat`,
+or masternode cache files; those are created during startup.
 
 Functional smoke test
 ---------------------
 
-After building the daemon, run the isolated regtest smoke test:
+After building, run the isolated smoke tests:
 
     ./contrib/smoke-test-daemon.sh
+    ./contrib/smoke-test-wallet.sh
+    ./contrib/smoke-test-qt.sh
 
-The script starts `agrariand` with a temporary regtest datadir, confirms RPC and
-wallet calls work, mines one block with `generate`, checks the block count, and
-stops the daemon.
+The daemon script confirms RPC and wallet calls work, mines one block, checks
+the block count, and stops the daemon. The wallet script checks address
+creation, mining, send/confirm, backup, and encryption shutdown. The Qt script
+starts `agrarian-qt` under Xvfb and confirms the GUI reaches `Done loading`
+without Qt6 TLS, signal, or stylesheet compatibility warnings.
 
 OpenSSL 3
 ---------
 
-Ubuntu 24.04 ships OpenSSL 3. Agrarian no longer rejects this only because
-`RAND_egd` is unavailable. Some deprecated OpenSSL SHA calls still warn during
-compilation; those warnings are expected until the hashing helper code is
-modernized.
+The deterministic depends build currently uses OpenSSL 3.5.6.
 
 Berkeley DB
 -----------

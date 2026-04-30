@@ -32,8 +32,7 @@ Ubuntu package baseline
 For the native Ubuntu wallet:
 
     sudo apt-get install -y \
-      qtbase5-dev qttools5-dev-tools qtchooser \
-      libqrencode-dev libprotobuf-dev protobuf-compiler
+      cmake ninja-build xvfb
 
 For the Windows wallet:
 
@@ -51,11 +50,9 @@ Why the helpers exist
 
 The wallet build is sensitive to tool version mismatches:
 
-* Native Ubuntu uses current system Qt tools and protobuf while keeping the
-  deterministic depends libraries.
-* Windows uses the Qt 5.9.7 and protobuf 2.6.1 libraries from depends. Its host
-  tools must match those libraries closely enough for generated C++ output to
-  compile.
+* Native Ubuntu uses the deterministic depends Qt6, OpenSSL, Boost, protobuf,
+  and supporting libraries.
+* Cross-target wallets must use the matching Qt host tools staged by depends.
 
 The helper scripts keep those rules in one place so the build is repeatable on a
 fresh server.
@@ -80,10 +77,11 @@ After the Windows wallet build:
 Version checks
 --------------
 
-On Ubuntu:
+On Ubuntu, use the smoke tests:
 
-    QT_QPA_PLATFORM=offscreen src/qt/agrarian-qt --version
-    src/agrariand --version
+    ./contrib/smoke-test-daemon.sh
+    ./contrib/smoke-test-wallet.sh
+    ./contrib/smoke-test-qt.sh
 
 For Windows binaries from the Linux build host:
 

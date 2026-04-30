@@ -65,7 +65,7 @@ WalletView::WalletView(QWidget* parent) : QStackedWidget(parent),
     QFont fontHeaderLeft;
     fontHeaderLeft.setPointSize(20);
     fontHeaderLeft.setBold(true);
-    fontHeaderLeft.setWeight(75);
+    fontHeaderLeft.setWeight(QFont::Bold);
     labelOverviewHeaderLeft->setFont(fontHeaderLeft);
 
     horizontalLayout_Header->addWidget(labelOverviewHeaderLeft);

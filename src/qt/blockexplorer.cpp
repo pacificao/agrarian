@@ -72,8 +72,7 @@ static std::string ScriptToString(const CScript& Script, bool Long = false, bool
 
 static std::string TimeToString(uint64_t Time)
 {
-    QDateTime timestamp;
-    timestamp.setTime_t(Time);
+    QDateTime timestamp = QDateTime::fromSecsSinceEpoch(Time);
     return timestamp.toString("yyyy-MM-dd hh:mm:ss").toUtf8().data();
 }
 
