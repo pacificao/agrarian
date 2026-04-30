@@ -15,6 +15,17 @@ require_path() {
   fi
 }
 
+reset_configure_state() {
+  rm -f config.cache config.log config.status
+
+  # Stale generated makefiles can trigger config.status --recheck with old
+  # configure arguments after a failed build attempt.
+  find . -name Makefile -type f \
+    ! -path './depends/*' \
+    ! -path './.git/*' \
+    -delete
+}
+
 cd "$ROOT"
 
 case "$MODE" in
@@ -23,9 +34,8 @@ case "$MODE" in
     make -C depends HOST="$HOST" NO_QT=1 -j"$JOBS"
     require_path "$BASE_CONFIG"
 
-    if [[ ! -f configure ]]; then
-      ./autogen.sh
-    fi
+    ./autogen.sh
+    reset_configure_state
 
     echo "Configuring Linux daemon build..."
     CONFIG_SITE="$BASE_CONFIG" ./configure \
