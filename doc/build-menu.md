@@ -38,13 +38,17 @@ Defaults
 The script can be configured with environment variables:
 
     REPO_URL=https://github.com/pacificao/agrarian.git
-    BRANCH=2.0
+    BRANCH=<current checkout branch, or main when run standalone>
     WORKDIR=$HOME/agrarian
     JOBS=1
 
 Example:
 
     JOBS=8 WORKDIR=$HOME/src/agrarian ./contrib/agrarian-build-menu.sh
+
+To test the 2.0 branch from a standalone downloaded copy of the script:
+
+    BRANCH=2.0 ./agrarian-build-menu.sh
 
 Linux Daemon Autostart
 ----------------------

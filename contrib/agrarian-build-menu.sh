@@ -2,13 +2,24 @@
 set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/pacificao/agrarian.git}"
-BRANCH="${BRANCH:-2.0}"
 WORKDIR="${WORKDIR:-$HOME/agrarian}"
 JOBS="${JOBS:-1}"
 HOST_WIN64="${HOST_WIN64:-x86_64-w64-mingw32}"
 
 MENU_CHOICE=""
 ROOT=""
+
+detect_script_branch() {
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+  git -C "$script_dir" rev-parse --abbrev-ref HEAD 2>/dev/null || true
+}
+
+if [[ -z "${BRANCH:-}" ]]; then
+  BRANCH="$(detect_script_branch)"
+fi
+BRANCH="${BRANCH:-main}"
 
 if [[ "${EUID:-$(id -u)}" -eq 0 && "${ALLOW_ROOT_BUILD_MENU:-0}" != "1" ]]; then
   cat >&2 <<EOF
