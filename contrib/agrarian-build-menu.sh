@@ -213,8 +213,10 @@ install_packages() {
         xvfb
         libfontconfig1-dev libfreetype6-dev
         libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-image0-dev
-        libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-shape0-dev
-        libxcb-shm0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xkb-dev
+        libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-randr0-dev
+        libxcb-render0-dev libxcb-render-util0-dev libxcb-shape0-dev
+        libxcb-shm0-dev libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev
+        libxcb-xinerama0-dev libxcb-xkb-dev libxi-dev libxrender-dev
         libxkbcommon-dev libxkbcommon-x11-dev
       )
       ;;
