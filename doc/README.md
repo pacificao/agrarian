@@ -37,6 +37,7 @@ The following are developer notes on how to build Agrarian Core on your native p
 
 - [Dependencies](dependencies.md)
 - [Agrarian 2.0 Modernization Status](modernization.md)
+- [Interactive Build Menu](build-menu.md)
 - [Ubuntu 24.04 Build Notes](build-ubuntu-24.md)
 - [Desktop Wallet Build Quick Start](build-wallets.md)
 - [macOS Build Notes](build-osx.md)
