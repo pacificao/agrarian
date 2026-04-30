@@ -3,6 +3,8 @@ Copyright (c) 2026 Agrarian Developers
 UNIX Build Notes
 
 These notes describe how to build Agrarian Core on Unix-based systems.
+For Ubuntu 24.04, prefer the shorter and tested path in
+`doc/build-ubuntu-24.md`.
 
 IMPORTANT
 
@@ -16,14 +18,24 @@ Example:
 $BDB_PREFIX must be an absolute path. Using $(pwd) ensures an absolute
 path is used.
 
-STANDARD BUILD
+STANDARD BUILD WITH DEPENDS
 
+    make -C depends HOST=x86_64-pc-linux-gnu NO_QT=0 -j$(nproc)
     ./autogen.sh
-    ./configure
-    make
+    CONFIG_SITE=$PWD/depends/x86_64-pc-linux-gnu/share/config.site ./configure
+    make -j$(nproc)
     make install  (optional)
 
-If dependencies are satisfied, this will build agrarian-qt as well.
+The native depends wallet path currently builds Qt 6.8.3, OpenSSL 3.5.6,
+Boost 1.91.0, protobuf, Berkeley DB, and supporting libraries.
+
+For a daemon-only build:
+
+    JOBS=1 ./contrib/build-linux.sh
+
+For a native Ubuntu desktop wallet build:
+
+    JOBS=1 ./contrib/build-linux-wallet.sh
 
 DEPENDENCIES
 
@@ -50,14 +62,14 @@ UBUNTU / DEBIAN
 
 Build tools:
 
-    sudo apt-get install build-essential libtool bsdmainutils autotools-dev autoconf pkg-config automake python3
+    sudo apt-get install build-essential libtool bsdmainutils autotools-dev autoconf pkg-config automake cmake ninja-build python3 curl git
 
-Libraries:
+System libraries are needed only for non-depends builds. The deterministic
+depends build should be preferred for reproducibility.
+
+Libraries for a system-library build:
 
     sudo apt-get install libssl-dev libgmp-dev libevent-dev libboost-all-dev
-
-OpenSSL Note: For Ubuntu >= 18.04 or Debian >= Stretch use
-libssl1.0-dev. OpenSSL 1.1 is not officially supported.
 
 Berkeley DB 4.8 (wallet support):
 
@@ -73,7 +85,9 @@ Optional:
 
 Qt GUI:
 
-    sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5     qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler
+    Use the native depends wallet helper for Qt6:
+
+    JOBS=1 ./contrib/build-linux-wallet.sh
 
 Disable GUI:
 
@@ -91,7 +105,8 @@ Optional:
 
 Qt:
 
-    sudo dnf install qt5-qttools-devel qt5-qtbase-devel protobuf-devel
+    Native Qt6 builds are currently tested through the Ubuntu depends path.
+    Fedora system-Qt builds are not part of the current verified path.
 
 HARDENING
 
@@ -121,3 +136,11 @@ ARM CROSS COMPILATION
     ./autogen.sh
     ./configure --prefix=$PWD/depends/arm-linux-gnueabihf       --enable-glibc-back-compat --enable-reduce-exports       LDFLAGS=-static-libstdc++
     make
+
+SMOKE TESTS
+
+After a native build, run:
+
+    ./contrib/smoke-test-daemon.sh
+    ./contrib/smoke-test-wallet.sh
+    ./contrib/smoke-test-qt.sh

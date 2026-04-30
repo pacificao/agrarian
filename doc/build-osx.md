@@ -20,6 +20,10 @@ Dependencies
 
 See [dependencies.md](dependencies.md) for a complete overview.
 
+Status note: this macOS system-library path is legacy and has not been part of
+the current Qt6/OpenSSL3/Boost modernization smoke-test pass. The verified
+modern desktop wallet path is native Ubuntu via `contrib/build-linux-wallet.sh`.
+
 If you want to build the disk image with `make deploy` (.dmg / optional), you need RSVG:
 
     brew install librsvg
@@ -207,4 +211,3 @@ build process to remain somewhat deterministic. Here's how it works:
   using the script that is also included there. Detached signatures are available from this [repository](https://github.com/bitcoin-core/bitcoin-detached-sigs).
 - Builders feed the unsigned app + detached signature back into Gitian. It
   uses the pre-built tools to recombine the pieces into a deterministic dmg.
-

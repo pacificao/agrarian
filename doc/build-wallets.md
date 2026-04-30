@@ -19,7 +19,8 @@ Use one job on small servers:
     JOBS=1 ./contrib/build-linux-wallet.sh
     JOBS=1 ./contrib/build-win64-wallet.sh
 
-Use more jobs only when the host has enough memory.
+Use more jobs only when the host has enough memory. On an 8-core, 16 GB host,
+`JOBS=8` is reasonable. On very small VPS instances, prefer `JOBS=1` and swap.
 
 Ubuntu package baseline
 -----------------------
@@ -52,7 +53,8 @@ The wallet build is sensitive to tool version mismatches:
 
 * Native Ubuntu uses the deterministic depends Qt6, OpenSSL, Boost, protobuf,
   and supporting libraries.
-* Cross-target wallets must use the matching Qt host tools staged by depends.
+* Windows cross-target wallets currently use the existing Qt5 cross path and
+  matching Qt host tools staged by depends.
 
 The helper scripts keep those rules in one place so the build is repeatable on a
 fresh server.

@@ -12,11 +12,11 @@ For example:
 
     make HOST=x86_64-w64-mingw32 -j4
 
-A prefix will be generated that's suitable for plugging into Bitcoin's
+A prefix will be generated that's suitable for plugging into Agrarian's
 configure. In the above example, a dir named x86_64-w64-mingw32 will be
-created. To use it for Bitcoin:
+created. To use it for Agrarian:
 
-    ./configure --prefix=`pwd`/depends/x86_64-w64-mingw32
+    CONFIG_SITE=`pwd`/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/
 
 Common `host-platform-triplets` for cross compilation are:
 
@@ -77,7 +77,7 @@ The following can be set when running make: make FOO=bar
     BUILD_ID_SALT: Optional salt to use when generating build package ids
 
 If some packages are not built, for example `make NO_WALLET=1`, the appropriate
-options will be passed to bitcoin's configure. In this case, `--disable-wallet`.
+options will be passed to Agrarian's configure. In this case, `--disable-wallet`.
 
 ### Additional targets
 
@@ -90,4 +90,3 @@ options will be passed to bitcoin's configure. In this case, `--disable-wallet`.
 
 - [description.md](description.md): General description of the depends system
 - [packages.md](packages.md): Steps for adding packages
-

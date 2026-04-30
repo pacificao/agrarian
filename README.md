@@ -15,13 +15,13 @@ Agrarian is a C++ cryptocurrency-style codebase with a deterministic `depends/` 
 
 ## System Requirements (Ubuntu)
 
-Install required build tools:
+Install the baseline build tools:
 
 ```bash
 sudo apt update
 sudo apt install -y \
   build-essential pkg-config autoconf automake libtool \
-  bsdmainutils python3 curl git
+  bsdmainutils cmake ninja-build python3 curl git
 ```
 
 For Windows cross-compilation support:
@@ -34,7 +34,13 @@ sudo apt install -y mingw-w64
 
 ## Building Dependencies (Deterministic Depends System)
 
-All dependency builds are executed from within the `depends/` directory.
+The preferred build path uses the deterministic `depends/` system instead of
+mixing system libraries. The current native Ubuntu wallet path builds Qt 6.8.3,
+OpenSSL 3.5.6, Boost 1.91.0, protobuf, Berkeley DB, and supporting libraries
+inside `depends/<host-triplet>/`.
+
+All dependency builds are executed from within the `depends/` directory or via
+the helper scripts in `contrib/`.
 
 ### Native Linux
 
@@ -76,11 +82,27 @@ These directories should not be committed to version control.
 
 ## Building Agrarian
 
-Standard autotools workflow:
+Recommended native Ubuntu daemon build:
 
 ```bash
 ./autogen.sh
-./configure
+JOBS=1 ./contrib/build-linux.sh
+```
+
+Recommended native Ubuntu desktop wallet build:
+
+```bash
+JOBS=1 ./contrib/build-linux-wallet.sh
+```
+
+Use a larger `JOBS` value only when the host has enough RAM. On an 8-core,
+16 GB host, `JOBS=8` is reasonable.
+
+Manual autotools workflow:
+
+```bash
+./autogen.sh
+CONFIG_SITE="$PWD/depends/x86_64-pc-linux-gnu/share/config.site" ./configure
 make -j"$(nproc)"
 ```
 
@@ -106,7 +128,13 @@ If enabled:
 make check
 ```
 
-Refer to scripts under `contrib/` for additional CI or functional test flows.
+Current smoke tests:
+
+```bash
+./contrib/smoke-test-daemon.sh
+./contrib/smoke-test-wallet.sh
+./contrib/smoke-test-qt.sh
+```
 
 ---
 

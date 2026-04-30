@@ -56,7 +56,7 @@ INSTALLING WSL
 
 3. Complete Setup
    - Open command prompt
-   - Run: Ubuntu1804
+   - Launch the installed Ubuntu distribution
    - Create a UNIX user account
 
 Once WSL is active, continue with cross-compilation instructions below.
@@ -222,6 +222,14 @@ PROTOBUF NOTE
 The Windows depends build uses protobuf 2.6.1 headers and libraries. Do not use
 a newer system `protoc` to regenerate wallet sources for this target. The helper
 builds and stages a matching native `protoc` when needed.
+
+============================================================
+QT NOTE
+============================================================
+
+The current Windows cross-build helper still targets the existing Qt5 cross
+path. The native Ubuntu wallet path has moved to Qt6. Keep those paths separate
+until the Windows Qt6 cross-build is explicitly modernized and smoke-tested.
 
 ============================================================
 END OF DOCUMENT

@@ -1,13 +1,23 @@
 Building Agrarian
 
-Use the autogen script to prepare the build environment.
+The preferred current build path uses the deterministic depends system.
 
     ./autogen.sh
-    ./configure
+    JOBS=1 ./contrib/build-linux.sh
+
+For the Ubuntu desktop wallet:
+
+    JOBS=1 ./contrib/build-linux-wallet.sh
+
+For a manual build, build depends first and configure against its config.site:
+
+    make -C depends HOST=x86_64-pc-linux-gnu NO_QT=0
+    ./autogen.sh
+    CONFIG_SITE=$PWD/depends/x86_64-pc-linux-gnu/share/config.site ./configure
     make
 
-Always verify the signatures and checksums.
+Always verify source checksums and release signatures when building a release.
 
 See doc/build-*.md for instructions on building agrariand,
-the intended-for-services, no-graphical-interface, reference
-implementation of Agrarian.
+the intended-for-services, no-graphical-interface implementation of Agrarian,
+and agrarian-qt, the desktop wallet.

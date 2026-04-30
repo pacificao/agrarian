@@ -36,6 +36,8 @@ Building
 The following are developer notes on how to build Agrarian Core on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
 
 - [Dependencies](dependencies.md)
+- [Ubuntu 24.04 Build Notes](build-ubuntu-24.md)
+- [Desktop Wallet Build Quick Start](build-wallets.md)
 - [macOS Build Notes](build-osx.md)
 - [Unix Build Notes](build-unix.md)
 - [Windows Build Notes](build-windows.md)
@@ -46,7 +48,6 @@ Development
 The Agrarian repo's [root README](/README.md) contains relevant information on the development process and automated testing.
 
 - [Developer Notes](developer-notes.md)
-- [Multiwallet Qt Development](multiwallet-qt.md)
 - [Release Notes](release-notes.md)
 - [Release Process](release-process.md)
 - [Source Code Documentation (External Link)](https://www.fuzzbawls.pw/agrarian/doxygen/)

@@ -128,10 +128,10 @@ Qt pkg-config files missing in the depends prefix
 
 The installer requires these `.pc` files in `depends/<host>/(lib|share)/pkgconfig`:
 
-- `Qt5Core.pc`
-- `Qt5Gui.pc`
-- `Qt5Network.pc`
-- `Qt5Widgets.pc`
+- Native Ubuntu Qt6 path: `Qt6Core.pc`, `Qt6Gui.pc`, `Qt6Network.pc`,
+  `Qt6Widgets.pc`
+- Windows cross-build Qt5 path: `Qt5Core.pc`, `Qt5Gui.pc`, `Qt5Network.pc`,
+  `Qt5Widgets.pc`
 
 Fix by rebuilding depends with Qt enabled:
 

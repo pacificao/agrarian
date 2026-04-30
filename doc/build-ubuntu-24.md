@@ -13,6 +13,8 @@ Use at least 2 GB RAM for a reliable build. A 512 MB host with 2 GB swap can
 configure successfully, but compilation is extremely slow and may time out while
 building large translation units.
 
+Use `JOBS=1` on small hosts. On an 8-core, 16 GB host, `JOBS=8` is reasonable.
+
 Packages
 --------
 
