@@ -1,3 +1,7 @@
+Status: historical release notes. This file documents the older Agrarian Core
+3.3.0 release and is not the current Agrarian 2.0 modernization release plan.
+For the current build and dependency baseline, see `doc/modernization.md`.
+
 Agrarian Core version *3.3.0* is now available from:  <https://github.com/agrarian-project/agrarian/releases>
 
 This is a new major version release, including various bug fixes and performance improvements, as well as updated translations.
@@ -21,9 +25,9 @@ If you are running an older version, shut it down. Wait until it has completely 
 Compatibility
 ==============
 
-Agrarian Core is extensively tested on multiple operating systems using the Linux kernel, macOS 10.10+, and Windows 7 and later.
-
-Microsoft ended support for Windows XP on [April 8th, 2014](https://www.microsoft.com/en-us/WindowsForBusiness/end-of-xp-support), No attempt is made to prevent installing or running the software on Windows XP, you can still do so at your own risk but be aware that there are known instabilities and issues. Please do not report issues about Windows XP to the issue tracker.
+For the current 2.0 modernization branch, the verified build targets are Ubuntu
+24.04 and Windows x86_64 cross-compiled from Ubuntu. Older platform statements
+below belong to the historical 3.3.0 release context.
 
 Apple released it's last Mountain Lion update August 13, 2015, and officially ended support on [December 14, 2015](http://news.fnal.gov/2015/10/mac-os-x-mountain-lion-10-8-end-of-life-december-14/). Agrarian Core software starting with v3.2.0 will no longer run on MacOS versions prior to Yosemite (10.10). Please do not report issues about MacOS versions prior to Yosemite to the issue tracker.
 

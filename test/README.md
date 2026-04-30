@@ -11,9 +11,9 @@ interfaces.
 - [util](/test/util) which tests the agrarian utilities, currently only
 agrarian-tx.
 
-The util tests are run as part of `make check` target. The functional
-tests are run by the travis continuous build process whenever a pull
-request is opened. Both sets of tests can also be run locally.
+The util tests are run as part of the `make check` target. Functional tests can
+be run locally with the test runner. Travis CI references in this tree are
+legacy and are not part of the current Agrarian 2.0 verification path.
 
 # Running tests locally
 

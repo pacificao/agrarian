@@ -1,6 +1,10 @@
 Travis CI
 =========
 
+Status: legacy documentation. Travis CI is not part of the verified Agrarian
+2.0 modernization path. Keep this file only as historical context until a
+current CI workflow is added.
+
 Support for using travis-ci has been added in order to automate pull-testing.
 See [travis-ci.org](https://travis-ci.org/) for more info
 

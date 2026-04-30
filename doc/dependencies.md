@@ -1,9 +1,12 @@
 Dependencies
 ============
 
-These are the dependencies currently used by Agrarian Core. You can find instructions for installing them in the `build-*.md` file for your platform.
+These are the dependencies currently used by the Agrarian 2.0 modernization
+branch. You can find instructions for installing or building them in the
+`build-*.md` file for your platform. The preferred path is the deterministic
+`depends/` tree, not mixed system libraries.
 
-| Dependency | Version used | Minimum required | CVEs | Shared | [Bundled Qt library](https://doc.qt.io/qt-5/configure-options.html#third-party-libraries) |
+| Dependency | Version used | Minimum required | CVEs | Shared | Bundled Qt library |
 | --- | --- | --- | --- | --- | --- |
 | Berkeley DB | [4.8.30](https://www.oracle.com/technetwork/database/database-technologies/berkeleydb/downloads/index.html) | 4.8.x | No |  |  |
 | Boost | [1.91.0](https://www.boost.org/users/download/) | [1.47.0](https://github.com/bitcoin/bitcoin/pull/8920) | No |  |  |
@@ -30,6 +33,15 @@ These are the dependencies currently used by Agrarian Core. You can find instruc
 | xkbcommon |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L86) (Linux only) |
 | ZeroMQ | [4.3.1](https://github.com/zeromq/libzmq/releases) | 4.0.0 | No |  |  |
 | zlib | [1.2.11](https://zlib.net/) |  |  |  | No |
+
+Modernization notes
+-------------------
+
+* Qt builds target Qt 6.8 LTS through the deterministic depends path.
+* OpenSSL builds target OpenSSL 3.5 LTS through the deterministic depends path.
+* Boost builds target Boost 1.91.0 through the deterministic depends path.
+* Berkeley DB remains 4.8.30 in depends for legacy wallet portability. Wallets
+  built against other BDB major versions may not be portable.
 
 Controlling dependencies
 ------------------------

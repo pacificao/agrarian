@@ -1,6 +1,8 @@
 # Ubuntu Installer
 
-`installer/agrarian-installer.sh` provides a Ubuntu-only CLI for common build actions.
+`installer/agrarian-installer.sh` provides a Ubuntu-only CLI for common build
+actions. The current modernization baseline is Ubuntu 24.04 with deterministic
+`depends/`; see `doc/modernization.md` for the verified dependency set.
 
 ## Usage
 

@@ -1,6 +1,10 @@
 RPM Spec File Notes
 -------------------
 
+Status: this RPM packaging guide is historical. It has not been revalidated for
+the Agrarian 2.0 Qt6/OpenSSL3/Boost modernization path. Prefer the Ubuntu 24.04
+depends-based build docs until RPM packaging is refreshed.
+
 The RPM spec file provided here is for Bitcoin-Core 0.12.0 and builds on CentOS
 7 with either the CentOS provided OpenSSL library or with LibreSSL as packaged
 at [LibreLAMP.com](https://librelamp.com/). It should hopefully not be too
@@ -72,10 +76,9 @@ difficult for a user to recover from backup in the event of a system failure.
 
 ## Graphical User Interface and Qt Version
 
-The RPM spec file will by default build the GUI client linked against the Qt5
-libraries. If you wish instead to link against the Qt4 libraries you need to
-pass the switch `-D '_use_qt4 1'` at build time to the `rpmbuild` or `mock`
-command used to build the packages.
+The historical RPM spec targeted older Qt libraries. For Agrarian 2.0, new RPM
+work should target Qt 6.8 LTS and the dependency baseline in
+`doc/modernization.md`.
 
 If you would prefer not to build the GUI at all, you can pass the switch
 `-D '_no_gui 1'` to the `rpmbuild` or `mock` build command.

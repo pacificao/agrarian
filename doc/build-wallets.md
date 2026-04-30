@@ -38,8 +38,7 @@ For the native Ubuntu wallet:
 For the Windows wallet:
 
     sudo apt-get install -y \
-      mingw-w64 g++-mingw-w64-x86-64 g++-mingw-w64-x86-64-posix \
-      qttools5-dev-tools
+      mingw-w64 g++-mingw-w64-x86-64 g++-mingw-w64-x86-64-posix
 
 Then select POSIX Mingw-w64 threading:
 

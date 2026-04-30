@@ -36,12 +36,17 @@ Building
 The following are developer notes on how to build Agrarian Core on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
 
 - [Dependencies](dependencies.md)
+- [Agrarian 2.0 Modernization Status](modernization.md)
 - [Ubuntu 24.04 Build Notes](build-ubuntu-24.md)
 - [Desktop Wallet Build Quick Start](build-wallets.md)
 - [macOS Build Notes](build-osx.md)
 - [Unix Build Notes](build-unix.md)
 - [Windows Build Notes](build-windows.md)
 - [Gitian Building Guide](gitian-building.md)
+
+The verified 2.0 build path is Ubuntu 24.04 with deterministic `depends/`.
+macOS, RPM, Gitian, and Travis documentation is retained as historical
+reference unless the individual document says it has been revalidated.
 
 Development
 ---------------------

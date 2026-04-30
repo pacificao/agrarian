@@ -114,6 +114,7 @@ To see configuration options:
 
 For current build notes, see:
 
+- `doc/modernization.md` for the current 2.0 dependency and build baseline.
 - `doc/build-ubuntu-24.md` for native Ubuntu daemon and wallet builds.
 - `doc/build-windows.md` for Windows cross-compilation.
 - `doc/build-wallets.md` for the repeatable desktop wallet quick start.

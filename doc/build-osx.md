@@ -13,16 +13,20 @@ When the popup appears, click `Install`.
 
 Then install [Homebrew](https://brew.sh).
 
+Status
+------
+
+This macOS guide is legacy documentation. It has not been revalidated for the
+Agrarian 2.0 Qt6/OpenSSL3/Boost modernization path. The currently verified
+desktop wallet paths are Ubuntu 24.04 native and Windows x86_64 cross-compiled
+from Ubuntu. See `doc/modernization.md`.
+
 Dependencies
 ----------------------
 
-    brew install autoconf automake berkeley-db4 libtool boost miniupnpc openssl pkg-config protobuf python3 qt5 zmq libevent qrencode gmp
+    brew install autoconf automake berkeley-db4 libtool boost miniupnpc openssl pkg-config protobuf python3 qt6 zmq libevent qrencode gmp
 
 See [dependencies.md](dependencies.md) for a complete overview.
-
-Status note: this macOS system-library path is legacy and has not been part of
-the current Qt6/OpenSSL3/Boost modernization smoke-test pass. The verified
-modern desktop wallet path is native Ubuntu via `contrib/build-linux-wallet.sh`.
 
 If you want to build the disk image with `make deploy` (.dmg / optional), you need RSVG:
 

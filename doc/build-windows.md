@@ -77,7 +77,7 @@ GENERAL DEPENDENCIES
     sudo apt update
     sudo apt install -y build-essential libtool autotools-dev \
         automake pkg-config bsdmainutils curl git make tar patch \
-        qttools5-dev-tools
+        cmake ninja-build python3
 
 A host toolchain (build-essential) is required because some dependencies
 (e.g., protobuf) build host utilities during the process.
@@ -148,9 +148,12 @@ Manual equivalent:
           --disable-maintainer-mode \
           --disable-tests \
           --disable-bench \
-          --with-gui=qt5 \
+          --with-gui=qt6 \
           --with-qt-incdir=$PWD/depends/x86_64-w64-mingw32/include \
-          --with-qt-libdir=$PWD/depends/x86_64-w64-mingw32/lib
+          --with-qt-libdir=$PWD/depends/x86_64-w64-mingw32/lib \
+          --with-qt-plugindir=$PWD/depends/x86_64-w64-mingw32/plugins \
+          --with-qt-translationdir=$PWD/depends/x86_64-w64-mingw32/translations \
+          --with-qt-bindir=$PWD/depends/x86_64-w64-mingw32/native/bin
     make
 
 ============================================================
@@ -161,7 +164,7 @@ Install toolchain:
 
     sudo apt install g++-mingw-w64-i686 mingw-w64-i686-dev
 
-Ubuntu 18.04:
+If multiple MinGW thread models are installed:
 
     sudo update-alternatives --config i686-w64-mingw32-g++
 
@@ -227,9 +230,9 @@ builds and stages a matching native `protoc` when needed.
 QT NOTE
 ============================================================
 
-The Windows cross-build helper targets the Qt6 depends path. Keep the helper's
-Qt host tools (`moc`, `uic`, `rcc`) staged from the matching depends build to
-avoid mixing host Qt tools with target Qt libraries.
+The Windows cross-build helper targets the Qt 6.8 LTS depends path. Keep the
+helper's Qt host tools (`moc`, `uic`, `rcc`) staged from the matching depends
+build to avoid mixing host Qt tools with target Qt libraries.
 
 ============================================================
 END OF DOCUMENT
