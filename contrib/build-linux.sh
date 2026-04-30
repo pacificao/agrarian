@@ -34,8 +34,8 @@ case "$MODE" in
     make -C depends HOST="$HOST" NO_QT=1 -j"$JOBS"
     require_path "$BASE_CONFIG"
 
-    ./autogen.sh
     reset_configure_state
+    ./autogen.sh
 
     echo "Configuring Linux daemon build..."
     CONFIG_SITE="$BASE_CONFIG" ./configure \
