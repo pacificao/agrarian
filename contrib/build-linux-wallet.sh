@@ -24,6 +24,14 @@ require_path() {
   fi
 }
 
+reset_qt_configure_state() {
+  local qt_work="$ROOT/depends/work/build/$HOST/qt"
+  [[ -d "$qt_work" ]] || return 0
+
+  echo "Clearing stale Qt configure state for $HOST..."
+  find "$qt_work" -mindepth 2 -maxdepth 2 -type d -name qtbase-build -prune -exec rm -rf {} +
+}
+
 cd "$ROOT"
 
 require_cmd make
@@ -32,6 +40,8 @@ require_cmd gcc
 require_cmd g++
 require_cmd cmake
 require_cmd ninja
+
+reset_qt_configure_state
 
 echo "Building native depends for $HOST..."
 make -C depends HOST="$HOST" NO_QT=0 -j"$JOBS"
