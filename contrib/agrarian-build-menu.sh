@@ -5,7 +5,7 @@ REPO_URL="${REPO_URL:-https://github.com/pacificao/agrarian.git}"
 WORKDIR="${WORKDIR:-$HOME/agrarian}"
 HOST_WIN64="${HOST_WIN64:-x86_64-w64-mingw32}"
 
-MENU_CHOICE=""
+MENU_CHOICE="${AGRARIAN_MENU_CHOICE:-}"
 ROOT=""
 
 detect_script_branch() {
@@ -92,6 +92,10 @@ confirm() {
 }
 
 select_target() {
+  if [[ -n "$MENU_CHOICE" ]]; then
+    return 0
+  fi
+
   if has_cmd whiptail; then
     MENU_CHOICE="$(whiptail --title "Agrarian Build Menu" --menu "Select a build target" 17 76 8 \
       "linux-daemon" "Compile Linux daemon and CLI tools" \
@@ -276,6 +280,27 @@ ensure_repo() {
   cd "$ROOT"
 }
 
+reexec_from_checkout() {
+  [[ "${AGRARIAN_REEXECED:-0}" == "1" ]] && return 0
+
+  local repo_script
+  repo_script="$ROOT/contrib/agrarian-build-menu.sh"
+  [[ -x "$repo_script" ]] || return 0
+
+  repo_script="$(cd "$(dirname "$repo_script")" && pwd -P)/$(basename "$repo_script")"
+
+  echo
+  echo "Restarting with the updated build menu from the checkout..."
+  exec env \
+    AGRARIAN_REEXECED=1 \
+    AGRARIAN_MENU_CHOICE="$MENU_CHOICE" \
+    BRANCH="$BRANCH" \
+    WORKDIR="$WORKDIR" \
+    JOBS="$JOBS" \
+    HOST_WIN64="$HOST_WIN64" \
+    "$repo_script"
+}
+
 ensure_posix_mingw() {
   local gcc_path="/usr/bin/$HOST_WIN64-gcc-posix"
   local gxx_path="/usr/bin/$HOST_WIN64-g++-posix"
@@ -453,6 +478,7 @@ main() {
   progress 5 "Selected target: $MENU_CHOICE"
   run_step 10 "Installing bootstrap Ubuntu packages" install_bootstrap_packages
   ensure_repo
+  reexec_from_checkout
   run_step 40 "Installing required Ubuntu packages" install_packages
   build_selected
   show_completion

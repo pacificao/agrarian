@@ -16,6 +16,9 @@ configured branch, and performs a fast-forward pull.
 Only bootstrap packages needed to update the checkout are installed before the
 pull. Target-specific packages are installed after the checkout is current, so
 fresh dependency fixes on the selected branch are applied before the build.
+After updating the checkout, the launcher restarts itself from the checked-out
+copy so the current branch version of the menu is used for package installation
+and build steps.
 
 Quick Start
 -----------
