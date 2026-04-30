@@ -121,7 +121,7 @@ install_packages() {
 
   local packages=(
     ca-certificates git build-essential pkg-config autoconf automake libtool
-    bsdmainutils cmake ninja-build python3 curl make tar patch
+    bsdmainutils cmake ninja-build python3 curl make tar patch bzip2 xz-utils
   )
 
   case "$MENU_CHOICE" in
@@ -135,7 +135,20 @@ install_packages() {
 
   export DEBIAN_FRONTEND=noninteractive
   sudo_cmd apt-get update
-  sudo_cmd apt-get install -y "${packages[@]}"
+  if ! sudo_cmd apt-get install -y "${packages[@]}"; then
+    cat >&2 <<EOF
+
+Package installation failed.
+
+On a minimal Ubuntu image, this is often an apt source configuration problem.
+Check that the standard Ubuntu repositories are enabled, then rerun this script:
+
+  sudo apt-cache policy bzip2 build-essential dpkg-dev
+  sudo apt-get update
+
+EOF
+    exit 1
+  fi
 }
 
 ensure_repo() {
