@@ -42,6 +42,10 @@ The Linux daemon option uses the deterministic native `depends/` build with Qt
 disabled, so Berkeley DB and other core libraries are built inside the checkout
 instead of being required as Ubuntu system development packages.
 
+The Linux Qt wallet option also installs Ubuntu desktop development headers
+needed by Qt's xcb platform plugin, including fontconfig, freetype, xcb, and
+xkbcommon packages.
+
 Defaults
 --------
 

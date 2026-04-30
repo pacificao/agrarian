@@ -209,7 +209,14 @@ install_packages() {
 
   case "$MENU_CHOICE" in
     linux-qt)
-      packages+=(xvfb)
+      packages+=(
+        xvfb
+        libfontconfig1-dev libfreetype6-dev
+        libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-image0-dev
+        libxcb-keysyms1-dev libxcb-render-util0-dev libxcb-shape0-dev
+        libxcb-shm0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xkb-dev
+        libxkbcommon-dev libxkbcommon-x11-dev
+      )
       ;;
     windows-daemon|windows-qt)
       packages+=(mingw-w64 g++-mingw-w64-x86-64 g++-mingw-w64-x86-64-posix)
