@@ -50,7 +50,7 @@ The script can be configured with environment variables:
     REPO_URL=https://github.com/pacificao/agrarian.git
     BRANCH=<current checkout branch, or main when run standalone>
     WORKDIR=$HOME/agrarian
-    JOBS=1
+    JOBS=<detected CPU count>
 
 Example:
 

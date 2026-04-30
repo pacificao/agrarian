@@ -3,7 +3,6 @@ set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/pacificao/agrarian.git}"
 WORKDIR="${WORKDIR:-$HOME/agrarian}"
-JOBS="${JOBS:-1}"
 HOST_WIN64="${HOST_WIN64:-x86_64-w64-mingw32}"
 
 MENU_CHOICE=""
@@ -20,6 +19,18 @@ if [[ -z "${BRANCH:-}" ]]; then
   BRANCH="$(detect_script_branch)"
 fi
 BRANCH="${BRANCH:-main}"
+
+detect_build_jobs() {
+  if command -v nproc >/dev/null 2>&1; then
+    nproc
+  elif command -v getconf >/dev/null 2>&1; then
+    getconf _NPROCESSORS_ONLN
+  else
+    echo 1
+  fi
+}
+
+JOBS="${JOBS:-$(detect_build_jobs)}"
 
 if [[ "${EUID:-$(id -u)}" -eq 0 && "${ALLOW_ROOT_BUILD_MENU:-0}" != "1" ]]; then
   cat >&2 <<EOF
