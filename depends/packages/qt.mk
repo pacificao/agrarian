@@ -105,7 +105,19 @@ define $(package)_build_cmds
 endef
 
 define $(package)_stage_cmds
-  DESTDIR=$($(package)_staging_dir) cmake --install .
+  DESTDIR=$($(package)_staging_dir) cmake --install . && \
+  mkdir -p ../qttools-build && \
+  cd ../qttools-build && \
+  cmake -G Ninja ../qttools \
+    -DCMAKE_PREFIX_PATH=$($(package)_staging_prefix_dir) \
+    -DCMAKE_INSTALL_PREFIX=$(host_prefix) \
+    -DQT_HOST_PATH=$($(package)_staging_prefix_dir) \
+    -DQT_BUILD_EXAMPLES=FALSE \
+    -DQT_BUILD_TESTS=FALSE \
+    -DBUILD_SHARED_LIBS=OFF && \
+  cmake --build . --target lrelease --parallel && \
+  mkdir -p $($(package)_staging_prefix_dir)/libexec && \
+  cp ../qttools-build/bin/lrelease $($(package)_staging_prefix_dir)/libexec/lrelease
 endef
 
 define $(package)_postprocess_cmds
