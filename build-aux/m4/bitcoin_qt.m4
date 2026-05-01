@@ -134,8 +134,9 @@ AC_DEFUN([BITCOIN_QT_CONFIGURE],[
     if test "x$bitcoin_cv_need_acc_widget" = xyes; then
       _BITCOIN_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(AccessibleFactory)], [-lqtaccessiblewidgets])
     fi
-    _BITCOIN_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QMinimalIntegrationPlugin)],[-lqminimal])
-    AC_DEFINE(QT_QPA_PLATFORM_MINIMAL, 1, [Define this symbol if the minimal qt platform exists])
+    _BITCOIN_QT_CHECK_STATIC_PLUGINS_OPTIONAL([Q_IMPORT_PLUGIN(QMinimalIntegrationPlugin)],[-lqminimal],[
+      AC_DEFINE(QT_QPA_PLATFORM_MINIMAL, 1, [Define this symbol if the minimal qt platform exists])
+    ])
     if test "x$QT_LIB_PREFIX" = xQt6; then
       _BITCOIN_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QTlsBackendOpenSSL)],[-lqopensslbackend -lssl -lcrypto])
       AC_DEFINE(QT_TLS_OPENSSL, 1, [Define this symbol if the Qt OpenSSL TLS backend exists])
@@ -381,6 +382,24 @@ AC_DEFUN([_BITCOIN_QT_CHECK_STATIC_PLUGINS],[
     [[return 0;]])],
     [AC_MSG_RESULT(yes); QT_LIBS="$2 $QT_LIBS"],
     [AC_MSG_RESULT(no); BITCOIN_QT_FAIL(Could not resolve: $2)])
+  LIBS="$CHECK_STATIC_PLUGINS_TEMP_LIBS"
+])
+
+dnl Internal. Check optional static plugin link requirements.
+dnl Inputs: $1: A series of Q_IMPORT_PLUGIN().
+dnl Inputs: $2: The libraries that resolve $1.
+dnl Inputs: $3: Action if found.
+AC_DEFUN([_BITCOIN_QT_CHECK_STATIC_PLUGINS_OPTIONAL],[
+  AC_MSG_CHECKING(for optional static Qt plugins: $2)
+  CHECK_STATIC_PLUGINS_TEMP_LIBS="$LIBS"
+  LIBS="$2 $QT_LIBS $LIBS"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+    #define QT_STATICPLUGIN
+    #include <QtPlugin>
+    $1]],
+    [[return 0;]])],
+    [AC_MSG_RESULT(yes); QT_LIBS="$2 $QT_LIBS"; $3],
+    [AC_MSG_RESULT(no)])
   LIBS="$CHECK_STATIC_PLUGINS_TEMP_LIBS"
 ])
 

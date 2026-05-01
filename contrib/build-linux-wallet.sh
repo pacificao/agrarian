@@ -101,6 +101,10 @@ if [[ ! -f configure ]]; then
   ./autogen.sh
 fi
 
+if [[ build-aux/m4/bitcoin_qt.m4 -nt configure ]]; then
+  ./autogen.sh
+fi
+
 echo "Configuring Ubuntu Qt6 wallet build..."
 CONFIG_SITE="$BASE_CONFIG" ./configure \
   --disable-maintainer-mode \
