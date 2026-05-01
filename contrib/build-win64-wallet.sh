@@ -115,6 +115,10 @@ if [[ ! -f configure || ! -f src/secp256k1/configure || ! -f src/secp256k1/Makef
   ./autogen.sh
 fi
 
+if [[ build-aux/m4/bitcoin_qt.m4 -nt configure || build-aux/m4/bitcoin_qt.m4 -nt aclocal.m4 ]]; then
+  ./autogen.sh
+fi
+
 echo "Configuring Win64 Qt6 wallet build..."
 CONFIG_SITE="$PREFIX/share/config.site" ./configure \
   --prefix=/ \

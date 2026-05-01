@@ -101,7 +101,7 @@ if [[ ! -f configure || ! -f src/secp256k1/configure || ! -f src/secp256k1/Makef
   ./autogen.sh
 fi
 
-if [[ build-aux/m4/bitcoin_qt.m4 -nt configure ]]; then
+if [[ build-aux/m4/bitcoin_qt.m4 -nt configure || build-aux/m4/bitcoin_qt.m4 -nt aclocal.m4 ]]; then
   ./autogen.sh
 fi
 

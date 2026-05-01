@@ -138,8 +138,9 @@ AC_DEFUN([BITCOIN_QT_CONFIGURE],[
       AC_DEFINE(QT_QPA_PLATFORM_MINIMAL, 1, [Define this symbol if the minimal qt platform exists])
     ])
     if test "x$QT_LIB_PREFIX" = xQt6; then
-      _BITCOIN_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QTlsBackendOpenSSL)],[-lqopensslbackend -lssl -lcrypto])
-      AC_DEFINE(QT_TLS_OPENSSL, 1, [Define this symbol if the Qt OpenSSL TLS backend exists])
+      _BITCOIN_QT_CHECK_STATIC_PLUGINS_OPTIONAL([Q_IMPORT_PLUGIN(QTlsBackendOpenSSL)],[-lqopensslbackend -lssl -lcrypto],[
+        AC_DEFINE(QT_TLS_OPENSSL, 1, [Define this symbol if the Qt OpenSSL TLS backend exists])
+      ])
     fi
     if test "x$TARGET_OS" = xwindows; then
       _BITCOIN_QT_CHECK_STATIC_PLUGINS([Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)],[-lqwindows])
