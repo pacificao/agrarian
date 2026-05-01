@@ -119,6 +119,15 @@ ifneq ($(native_packages),)
 	  tar --no-same-owner -xzf "$$f" -C "$(build_prefix)"; \
 	done
 	@if [[ " $(native_packages) " == *" native_protobuf "* ]] && [[ ! -x "$(build_prefix)/bin/protoc" ]]; then \
+	  found="$$(find "$(build_prefix)" -path '*/bin/protoc' -type f 2>/dev/null | sort | head -n 1)"; \
+	  if [[ -n "$$found" ]]; then \
+	    echo "== Staging native protoc from: $$found"; \
+	    mkdir -p "$(build_prefix)/bin"; \
+	    cp "$$found" "$(build_prefix)/bin/protoc"; \
+	    chmod +x "$(build_prefix)/bin/protoc"; \
+	  fi; \
+	fi
+	@if [[ " $(native_packages) " == *" native_protobuf "* ]] && [[ ! -x "$(build_prefix)/bin/protoc" ]]; then \
 	  echo "ERROR: missing native protoc under $(build_prefix)/bin/protoc"; \
 	  echo "Fix: make -C $(BASEDIR) HOST=$(HOST) NO_QT=$(NO_QT) native_protobuf"; \
 	  exit 1; \
