@@ -191,7 +191,7 @@ $($(1)_built): | $($(1)_configured)
 	$(AT)touch $$@
 $($(1)_staged): | $($(1)_built)
 	$(AT)echo Staging $(1)...
-	$(AT)mkdir -p $($(1)_staging_dir)/$(host_prefix)
+	$(AT)mkdir -p $$($(1)_staging_prefix_dir)
 	$(AT)cd $($(1)_build_dir); $($(1)_stage_env) $(call $(1)_stage_cmds, $(1))
 	$(AT)rm -rf $($(1)_extract_dir)
 	$(AT)touch $$@
@@ -201,7 +201,8 @@ $($(1)_postprocessed): | $($(1)_staged)
 	$(AT)touch $$@
 $($(1)_cached): | $($(1)_dependencies) $($(1)_postprocessed)
 	$(AT)echo Caching $(1)...
-	$(AT)cd $$($(1)_staging_dir)/$(host_prefix); find . | sort | tar --no-recursion -czf $$($(1)_staging_dir)/$$(@F) -T -
+	$(AT)if [[ "$(1)" == "native_protobuf" && ! -x "$$($(1)_staging_prefix_dir)/bin/protoc" ]]; then echo "ERROR: native_protobuf cache missing bin/protoc"; find "$$($(1)_staging_dir)" -maxdepth 5 -print; exit 1; fi
+	$(AT)cd $$($(1)_staging_prefix_dir); find . | sort | tar --no-recursion -czf $$($(1)_staging_dir)/$$(@F) -T -
 	$(AT)mkdir -p $$(@D)
 	$(AT)rm -rf $$(@D) && mkdir -p $$(@D)
 	$(AT)mv $$($(1)_staging_dir)/$$(@F) $$(@)
