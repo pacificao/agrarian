@@ -332,7 +332,7 @@ ensure_posix_mingw() {
 build_windows_daemon() {
   ensure_posix_mingw
 
-  run_step 45 "Building Windows daemon depends" make -C depends HOST="$HOST_WIN64" NO_QT=1 -j"$JOBS"
+  run_step 45 "Building Windows daemon depends" make -C depends HOST="$HOST_WIN64" NO_QT=1 -j1
 
   if [[ ! -f configure || ! -f src/secp256k1/configure || ! -f src/secp256k1/Makefile.in ]]; then
     run_step 60 "Generating configure script" ./autogen.sh
@@ -347,6 +347,7 @@ build_windows_daemon() {
     --disable-zmq \
     --with-miniupnpc=no
 
+  run_step 82 "Cleaning stale target objects" make clean
   run_step 90 "Compiling Windows daemon and CLI tools" make -j"$JOBS"
 }
 

@@ -68,18 +68,15 @@ build_native_protoc() {
 ensure_native_tools() {
   mkdir -p "$NATIVE_BIN"
 
-  for tool in moc uic rcc; do
+  for tool in moc uic rcc lrelease; do
     if [[ ! -x "$NATIVE_BIN/$tool" ]]; then
       copy_first_match "$tool"
     fi
   done
 
-  for tool in lrelease lupdate; do
-    if [[ ! -x "$NATIVE_BIN/$tool" ]]; then
-      require_cmd "$tool"
-      cp "$(command -v "$tool")" "$NATIVE_BIN/$tool"
-    fi
-  done
+  if [[ ! -x "$NATIVE_BIN/lupdate" ]] && command -v lupdate >/dev/null 2>&1; then
+    cp "$(command -v lupdate)" "$NATIVE_BIN/lupdate"
+  fi
 
   if [[ ! -x "$NATIVE_BIN/protoc" ]] || ! "$NATIVE_BIN/protoc" --version | grep -q "libprotoc $PROTOBUF_VERSION"; then
     build_native_protoc
@@ -99,7 +96,10 @@ ensure_posix_mingw
 
 echo "Building Win64 depends for $HOST..."
 echo "Building native Qt6 host tools and metadata for $BUILD_HOST..."
-make -C depends HOST="$BUILD_HOST" NO_QT=0 qt -j"$JOBS"
+# Keep the top-level depends scheduler serial. Individual package build
+# systems still use parallelism, but parallel package configure steps race on
+# the shared depends prefix and can make Qt see missing zlib/OpenSSL paths.
+make -C depends HOST="$BUILD_HOST" NO_QT=0 qt -j1
 qt_host_cache=( "$ROOT/depends/built/$BUILD_HOST/qt"/qt-*.tar.gz )
 if [[ ${#qt_host_cache[@]} -ne 1 || ! -f "${qt_host_cache[0]}" ]]; then
   echo "Could not locate a single native Qt6 cache archive for $BUILD_HOST" >&2
@@ -107,7 +107,7 @@ if [[ ${#qt_host_cache[@]} -ne 1 || ! -f "${qt_host_cache[0]}" ]]; then
 fi
 mkdir -p "$ROOT/depends/$BUILD_HOST"
 tar --no-same-owner -xf "${qt_host_cache[0]}" -C "$ROOT/depends/$BUILD_HOST"
-make -C depends HOST="$HOST" NO_QT=0 -j"$JOBS"
+make -C depends HOST="$HOST" NO_QT=0 -j1
 require_path "$PREFIX/share/config.site"
 ensure_native_tools
 
@@ -130,7 +130,11 @@ CONFIG_SITE="$PREFIX/share/config.site" ./configure \
   --with-qt-libdir="$PREFIX/lib" \
   --with-qt-plugindir="$PREFIX/plugins" \
   --with-qt-translationdir="$PREFIX/translations" \
-  --with-qt-bindir="$NATIVE_BIN"
+  --with-qt-bindir="$NATIVE_BIN" \
+  --with-protoc-bindir="$NATIVE_BIN"
+
+echo "Cleaning stale target objects before compiling..."
+make clean
 
 echo "Building Win64 Qt6 wallet with JOBS=$JOBS..."
 make -j"$JOBS"

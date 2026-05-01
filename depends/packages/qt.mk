@@ -104,6 +104,11 @@ define $(package)_build_cmds
   cmake --build . --parallel
 endef
 
+ifeq ($(host_os),mingw32)
+define $(package)_stage_cmds
+  DESTDIR=$($(package)_staging_dir) cmake --install .
+endef
+else
 define $(package)_stage_cmds
   DESTDIR=$($(package)_staging_dir) cmake --install . && \
   mkdir -p ../qttools-build && \
@@ -119,6 +124,7 @@ define $(package)_stage_cmds
   mkdir -p $($(package)_staging_prefix_dir)/libexec && \
   cp ../qttools-build/bin/lrelease $($(package)_staging_prefix_dir)/libexec/lrelease
 endef
+endif
 
 define $(package)_postprocess_cmds
   rm -rf share/doc share/examples share/qt6/sbom && \
