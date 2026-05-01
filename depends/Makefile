@@ -128,6 +128,17 @@ ifneq ($(native_packages),)
 	  fi; \
 	fi
 	@if [[ " $(native_packages) " == *" native_protobuf "* ]] && [[ ! -x "$(build_prefix)/bin/protoc" ]]; then \
+	  archive="$$(ls "$(BASE_CACHE)/$(HOST)/native_protobuf/"*.tar.gz 2>/dev/null | sort | tail -n 1)"; \
+	  if [[ -n "$$archive" ]] && tar -tzf "$$archive" ./bin/protoc >/dev/null 2>&1; then \
+	    echo "== Extracting native protoc directly from: $$archive"; \
+	    tar --no-same-owner -xzf "$$archive" -C "$(build_prefix)" ./bin/protoc; \
+	    chmod +x "$(build_prefix)/bin/protoc"; \
+	  elif [[ -n "$$archive" ]]; then \
+	    echo "== native_protobuf archive contents:"; \
+	    tar -tzf "$$archive" | sed -n '1,40p'; \
+	  fi; \
+	fi
+	@if [[ " $(native_packages) " == *" native_protobuf "* ]] && [[ ! -x "$(build_prefix)/bin/protoc" ]]; then \
 	  echo "ERROR: missing native protoc under $(build_prefix)/bin/protoc"; \
 	  echo "Fix: make -C $(BASEDIR) HOST=$(HOST) NO_QT=$(NO_QT) native_protobuf"; \
 	  exit 1; \
