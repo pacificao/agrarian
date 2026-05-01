@@ -46,6 +46,7 @@ $(package)_config_opts_linux  = -fontconfig
 $(package)_config_opts_linux += -qpa xcb
 $(package)_config_opts_linux += -xcb
 $(package)_config_opts_linux += -xkbcommon
+$(package)_config_opts_linux += -feature-xkbcommon-x11
 $(package)_config_opts_linux += -system-freetype
 $(package)_config_opts_linux += -no-feature-sessionmanager
 $(package)_config_opts_mingw32 = -qpa windows
@@ -84,8 +85,17 @@ define $(package)_extract_cmds
 endef
 
 define $(package)_config_cmds
+    qt_system_pc="$$$${QT_SYSTEM_PKG_CONFIG_LIBDIR:-`unset PKG_CONFIG_LIBDIR PKG_CONFIG_PATH; pkg-config --variable pc_path pkg-config 2>/dev/null || true`}" && \
+    if test -z "$$$${qt_system_pc}"; then \
+      qt_multiarch="`gcc -print-multiarch 2>/dev/null || true`"; \
+      if test -n "$$$${qt_multiarch}"; then \
+        qt_system_pc="/usr/lib/$$$${qt_multiarch}/pkgconfig:/lib/$$$${qt_multiarch}/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"; \
+      else \
+        qt_system_pc="/usr/lib/pkgconfig:/usr/share/pkgconfig"; \
+      fi; \
+    fi && \
     export PKG_CONFIG_SYSROOT_DIR=/ && \
-    export PKG_CONFIG_LIBDIR=$(host_prefix)/lib/pkgconfig$(if $(filter linux,$(host_os)),:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig) && \
+    export PKG_CONFIG_LIBDIR=$(host_prefix)/lib/pkgconfig$(if $(filter linux,$(host_os)),:$$$${qt_system_pc}) && \
     export PKG_CONFIG_PATH=$(host_prefix)/share/pkgconfig && \
   ../qtbase/configure $($(package)_config_opts) -- -G Ninja $($(package)_cmake_opts) $($(package)_cmake_opts_$(host_os)) $($(package)_cmake_opts_$(host_arch)_$(host_os))
 endef

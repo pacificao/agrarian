@@ -433,7 +433,15 @@ AC_DEFUN([_BITCOIN_QT_FIND_STATIC_PLUGINS],[
        if test "x$TARGET_OS" = xlinux; then
          QT_LIBS="-lQt6XcbQpa -lQt6InputSupport -lQt6FbSupport -lQt6DeviceDiscoverySupport $QT_LIBS"
          if test "x$PKG_CONFIG" != x; then
-           QT6_XCB_LIBS=`PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig $PKG_CONFIG --libs --static x11 x11-xcb xcb xcb-cursor xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-renderutil xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xkb xkbcommon xkbcommon-x11 fontconfig freetype2 harfbuzz 2>/dev/null`
+           qt_multiarch=`$CC -print-multiarch 2>/dev/null`
+           qt_system_pc_path="${QT_SYSTEM_PKG_CONFIG_LIBDIR}"
+           if test "x$qt_system_pc_path" = x && test "x$qt_multiarch" != x; then
+             qt_system_pc_path="/usr/lib/$qt_multiarch/pkgconfig:/lib/$qt_multiarch/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"
+           fi
+           if test "x$qt_system_pc_path" = x; then
+             qt_system_pc_path="/usr/lib/pkgconfig:/usr/share/pkgconfig"
+           fi
+           QT6_XCB_LIBS=`PKG_CONFIG_LIBDIR="$qt_system_pc_path" $PKG_CONFIG --libs --static x11 x11-xcb xcb xcb-cursor xcb-icccm xcb-image xcb-keysyms xcb-randr xcb-render xcb-renderutil xcb-shape xcb-shm xcb-sync xcb-xfixes xcb-xkb xkbcommon xkbcommon-x11 fontconfig freetype2 harfbuzz 2>/dev/null`
            QT_LIBS="$QT_LIBS $QT6_XCB_LIBS"
          fi
        fi
