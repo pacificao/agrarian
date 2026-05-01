@@ -33,7 +33,20 @@ reset_qt_configure_state() {
 }
 
 ensure_native_protoc() {
-  local found
+  local archive found
+
+  if [[ -x "$PROTOC" ]]; then
+    return 0
+  fi
+
+  archive="$(find "$ROOT/depends/built/$HOST/native_protobuf" \
+    -name 'native_protobuf-*.tar.gz' -type f 2>/dev/null | sort | tail -n 1 || true)"
+
+  if [[ -n "$archive" ]]; then
+    echo "Extracting native protoc from $archive"
+    mkdir -p "$ROOT/depends/build/$BUILD_HOST"
+    tar -xzf "$archive" -C "$ROOT/depends/build/$BUILD_HOST" ./bin/protoc
+  fi
 
   if [[ -x "$PROTOC" ]]; then
     return 0

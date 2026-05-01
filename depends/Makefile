@@ -114,6 +114,11 @@ ifneq ($(native_packages),)
 	  echo "  - $$p: $$f"; \
 	  tar -xzf $$f -C "$(build_prefix)"; \
 	done
+	@if [[ " $(native_packages) " == *" native_protobuf "* ]] && [[ ! -x "$(build_prefix)/bin/protoc" ]]; then \
+	  echo "ERROR: missing native protoc under $(build_prefix)/bin/protoc"; \
+	  echo "Fix: make -C $(BASEDIR) HOST=$(HOST) NO_QT=$(NO_QT) native_protobuf"; \
+	  exit 1; \
+	fi
 endif
 	@echo "== Writing config.site: $(host_prefix)/share/config.site"
 	@mkdir -p "$(host_prefix)/share"
