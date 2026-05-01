@@ -91,28 +91,32 @@ install-prefix: $(packages)
 	@rm -rf "$(host_prefix)"
 	@mkdir -p "$(host_prefix)"
 	@set -euo pipefail; \
+	shopt -s nullglob; \
 	for p in $(packages); do \
-	  f="$(BASE_CACHE)/$(HOST)/$$p/"*.tar.gz; \
-	  if ! ls $$f >/dev/null 2>&1; then \
-	    echo "ERROR: missing built artifact for $$p (expected: $$f)"; \
+	  artifacts=( "$(BASE_CACHE)/$(HOST)/$$p/"*.tar.gz ); \
+	  if (( $${#artifacts[@]} != 1 )); then \
+	    echo "ERROR: expected exactly one built artifact for $$p under $(BASE_CACHE)/$(HOST)/$$p"; \
 	    exit 1; \
 	  fi; \
+	  f="$${artifacts[0]}"; \
 	  echo "  - $$p: $$f"; \
-	  tar -xzf $$f -C "$(host_prefix)"; \
+	  tar --no-same-owner -xzf "$$f" -C "$(host_prefix)"; \
 	done
 ifneq ($(native_packages),)
 	@echo "== Installing native depends into: $(build_prefix)"
 	@rm -rf "$(build_prefix)"
 	@mkdir -p "$(build_prefix)"
 	@set -euo pipefail; \
+	shopt -s nullglob; \
 	for p in $(native_packages); do \
-	  f="$(BASE_CACHE)/$(HOST)/$$p/"*.tar.gz; \
-	  if ! ls $$f >/dev/null 2>&1; then \
-	    echo "ERROR: missing built artifact for $$p (expected: $$f)"; \
+	  artifacts=( "$(BASE_CACHE)/$(HOST)/$$p/"*.tar.gz ); \
+	  if (( $${#artifacts[@]} != 1 )); then \
+	    echo "ERROR: expected exactly one built artifact for $$p under $(BASE_CACHE)/$(HOST)/$$p"; \
 	    exit 1; \
 	  fi; \
+	  f="$${artifacts[0]}"; \
 	  echo "  - $$p: $$f"; \
-	  tar -xzf $$f -C "$(build_prefix)"; \
+	  tar --no-same-owner -xzf "$$f" -C "$(build_prefix)"; \
 	done
 	@if [[ " $(native_packages) " == *" native_protobuf "* ]] && [[ ! -x "$(build_prefix)/bin/protoc" ]]; then \
 	  echo "ERROR: missing native protoc under $(build_prefix)/bin/protoc"; \
