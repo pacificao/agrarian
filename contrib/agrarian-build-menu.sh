@@ -263,6 +263,8 @@ install_bootstrap_packages() {
 }
 
 ensure_repo() {
+  local head remote_head
+
   if [[ "${AGRARIAN_PROMPTS_DONE:-0}" != "1" ]]; then
     WORKDIR="$(prompt "Repository directory" "$WORKDIR")"
     JOBS="$(prompt "Parallel build jobs" "$JOBS")"
@@ -270,7 +272,7 @@ ensure_repo() {
 
   if [[ -d "$WORKDIR/.git" ]]; then
     ROOT="$WORKDIR"
-    run_step 25 "Fetching existing Agrarian checkout" git -C "$ROOT" fetch origin
+    run_step 25 "Fetching existing Agrarian checkout" git -C "$ROOT" fetch origin "$BRANCH"
     run_step 30 "Checking out $BRANCH" git -C "$ROOT" checkout "$BRANCH"
     run_step 35 "Fast-forwarding $BRANCH" git -C "$ROOT" pull --ff-only origin "$BRANCH"
   else
@@ -278,6 +280,13 @@ ensure_repo() {
     run_step 35 "Cloning Agrarian into $WORKDIR" git clone --branch "$BRANCH" "$REPO_URL" "$WORKDIR"
     ROOT="$WORKDIR"
   fi
+
+  head="$(git -C "$ROOT" rev-parse --short HEAD)"
+  remote_head="$(git -C "$ROOT" rev-parse --short "origin/$BRANCH" 2>/dev/null || true)"
+  if [[ -n "$remote_head" && "$head" != "$remote_head" ]]; then
+    fail "Checkout is at $head but origin/$BRANCH is $remote_head. Refusing to build an outdated checkout."
+  fi
+  echo "Using Agrarian $BRANCH at commit $head"
 
   cd "$ROOT"
 }
