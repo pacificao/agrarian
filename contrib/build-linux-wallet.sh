@@ -32,6 +32,26 @@ reset_qt_configure_state() {
   rm -rf "$qt_work"
 }
 
+ensure_native_protoc() {
+  local found
+
+  if [[ -x "$PROTOC" ]]; then
+    return 0
+  fi
+
+  found="$(find "$ROOT/depends/build" "$ROOT/depends/work/staging" \
+    -path '*/bin/protoc' -type f 2>/dev/null | sort | head -n 1 || true)"
+
+  if [[ -n "$found" ]]; then
+    echo "Staging native protoc from $found"
+    mkdir -p "$NATIVE_BIN"
+    cp "$found" "$PROTOC"
+    chmod +x "$PROTOC"
+  fi
+
+  require_path "$PROTOC"
+}
+
 cd "$ROOT"
 
 require_cmd make
@@ -46,7 +66,7 @@ reset_qt_configure_state
 echo "Building native depends for $HOST..."
 make -C depends HOST="$HOST" NO_QT=0 -j"$JOBS"
 require_path "$BASE_CONFIG"
-require_path "$PROTOC"
+ensure_native_protoc
 
 if [[ ! -f configure ]]; then
   ./autogen.sh
