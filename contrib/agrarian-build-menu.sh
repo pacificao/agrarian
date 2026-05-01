@@ -263,8 +263,10 @@ install_bootstrap_packages() {
 }
 
 ensure_repo() {
-  WORKDIR="$(prompt "Repository directory" "$WORKDIR")"
-  JOBS="$(prompt "Parallel build jobs" "$JOBS")"
+  if [[ "${AGRARIAN_PROMPTS_DONE:-0}" != "1" ]]; then
+    WORKDIR="$(prompt "Repository directory" "$WORKDIR")"
+    JOBS="$(prompt "Parallel build jobs" "$JOBS")"
+  fi
 
   if [[ -d "$WORKDIR/.git" ]]; then
     ROOT="$WORKDIR"
@@ -294,6 +296,7 @@ reexec_from_checkout() {
   exec env \
     AGRARIAN_REEXECED=1 \
     AGRARIAN_MENU_CHOICE="$MENU_CHOICE" \
+    AGRARIAN_PROMPTS_DONE=1 \
     BRANCH="$BRANCH" \
     WORKDIR="$WORKDIR" \
     JOBS="$JOBS" \

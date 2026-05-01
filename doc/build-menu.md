@@ -18,7 +18,8 @@ pull. Target-specific packages are installed after the checkout is current, so
 fresh dependency fixes on the selected branch are applied before the build.
 After updating the checkout, the launcher restarts itself from the checked-out
 copy so the current branch version of the menu is used for package installation
-and build steps.
+and build steps. The selected target, checkout directory, and job count are
+preserved across that restart.
 
 Quick Start
 -----------
