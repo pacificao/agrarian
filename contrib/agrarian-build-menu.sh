@@ -331,7 +331,7 @@ build_windows_daemon() {
 
   run_step 45 "Building Windows daemon depends" make -C depends HOST="$HOST_WIN64" NO_QT=1 -j"$JOBS"
 
-  if [[ ! -f configure ]]; then
+  if [[ ! -f configure || ! -f src/secp256k1/configure || ! -f src/secp256k1/Makefile.in ]]; then
     run_step 60 "Generating configure script" ./autogen.sh
   fi
 

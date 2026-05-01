@@ -111,7 +111,7 @@ make -C depends HOST="$HOST" NO_QT=0 -j"$JOBS"
 require_path "$PREFIX/share/config.site"
 ensure_native_tools
 
-if [[ ! -f configure ]]; then
+if [[ ! -f configure || ! -f src/secp256k1/configure || ! -f src/secp256k1/Makefile.in ]]; then
   ./autogen.sh
 fi
 

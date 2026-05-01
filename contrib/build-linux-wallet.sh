@@ -97,7 +97,7 @@ make -C depends HOST="$HOST" NO_QT=0 -j"$JOBS"
 require_path "$BASE_CONFIG"
 ensure_native_protoc
 
-if [[ ! -f configure ]]; then
+if [[ ! -f configure || ! -f src/secp256k1/configure || ! -f src/secp256k1/Makefile.in ]]; then
   ./autogen.sh
 fi
 

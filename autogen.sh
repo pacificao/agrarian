@@ -26,4 +26,8 @@ if ! command -v autoreconf >/dev/null 2>&1; then
     exit 1
 fi
 
+if [ -x "$srcdir/src/secp256k1/autogen.sh" ]; then
+    (cd "$srcdir/src/secp256k1" && ./autogen.sh)
+fi
+
 autoreconf --install --force --warnings=all
