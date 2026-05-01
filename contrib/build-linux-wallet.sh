@@ -65,6 +65,21 @@ ensure_native_protoc() {
   require_path "$PROTOC"
 }
 
+remove_invalid_native_protobuf_cache() {
+  local archive
+
+  archive="$(find "$ROOT/depends/built/$HOST/native_protobuf" \
+    -name 'native_protobuf-*.tar.gz' -type f 2>/dev/null | sort | tail -n 1 || true)"
+
+  [[ -n "$archive" ]] || return 0
+  if tar -tzf "$archive" ./bin/protoc >/dev/null 2>&1; then
+    return 0
+  fi
+
+  echo "Removing invalid native_protobuf cache without bin/protoc: $archive"
+  rm -rf "$ROOT/depends/built/$HOST/native_protobuf"
+}
+
 cd "$ROOT"
 
 require_cmd make
@@ -75,6 +90,7 @@ require_cmd cmake
 require_cmd ninja
 
 reset_qt_configure_state
+remove_invalid_native_protobuf_cache
 
 echo "Building native depends for $HOST..."
 make -C depends HOST="$HOST" NO_QT=0 -j"$JOBS"

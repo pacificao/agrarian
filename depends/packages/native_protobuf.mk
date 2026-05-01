@@ -23,5 +23,7 @@ define $(package)_stage_cmds
 endef
 
 define $(package)_postprocess_cmds
+  test -x bin/protoc || \
+    (echo "ERROR: native_protobuf staged without bin/protoc" && find . -maxdepth 3 -type f -o -type d && exit 1) && \
   chmod +x bin/protoc
 endef
