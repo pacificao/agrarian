@@ -17,9 +17,11 @@ define $(package)_build_cmds
 endef
 
 define $(package)_stage_cmds
-  $(MAKE) -C src DESTDIR=$($(package)_staging_dir) install-strip
+  mkdir -p $($(package)_staging_prefix_dir)/bin && \
+  cp src/protoc $($(package)_staging_prefix_dir)/bin/protoc && \
+  $(build_STRIP) $($(package)_staging_prefix_dir)/bin/protoc
 endef
 
 define $(package)_postprocess_cmds
-  rm -rf lib include
+  chmod +x bin/protoc
 endef
