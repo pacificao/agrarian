@@ -25,7 +25,7 @@ USE_UPNP    ?= 1
 qt_native_packages := native_protobuf
 qt_packages := qrencode protobuf zlib
 
-qt_linux_packages := qt
+qt_linux_packages := expat freetype fontconfig qt
 qt_darwin_packages := qt
 qt_mingw32_packages := qt
 
