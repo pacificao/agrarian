@@ -1,6 +1,17 @@
 Installer (Ubuntu)
 ==================
 
+Status
+---------------------
+The preferred fresh-host workflow for the 2.0 branch is currently
+`contrib/agrarian-build-menu.sh`, with the direct helper scripts
+`contrib/build-linux.sh`, `contrib/build-linux-wallet.sh`, and
+`contrib/build-win64-wallet.sh` used for repeatable scripted builds. This
+installer document is retained for the older `installer/agrarian-installer.sh`
+CLI and should be treated as secondary until that installer is revalidated
+against the current Qt 6.8.3/OpenSSL 3.5.6/Boost 1.91.0/Expat 2.8.0/FreeType
+2.13.3 depends baseline.
+
 Overview
 ---------------------
 The Agrarian installer is `installer/agrarian-installer.sh`. It automates the Ubuntu build steps by:
@@ -110,14 +121,14 @@ Troubleshooting
 ---------------------
 Boost library naming/layout (the `-mt` suffix)
 
-- Depends builds may produce Boost libs with suffixes like `libboost_thread-gcc-mt-1_64.a`.
+- Depends builds may produce Boost libs with suffixes like `libboost_thread-gcc-mt-1_91.a`.
 - The installer checks for `libboost_thread*.a` and `libboost_system*.a`, so it tolerates `-mt` and versioned names.
 - If you are configuring manually, keep `--with-boost=<depends-prefix>` (the installer sets this for you) to avoid system Boost fallback.
 
 `config.site` and PATH pitfalls
 
 - The installer configures with `CONFIG_SITE=depends/<host>/share/config.site`.
-- That `config.site` prepends `depends/<host>/native/bin` to `PATH`. Do not overwrite `PATH` with a minimal value; ensure `/usr/bin` and other system paths remain available.
+- Current helper builds use native host tools from `depends/build/<build-host>/bin`. Do not overwrite `PATH` with a minimal value; ensure `/usr/bin` and other system paths remain available.
 - If `config.site` is missing, rebuild depends:
 
 ```bash
@@ -153,7 +164,7 @@ Qt Cross-Compilation Packages (Ubuntu/Debian)
 Install the common Linux build tools (from `depends/README.md`):
 
 ```bash
-sudo apt-get install make automake cmake curl g++-multilib libtool binutils-gold bsdmainutils pkg-config python3 patch
+sudo apt-get install make automake cmake curl git g++-multilib libtool binutils-gold bsdmainutils pkg-config python3 patch bzip2 xz-utils
 ```
 
 Then install toolchains per target:

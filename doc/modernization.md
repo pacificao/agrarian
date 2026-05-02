@@ -14,6 +14,8 @@ The current deterministic `depends/` baseline is:
 - Qt 6.8.3 LTS
 - OpenSSL 3.5.6 LTS
 - Boost 1.91.0
+- Expat 2.8.0 for the Linux Qt/font stack
+- FreeType 2.13.3 for Qt 6 static font support
 - Berkeley DB 4.8.30 for portable legacy wallet compatibility
 - protobuf 2.6.1 for the existing Qt payment request sources
 - libevent 2.1.8-stable

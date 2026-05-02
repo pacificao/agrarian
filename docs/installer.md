@@ -4,6 +4,11 @@
 actions. The current modernization baseline is Ubuntu 24.04 with deterministic
 `depends/`; see `doc/modernization.md` for the verified dependency set.
 
+For fresh Ubuntu hosts, prefer `contrib/agrarian-build-menu.sh` first. The menu
+script installs target-specific packages, updates the selected branch, builds
+the deterministic depends tree, and can install/start the daemon for the current
+user. This installer CLI is retained as a lower-level build tool.
+
 ## Usage
 
 ```bash
@@ -36,7 +41,9 @@ If wallet is enabled (default), installer preflight checks require:
 
 For the current native Ubuntu Qt wallet path, depends should also provide Qt6
 pkg-config files such as `Qt6Core.pc`, `Qt6Gui.pc`, `Qt6Network.pc`, and
-`Qt6Widgets.pc`. The Windows cross-build path also uses the Qt6 depends target.
+`Qt6Widgets.pc`. The Linux Qt/font path also builds Expat 2.8.0 and FreeType
+2.13.3 through depends. The Windows cross-build path also uses the Qt6 depends
+target.
 
 When missing, the installer exits early and prints the exact missing path(s) plus the `make -C depends ...` command to fix them.
 

@@ -153,12 +153,17 @@ Manual equivalent:
           --with-qt-libdir=$PWD/depends/x86_64-w64-mingw32/lib \
           --with-qt-plugindir=$PWD/depends/x86_64-w64-mingw32/plugins \
           --with-qt-translationdir=$PWD/depends/x86_64-w64-mingw32/translations \
-          --with-qt-bindir=$PWD/depends/x86_64-w64-mingw32/native/bin
+          --with-qt-bindir=$PWD/depends/build/x86_64-pc-linux-gnu/bin \
+          --with-protoc-bindir=$PWD/depends/build/x86_64-pc-linux-gnu/bin
     make
 
 ============================================================
 BUILDING FOR 32-BIT WINDOWS
 ============================================================
+
+The current verified 2.0 Windows path is x86_64. The 32-bit instructions below
+are retained as a legacy cross-build reference and should be revalidated before
+release use.
 
 Install toolchain:
 
@@ -233,6 +238,16 @@ QT NOTE
 The Windows cross-build helper targets the Qt 6.8 LTS depends path. Keep the
 helper's Qt host tools (`moc`, `uic`, `rcc`) staged from the matching depends
 build to avoid mixing host Qt tools with target Qt libraries.
+
+============================================================
+DEPENDS BASELINE NOTE
+============================================================
+
+The 2.0 branch currently verifies Windows x86_64 builds against the same
+modernized core dependency baseline as Linux: OpenSSL 3.5.6, Boost 1.91.0,
+Qt 6.8.3, Berkeley DB 4.8.30, protobuf 2.6.1, libevent 2.1.8-stable, and GMP
+6.1.2. Expat 2.8.0 and FreeType 2.13.3 are part of the Linux Qt/font depends
+path and are documented in `doc/dependencies.md`.
 
 ============================================================
 END OF DOCUMENT
