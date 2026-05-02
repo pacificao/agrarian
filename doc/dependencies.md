@@ -17,7 +17,7 @@ branch. You can find instructions for installing or building them in the
 | FreeType | [2.14.3](https://download.savannah.gnu.org/releases/freetype) |  | Qt 6 static font support |  |  |
 | GCC |  | C++17 support |  |  |  |
 | HarfBuzz-NG |  |  |  |  |  |
-| libevent | [2.1.8-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
+| libevent | [2.1.12-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
 | libjpeg |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L65) |
 | libpng |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L64) |
 | librsvg | |  |  |  |  |
