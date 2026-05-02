@@ -31,7 +31,7 @@ branch. You can find instructions for installing or building them in the
 | Qt | [6.8.3](https://download.qt.io/official_releases/qt/) | 6.8 LTS | No |  |  |
 | XCB |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L87) (Linux only) |
 | xkbcommon |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L86) (Linux only) |
-| ZeroMQ | [4.3.1](https://github.com/zeromq/libzmq/releases) | 4.0.0 | No |  |  |
+| ZeroMQ | [4.3.5](https://github.com/zeromq/libzmq/releases) | 4.0.0 | No |  |  |
 | zlib | [1.3.2](https://zlib.net/) |  |  |  | No |
 
 Modernization notes

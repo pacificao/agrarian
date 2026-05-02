@@ -99,11 +99,11 @@ install-prefix: $(packages)
 	    exit 1; \
 	  fi; \
 	  if (( $${#artifacts[@]} > 1 )); then \
-	    echo "WARN: multiple built artifacts for $$p; using newest by name"; \
+	    echo "WARN: multiple built artifacts for $$p; using newest by modification time"; \
 	  fi; \
-	  IFS=$$'\n' sorted=( $$(printf '%s\n' "$${artifacts[@]}" | sort) ); \
+	  IFS=$$'\n' sorted=( $$(ls -t "$${artifacts[@]}") ); \
 	  unset IFS; \
-	  f="$${sorted[$$(($${#sorted[@]} - 1))]}"; \
+	  f="$${sorted[0]}"; \
 	  echo "  - $$p: $$f"; \
 	  tar --no-same-owner -xzf "$$f" -C "$(host_prefix)"; \
 	done
@@ -120,11 +120,11 @@ ifneq ($(native_packages),)
 	    exit 1; \
 	  fi; \
 	  if (( $${#artifacts[@]} > 1 )); then \
-	    echo "WARN: multiple built artifacts for $$p; using newest by name"; \
+	    echo "WARN: multiple built artifacts for $$p; using newest by modification time"; \
 	  fi; \
-	  IFS=$$'\n' sorted=( $$(printf '%s\n' "$${artifacts[@]}" | sort) ); \
+	  IFS=$$'\n' sorted=( $$(ls -t "$${artifacts[@]}") ); \
 	  unset IFS; \
-	  f="$${sorted[$$(($${#sorted[@]} - 1))]}"; \
+	  f="$${sorted[0]}"; \
 	  echo "  - $$p: $$f"; \
 	  tar --no-same-owner -xzf "$$f" -C "$(build_prefix)"; \
 	done
