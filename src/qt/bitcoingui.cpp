@@ -23,6 +23,7 @@
 #include "blockexplorer.h"
 #include "walletframe.h"
 #include "walletmodel.h"
+#include "wallet/wallet.h"
 #endif // ENABLE_WALLET
 
 #ifdef Q_OS_MAC
@@ -106,6 +107,7 @@ BitcoinGUI::BitcoinGUI(const NetworkStyle* networkStyle, QWidget* parent) : QMai
                                                                             openAction(0),
                                                                             showHelpMessageAction(0),
                                                                             multiSendAction(0),
+                                                                            toggleMiningAction(0),
                                                                             trayIcon(0),
                                                                             trayIconMenu(0),
                                                                             notificator(0),
@@ -437,6 +439,10 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
     multiSendAction = new QAction(QIcon(":/icons/edit"), tr("&MultiSend"), this);
     multiSendAction->setToolTip(tr("MultiSend Settings"));
     multiSendAction->setCheckable(true);
+    toggleMiningAction = new QAction(tr("&Start CPU Mining"), this);
+    toggleMiningAction->setStatusTip(tr("Start or stop CPU mining using the configured mining processor threads"));
+    toggleMiningAction->setToolTip(toggleMiningAction->statusTip());
+    toggleMiningAction->setCheckable(true);
 
     openInfoAction = new QAction(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation), tr("&Information"), this);
     openInfoAction->setStatusTip(tr("Show diagnostic information"));
@@ -496,6 +502,7 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
         connect(usedReceivingAddressesAction, SIGNAL(triggered()), walletFrame, SLOT(usedReceivingAddresses()));
         connect(openAction, SIGNAL(triggered()), this, SLOT(openClicked()));
         connect(multiSendAction, SIGNAL(triggered()), this, SLOT(gotoMultiSendDialog()));
+        connect(toggleMiningAction, SIGNAL(triggered()), this, SLOT(toggleMining()));
         connect(multisigCreateAction, SIGNAL(triggered()), this, SLOT(gotoMultisigCreate()));
         connect(multisigSpendAction, SIGNAL(triggered()), this, SLOT(gotoMultisigSpend()));
         connect(multisigSignAction, SIGNAL(triggered()), this, SLOT(gotoMultisigSign()));
@@ -544,6 +551,11 @@ void BitcoinGUI::createMenuBar()
     settings->addAction(optionsAction);
 
     if (walletFrame) {
+        QMenu* mining = appMenuBar->addMenu(tr("&Mining"));
+        mining->addAction(toggleMiningAction);
+        mining->addSeparator();
+        mining->addAction(optionsAction);
+
         QMenu* tools = appMenuBar->addMenu(tr("&Tools"));
         tools->addAction(openInfoAction);
         tools->addAction(openRPCConsoleAction);
@@ -638,6 +650,7 @@ void BitcoinGUI::setClientModel(ClientModel* clientModel)
 #endif // ENABLE_WALLET
         unitDisplayControl->setOptionsModel(clientModel->getOptionsModel());
         connect(clientModel->getOptionsModel(), SIGNAL(zeromintEnableChanged(bool)), this, SLOT(setAutoMintStatus()));
+        updateMiningAction();
 
         //Show trayIcon
         if (trayIcon)
@@ -702,6 +715,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     usedSendingAddressesAction->setEnabled(enabled);
     usedReceivingAddressesAction->setEnabled(enabled);
     openAction->setEnabled(enabled);
+    toggleMiningAction->setEnabled(enabled);
 }
 
 void BitcoinGUI::createTrayIcon(const NetworkStyle* networkStyle)
@@ -809,6 +823,44 @@ void BitcoinGUI::openClicked()
     if (dlg.exec()) {
         emit receivedURI(dlg.getURI());
     }
+}
+
+void BitcoinGUI::toggleMining()
+{
+    const bool currentlyMining = GetBoolArg("-gen", false);
+    const bool startMining = !currentlyMining;
+
+    if (!pwalletMain) {
+        QMessageBox::warning(this, tr("Mining unavailable"), tr("CPU mining requires an active wallet."));
+        updateMiningAction();
+        return;
+    }
+
+    int miningThreads = 1;
+    if (clientModel && clientModel->getOptionsModel())
+        miningThreads = clientModel->getOptionsModel()->getMiningThreads();
+
+    mapArgs["-gen"] = (startMining ? "1" : "0");
+    mapArgs["-genproclimit"] = itostr(startMining ? miningThreads : 0);
+    GenerateBitcoins(startMining, pwalletMain, startMining ? miningThreads : 0);
+    updateMiningAction();
+
+    const QString message = startMining
+        ? tr("CPU mining started with %1 processor thread(s).").arg(miningThreads)
+        : tr("CPU mining stopped.");
+    statusBar()->showMessage(message, 5000);
+}
+
+void BitcoinGUI::updateMiningAction()
+{
+    if (!toggleMiningAction)
+        return;
+
+    const bool mining = GetBoolArg("-gen", false);
+    toggleMiningAction->blockSignals(true);
+    toggleMiningAction->setChecked(mining);
+    toggleMiningAction->setText(mining ? tr("&Stop CPU Mining") : tr("&Start CPU Mining"));
+    toggleMiningAction->blockSignals(false);
 }
 
 void BitcoinGUI::gotoOverviewPage()

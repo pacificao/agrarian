@@ -31,6 +31,9 @@
 #include <QLocale>
 #include <QMessageBox>
 #include <QTimer>
+#include <QThread>
+
+#include <algorithm>
 
 OptionsDialog::OptionsDialog(QWidget* parent, bool enableWallet) : QDialog(parent, Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint),
                                                                    ui(new Ui::OptionsDialog),
@@ -46,6 +49,8 @@ OptionsDialog::OptionsDialog(QWidget* parent, bool enableWallet) : QDialog(paren
     ui->databaseCache->setMaximum(nMaxDbCache);
     ui->threadsScriptVerif->setMinimum(-(int)boost::thread::hardware_concurrency());
     ui->threadsScriptVerif->setMaximum(MAX_SCRIPTCHECK_THREADS);
+    ui->miningThreads->setMinimum(1);
+    ui->miningThreads->setMaximum(std::max(1, QThread::idealThreadCount()));
 
 /* Network elements init */
 #ifndef USE_UPNP
@@ -192,6 +197,7 @@ void OptionsDialog::setMapper()
     /* Main */
     mapper->addMapping(ui->bitcoinAtStartup, OptionsModel::StartAtStartup);
     mapper->addMapping(ui->threadsScriptVerif, OptionsModel::ThreadsScriptVerif);
+    mapper->addMapping(ui->miningThreads, OptionsModel::MiningThreads);
     mapper->addMapping(ui->databaseCache, OptionsModel::DatabaseCache);
     // Zeromint Enabled
     mapper->addMapping(ui->checkBoxZeromintEnable, OptionsModel::ZeromintEnable);

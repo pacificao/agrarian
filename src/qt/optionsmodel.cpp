@@ -29,6 +29,9 @@
 #include <QNetworkProxy>
 #include <QSettings>
 #include <QStringList>
+#include <QThread>
+
+#include <algorithm>
 
 OptionsModel::OptionsModel(QObject* parent) : QAbstractListModel(parent)
 {
@@ -118,6 +121,9 @@ void OptionsModel::Init()
         settings.setValue("nThreadsScriptVerif", DEFAULT_SCRIPTCHECK_THREADS);
     if (!SoftSetArg("-par", settings.value("nThreadsScriptVerif").toString().toStdString()))
         addOverriddenOption("-par");
+
+    if (!settings.contains("nMiningThreads"))
+        settings.setValue("nMiningThreads", 1);
 
 // Wallet
 #ifdef ENABLE_WALLET
@@ -255,6 +261,8 @@ QVariant OptionsModel::data(const QModelIndex& index, int role) const
             return settings.value("nDatabaseCache");
         case ThreadsScriptVerif:
             return settings.value("nThreadsScriptVerif");
+        case MiningThreads:
+            return settings.value("nMiningThreads", 1);
         case HideZeroBalances:
             return settings.value("fHideZeroBalances");
         case HideOrphans:
@@ -420,6 +428,12 @@ bool OptionsModel::setData(const QModelIndex& index, const QVariant& value, int 
                 setRestartRequired(true);
             }
             break;
+        case MiningThreads: {
+            const int maxThreads = std::max(1, QThread::idealThreadCount());
+            const int threads = std::max(1, std::min(value.toInt(), maxThreads));
+            settings.setValue("nMiningThreads", threads);
+            break;
+        }
         case Listen:
             if (settings.value("fListen") != value) {
                 settings.setValue("fListen", value);
@@ -434,6 +448,13 @@ bool OptionsModel::setData(const QModelIndex& index, const QVariant& value, int 
     emit dataChanged(index, index);
 
     return successful;
+}
+
+int OptionsModel::getMiningThreads()
+{
+    QSettings settings;
+    const int maxThreads = std::max(1, QThread::idealThreadCount());
+    return std::max(1, std::min(settings.value("nMiningThreads", 1).toInt(), maxThreads));
 }
 
 /** Updates current unit in memory, settings and emits displayUnitChanged(newUnit) signal */

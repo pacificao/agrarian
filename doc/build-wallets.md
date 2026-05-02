@@ -1,4 +1,4 @@
-Copyright (c) 2026 Agrarian Developers
+Copyright (c) 2022-2036 Agrarian Developers
 
 Desktop Wallet Build Quick Start
 ================================

@@ -1,4 +1,4 @@
-# Copyright (c) 2026 Agrarian Developers
+# Copyright (c) 2022-2036 Agrarian Developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or https://www.opensource.org/licenses/mit-license.php.
 

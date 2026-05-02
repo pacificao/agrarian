@@ -131,6 +131,7 @@ private:
     QAction* openBlockExplorerAction;
     QAction* showHelpMessageAction;
     QAction* multiSendAction;
+    QAction* toggleMiningAction;
 
     QSystemTrayIcon* trayIcon;
     QMenu* trayIconMenu;
@@ -238,6 +239,10 @@ private slots:
 
     /** Show open dialog */
     void openClicked();
+    /** Toggle CPU mining using the configured mining thread count. */
+    void toggleMining();
+    /** Refresh CPU mining action text/check state. */
+    void updateMiningAction();
 
 #endif // ENABLE_WALLET
     /** Show configuration dialog */

@@ -1,4 +1,4 @@
-Copyright (c) 2026 Agrarian Developers
+Copyright (c) 2022-2036 Agrarian Developers
 
 Ubuntu 24.04 Build Notes
 ========================
