@@ -7,6 +7,10 @@ HOST_WIN64="${HOST_WIN64:-x86_64-w64-mingw32}"
 
 MENU_CHOICE="${AGRARIAN_MENU_CHOICE:-}"
 ROOT=""
+DAEMON_WAS_RUNNING=0
+DAEMON_RESTART_MODE=""
+DAEMON_RESTART_CMD=()
+DAEMON_SYSTEMD_SERVICE=""
 
 detect_script_branch() {
   local script_dir
@@ -89,6 +93,192 @@ confirm() {
   local answer
   read -r -p "$question [y/N]: " answer
   [[ "$answer" == "y" || "$answer" == "Y" || "$answer" == "yes" || "$answer" == "YES" ]]
+}
+
+process_pids() {
+  local name="$1"
+  pgrep -u "$(id -u)" -x "$name" 2>/dev/null || true
+}
+
+all_process_pids() {
+  local name="$1"
+  pgrep -x "$name" 2>/dev/null || true
+}
+
+other_user_process_pids() {
+  local name="$1"
+  local pid owner current_user
+  current_user="$(id -un)"
+
+  while IFS= read -r pid; do
+    [[ -n "$pid" ]] || continue
+    owner="$(ps -o user= -p "$pid" 2>/dev/null | awk '{print $1}')"
+    [[ -n "$owner" && "$owner" != "$current_user" ]] && printf '%s %s\n' "$pid" "$owner"
+  done < <(all_process_pids "$name")
+}
+
+process_cmdline() {
+  local pid="$1"
+  tr '\0' '\n' < "/proc/$pid/cmdline" 2>/dev/null || true
+}
+
+daemon_cli_path() {
+  if [[ -x "$ROOT/src/agrarian-cli" ]]; then
+    echo "$ROOT/src/agrarian-cli"
+  elif has_cmd agrarian-cli; then
+    command -v agrarian-cli
+  else
+    return 1
+  fi
+}
+
+daemon_args_from_cmdline() {
+  local pid="$1"
+  local arg
+
+  while IFS= read -r arg; do
+    case "$arg" in
+      -conf=*|-datadir=*|-testnet|-regtest)
+        printf '%s\n' "$arg"
+        ;;
+    esac
+  done < <(process_cmdline "$pid")
+}
+
+remember_daemon_restart() {
+  local pid="$1"
+  local arg exe
+
+  DAEMON_RESTART_MODE="command"
+  DAEMON_RESTART_CMD=()
+
+  exe="$(readlink -f "/proc/$pid/exe" 2>/dev/null || true)"
+  [[ -n "$exe" ]] || exe="$ROOT/src/agrariand"
+
+  DAEMON_RESTART_CMD+=("$exe")
+  while IFS= read -r arg; do
+    DAEMON_RESTART_CMD+=("$arg")
+  done < <(daemon_args_from_cmdline "$pid")
+
+  case " ${DAEMON_RESTART_CMD[*]} " in
+    *" -daemon "*) ;;
+    *) DAEMON_RESTART_CMD+=("-daemon") ;;
+  esac
+}
+
+active_user_daemon_service() {
+  has_cmd systemctl || return 1
+  systemctl --user is-active --quiet agrariand.service 2>/dev/null || return 1
+  echo "agrariand.service"
+}
+
+stop_running_daemon() {
+  local pids pid cli args=() service
+
+  pids="$(process_pids agrariand)"
+  [[ -n "$pids" ]] || return 0
+
+  DAEMON_WAS_RUNNING=1
+  service="$(active_user_daemon_service || true)"
+  if [[ -n "$service" ]]; then
+    DAEMON_RESTART_MODE="systemd"
+    DAEMON_SYSTEMD_SERVICE="$service"
+    echo "Detected running user service: $service"
+  else
+    pid="$(printf '%s\n' "$pids" | head -n 1)"
+    remember_daemon_restart "$pid"
+    echo "Detected running agrariand process: $pid"
+  fi
+
+  if ! confirm "Stop agrariand gracefully before building?"; then
+    fail "Refusing to build while agrariand is running."
+  fi
+
+  if [[ "$DAEMON_RESTART_MODE" == "systemd" ]]; then
+    systemctl --user stop "$DAEMON_SYSTEMD_SERVICE"
+  else
+    pid="$(printf '%s\n' "$pids" | head -n 1)"
+    cli="$(daemon_cli_path)" || fail "agrarian-cli is required to stop the running daemon gracefully."
+    mapfile -t args < <(daemon_args_from_cmdline "$pid")
+    "$cli" "${args[@]}" stop
+  fi
+
+  local waited=0
+  while [[ -n "$(process_pids agrariand)" && "$waited" -lt 120 ]]; do
+    sleep 1
+    waited=$((waited + 1))
+  done
+
+  [[ -z "$(process_pids agrariand)" ]] || fail "agrariand did not stop within 120 seconds. Build was not started."
+}
+
+stop_running_qt_wallet() {
+  local pids
+
+  pids="$(process_pids agrarian-qt)"
+  [[ -n "$pids" ]] || return 0
+
+  cat >&2 <<EOF
+
+Detected a running Agrarian Qt wallet for the current user:
+$pids
+
+For wallet safety, this script will not force-close the GUI wallet. Close the
+wallet normally and wait for it to finish shutting down before the build starts.
+EOF
+
+  while [[ -n "$(process_pids agrarian-qt)" ]]; do
+    if ! confirm "I have closed agrarian-qt; check again?"; then
+      fail "Refusing to build while agrarian-qt is running."
+    fi
+  done
+}
+
+prepare_running_processes_for_build() {
+  local other
+
+  other="$(other_user_process_pids agrarian-qt)"
+  [[ -z "$other" ]] || fail "agrarian-qt is running under another user. Stop it before building: $other"
+
+  other="$(other_user_process_pids agrariand)"
+  [[ -z "$other" ]] || fail "agrariand is running under another user. Stop it before building: $other"
+
+  stop_running_qt_wallet
+  stop_running_daemon
+}
+
+restart_previous_daemon() {
+  [[ "$DAEMON_WAS_RUNNING" == "1" ]] || return 0
+
+  if [[ -n "$(process_pids agrariand)" ]]; then
+    echo "agrariand is already running."
+    return 0
+  fi
+
+  if ! confirm "Restart agrariand now using the previous startup method?"; then
+    echo "agrariand was running before the build and is currently stopped."
+    return 0
+  fi
+
+  if [[ "$DAEMON_RESTART_MODE" == "systemd" ]]; then
+    if [[ "$MENU_CHOICE" == "linux-daemon" || "$MENU_CHOICE" == "linux-qt" ]]; then
+      mkdir -p "$HOME/.local/bin"
+      [[ -x "$ROOT/src/agrariand" ]] && install -m 0755 "$ROOT/src/agrariand" "$HOME/.local/bin/agrariand"
+      [[ -x "$ROOT/src/agrarian-cli" ]] && install -m 0755 "$ROOT/src/agrarian-cli" "$HOME/.local/bin/agrarian-cli"
+    fi
+    systemctl --user start "$DAEMON_SYSTEMD_SERVICE"
+  elif [[ "${#DAEMON_RESTART_CMD[@]}" -gt 0 ]]; then
+    "${DAEMON_RESTART_CMD[@]}"
+  else
+    fail "Could not determine how to restart agrariand."
+  fi
+
+  sleep 5
+  if [[ -n "$(process_pids agrariand)" ]]; then
+    echo "agrariand restarted."
+  else
+    fail "agrariand did not appear to restart."
+  fi
 }
 
 select_target() {
@@ -448,7 +638,9 @@ show_completion() {
       echo "  $ROOT/src/agrariand"
       echo "  $ROOT/src/agrarian-cli"
       echo "  $ROOT/src/agrarian-tx"
-      if confirm "Start agrariand now and enable automatic start at boot for the current user?"; then
+      if [[ "$DAEMON_WAS_RUNNING" == "1" ]]; then
+        echo "agrariand was running before the build and has been handled by the restart step."
+      elif confirm "Start agrariand now and enable automatic start at boot for the current user?"; then
         install_user_daemon_service
       else
         echo "Start manually with: $ROOT/src/agrariand -daemon"
@@ -459,7 +651,9 @@ show_completion() {
       echo "  $ROOT/src/qt/agrarian-qt"
       echo "  $ROOT/src/agrariand"
       echo "  $ROOT/src/agrarian-cli"
-      if confirm "Start agrariand now and enable automatic start at boot for the current user?"; then
+      if [[ "$DAEMON_WAS_RUNNING" == "1" ]]; then
+        echo "agrariand was running before the build and has been handled by the restart step."
+      elif confirm "Start agrariand now and enable automatic start at boot for the current user?"; then
         install_user_daemon_service
       fi
       ;;
@@ -496,7 +690,9 @@ main() {
   ensure_repo
   reexec_from_checkout
   run_step 40 "Installing required Ubuntu packages" install_packages
+  run_step 43 "Preparing running Agrarian processes" prepare_running_processes_for_build
   build_selected
+  restart_previous_daemon
   show_completion
 }
 

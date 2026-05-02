@@ -240,7 +240,7 @@ void CMasternodeSync::Process()
         /* 
             Resync if we lose all masternodes from sleep/wake or failure to sync originally
         */
-        if (mnodeman.CountEnabled() == 0) {
+        if (mnodeman.CountEnabled() == 0 && IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
             Reset();
         } else
             return;
@@ -260,6 +260,49 @@ void CMasternodeSync::Process()
     // sporks synced but blockchain is not, wait until we're almost at a recent block to continue
     if (Params().NetworkID() != CBaseChainParams::REGTEST &&
         !IsBlockchainSynced() && RequestedMasternodeAssets > MASTERNODE_SYNC_SPORKS) return;
+
+    // Small networks can have every connected peer marked fulfilled before an
+    // empty masternode stage reaches its per-peer timeout check. Advance empty
+    // stages here so staking is not blocked forever on networks with no
+    // masternodes, winners, or budgets.
+    if (GetTime() - nAssetSyncStarted > MASTERNODE_SYNC_TIMEOUT * 5) {
+        if (RequestedMasternodeAssets == MASTERNODE_SYNC_SPORKS) {
+            GetNextAsset();
+            return;
+        }
+
+        if (RequestedMasternodeAssets == MASTERNODE_SYNC_LIST && lastMasternodeList == 0) {
+            if (IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
+                LogPrintf("CMasternodeSync::Process - ERROR - Sync has failed, will retry later\n");
+                RequestedMasternodeAssets = MASTERNODE_SYNC_FAILED;
+                RequestedMasternodeAttempt = 0;
+                lastFailure = GetTime();
+                nCountFailures++;
+            } else {
+                GetNextAsset();
+            }
+            return;
+        }
+
+        if (RequestedMasternodeAssets == MASTERNODE_SYNC_MNW && lastMasternodeWinner == 0) {
+            if (IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
+                LogPrintf("CMasternodeSync::Process - ERROR - Sync has failed, will retry later\n");
+                RequestedMasternodeAssets = MASTERNODE_SYNC_FAILED;
+                RequestedMasternodeAttempt = 0;
+                lastFailure = GetTime();
+                nCountFailures++;
+            } else {
+                GetNextAsset();
+            }
+            return;
+        }
+
+        if (RequestedMasternodeAssets == MASTERNODE_SYNC_BUDGET && lastBudgetItem == 0) {
+            GetNextAsset();
+            activeMasternode.ManageStatus();
+            return;
+        }
+    }
 
     TRY_LOCK(cs_vNodes, lockRecv);
     if (!lockRecv) return;
@@ -284,11 +327,15 @@ void CMasternodeSync::Process()
 
         //set to synced
         if (RequestedMasternodeAssets == MASTERNODE_SYNC_SPORKS) {
+            if (RequestedMasternodeAttempt >= MASTERNODE_SYNC_THRESHOLD) {
+                GetNextAsset();
+                return;
+            }
+
             if (pnode->HasFulfilledRequest("getspork")) continue;
             pnode->FulfilledRequest("getspork");
 
             pnode->PushMessage("getsporks"); //get current network sporks
-            if (RequestedMasternodeAttempt >= 2) GetNextAsset();
             RequestedMasternodeAttempt++;
 
             return;
