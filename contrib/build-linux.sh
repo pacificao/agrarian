@@ -45,6 +45,9 @@ case "$MODE" in
       --disable-zmq \
       --with-miniupnpc=no \
       CXXFLAGS="${CXXFLAGS:--O0 -g0 --param ggc-min-expand=1 --param ggc-min-heapsize=32768}"
+
+    echo "Cleaning stale target objects before compiling..."
+    make clean
     ;;
   wallet)
     exec "$ROOT/contrib/build-linux-wallet.sh"
