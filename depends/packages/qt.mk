@@ -28,6 +28,7 @@ $(package)_config_opts += -no-glib
 $(package)_config_opts += -no-icu
 $(package)_config_opts += -no-opengl
 $(package)_config_opts += -no-pch
+$(package)_config_opts += -no-feature-brotli
 $(package)_config_opts += -no-feature-sql
 $(package)_config_opts += -no-feature-vulkan
 $(package)_config_opts += -nomake examples

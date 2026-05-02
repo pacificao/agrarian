@@ -94,11 +94,16 @@ install-prefix: $(packages)
 	shopt -s nullglob; \
 	for p in $(packages); do \
 	  artifacts=( "$(BASE_CACHE)/$(HOST)/$$p/"*.tar.gz ); \
-	  if (( $${#artifacts[@]} != 1 )); then \
-	    echo "ERROR: expected exactly one built artifact for $$p under $(BASE_CACHE)/$(HOST)/$$p"; \
+	  if (( $${#artifacts[@]} == 0 )); then \
+	    echo "ERROR: expected a built artifact for $$p under $(BASE_CACHE)/$(HOST)/$$p"; \
 	    exit 1; \
 	  fi; \
-	  f="$${artifacts[0]}"; \
+	  if (( $${#artifacts[@]} > 1 )); then \
+	    echo "WARN: multiple built artifacts for $$p; using newest by name"; \
+	  fi; \
+	  IFS=$$'\n' sorted=( $$(printf '%s\n' "$${artifacts[@]}" | sort) ); \
+	  unset IFS; \
+	  f="$${sorted[$$(($${#sorted[@]} - 1))]}"; \
 	  echo "  - $$p: $$f"; \
 	  tar --no-same-owner -xzf "$$f" -C "$(host_prefix)"; \
 	done
@@ -110,11 +115,16 @@ ifneq ($(native_packages),)
 	shopt -s nullglob; \
 	for p in $(native_packages); do \
 	  artifacts=( "$(BASE_CACHE)/$(HOST)/$$p/"*.tar.gz ); \
-	  if (( $${#artifacts[@]} != 1 )); then \
-	    echo "ERROR: expected exactly one built artifact for $$p under $(BASE_CACHE)/$(HOST)/$$p"; \
+	  if (( $${#artifacts[@]} == 0 )); then \
+	    echo "ERROR: expected a built artifact for $$p under $(BASE_CACHE)/$(HOST)/$$p"; \
 	    exit 1; \
 	  fi; \
-	  f="$${artifacts[0]}"; \
+	  if (( $${#artifacts[@]} > 1 )); then \
+	    echo "WARN: multiple built artifacts for $$p; using newest by name"; \
+	  fi; \
+	  IFS=$$'\n' sorted=( $$(printf '%s\n' "$${artifacts[@]}" | sort) ); \
+	  unset IFS; \
+	  f="$${sorted[$$(($${#sorted[@]} - 1))]}"; \
 	  echo "  - $$p: $$f"; \
 	  tar --no-same-owner -xzf "$$f" -C "$(build_prefix)"; \
 	done
@@ -166,7 +176,7 @@ endif
 	  echo "PATH=\"$(build_prefix)/bin:\$$PATH\""; \
 	  echo "PKG_CONFIG='`which pkg-config` --static'"; \
 	  echo "PKG_CONFIG_LIBDIR='$(host_prefix)/lib/pkgconfig:$(host_prefix)/share/pkgconfig'"; \
-	  echo "PKG_CONFIG_PATH=\"$$PKG_CONFIG_LIBDIR\""; \
+	  echo "PKG_CONFIG_PATH=\"\$$PKG_CONFIG_LIBDIR\""; \
 	  echo "export PKG_CONFIG_LIBDIR"; \
 	  echo "export PKG_CONFIG_PATH"; \
 	  echo "export PKG_CONFIG"; \

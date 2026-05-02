@@ -16,11 +16,12 @@ require_path() {
 }
 
 reset_configure_state() {
-  rm -f config.cache config.log config.status
+  rm -f config.cache config.log config.status libtool
 
-  # Stale generated makefiles can trigger config.status --recheck with old
-  # configure arguments after a failed build attempt.
-  find . -name Makefile -type f \
+  # Stale generated makefiles and libtool scripts can trigger rechecks with
+  # old configure arguments or old autotools/libtool macros after a failed
+  # build attempt.
+  find . \( -name Makefile -o -name config.status -o -name config.log -o -name libtool \) \
     ! -path './depends/*' \
     ! -path './.git/*' \
     -delete
@@ -31,7 +32,12 @@ cd "$ROOT"
 case "$MODE" in
   daemon)
     echo "Building native daemon depends for $HOST..."
-    make -C depends HOST="$HOST" NO_QT=1 -j"$JOBS"
+    # The legacy depends system mutates depends/$HOST while configuring each
+    # package, so package-level parallelism can race and remove headers/libs
+    # another package is probing. Keep depends serial; use JOBS for the final
+    # Agrarian compile below.
+    make -C depends clean
+    make -C depends HOST="$HOST" NO_QT=1 -j1
     require_path "$BASE_CONFIG"
 
     reset_configure_state

@@ -278,8 +278,9 @@ void BitcoinCore::restart(QStringList args)
             qDebug() << __func__ << ": Running Restart in thread";
             Interrupt();
             PrepareShutdown();
-            qDebug() << __func__ << ": Shutdown finished";
             emit shutdownResult(1);
+            QMetaObject::invokeMethod(QApplication::instance(), "quit", Qt::QueuedConnection);
+            QApplication::exit(0);
             CExplicitNetCleanup::callCleanup();
             QProcess::startDetached(QApplication::applicationFilePath(), args);
             qDebug() << __func__ << ": Restart initiated...";
@@ -298,8 +299,9 @@ void BitcoinCore::shutdown()
         qDebug() << __func__ << ": Running Shutdown in thread";
         Interrupt();
         Shutdown();
-        qDebug() << __func__ << ": Shutdown finished";
         emit shutdownResult(1);
+        QMetaObject::invokeMethod(QApplication::instance(), "quit", Qt::QueuedConnection);
+        QApplication::exit(0);
     } catch (std::exception& e) {
         handleRunawayException(&e);
     } catch (...) {

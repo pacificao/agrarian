@@ -142,6 +142,17 @@ remove_invalid_native_protobuf_cache() {
   rm -rf "$ROOT/depends/built/$HOST/native_protobuf"
 }
 
+reset_configure_state() {
+  rm -f config.cache config.log config.status libtool
+
+  # Stale generated makefiles and libtool scripts can trigger rechecks with
+  # old autotools/libtool macros after a failed or moved build.
+  find . \( -name Makefile -o -name config.status -o -name config.log -o -name libtool \) \
+    ! -path './depends/*' \
+    ! -path './.git/*' \
+    -delete
+}
+
 cd "$ROOT"
 
 require_cmd make
@@ -162,17 +173,17 @@ reset_qt_configure_state
 remove_invalid_native_protobuf_cache
 
 echo "Building native depends for $HOST..."
-make -C depends HOST="$HOST" NO_QT=0 -j"$JOBS"
+# The legacy depends system mutates depends/$HOST while configuring each
+# package. Package-level parallelism can race and remove headers/libs another
+# package is probing, so keep depends serial and use JOBS for the final wallet
+# compile below.
+make -C depends clean
+make -C depends HOST="$HOST" NO_QT=0 -j1
 require_path "$BASE_CONFIG"
 ensure_native_protoc
 
-if [[ ! -f configure || ! -f src/secp256k1/configure || ! -f src/secp256k1/Makefile.in ]]; then
-  ./autogen.sh
-fi
-
-if [[ build-aux/m4/bitcoin_qt.m4 -nt configure || build-aux/m4/bitcoin_qt.m4 -nt aclocal.m4 ]]; then
-  ./autogen.sh
-fi
+reset_configure_state
+./autogen.sh
 
 echo "Configuring Ubuntu Qt6 wallet build..."
 QT_SYSTEM_PKG_CONFIG_LIBDIR="$QT_SYSTEM_PKG_CONFIG_LIBDIR" CONFIG_SITE="$BASE_CONFIG" ./configure \

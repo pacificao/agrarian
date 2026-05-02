@@ -10,6 +10,7 @@
 
 #include "amount.h"
 #include "hash.h"
+#include "init.h"
 #include "main.h"
 #include "masternode-sync.h"
 #include "net.h"
@@ -634,7 +635,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
     bool fLastLoopOrphan = false;
-    while (fGenerateBitcoins || fProofOfStake) {
+    while ((fGenerateBitcoins || fProofOfStake) && !ShutdownRequested()) {
         if (fProofOfStake) {
             //control the amount of times the client will check for mintable coins
             if ((GetTime() - nMintableLastCheck > 5 * 60)) // 5 minute check time
@@ -648,7 +649,7 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                 continue;
             }
 
-            while (vNodes.empty() || pwallet->IsLocked() || !fMintableCoins || (pwallet->GetBalance() > 0 && nReserveBalance >= pwallet->GetBalance()) || !masternodeSync.IsSynced()) {
+            while (!ShutdownRequested() && (vNodes.empty() || pwallet->IsLocked() || !fMintableCoins || (pwallet->GetBalance() > 0 && nReserveBalance >= pwallet->GetBalance()) || !masternodeSync.IsSynced())) {
                 nLastCoinStakeSearchInterval = 0;
                 // Do a separate 1 minute check here to ensure fMintableCoins is updated
                 if (!fMintableCoins) {
@@ -662,6 +663,8 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                 if (!fGenerateBitcoins && !fProofOfStake)
                     continue;
             }
+            if (ShutdownRequested())
+                break;
 
             if (mapHashedBlocks.count(chainActive.Tip()->nHeight) && !fLastLoopOrphan) //search our map of hashed blocks, see if bestblock has been hashed yet
             {
@@ -834,6 +837,7 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
 
     if (minerThreads != nullptr) {
         minerThreads->interrupt_all();
+        minerThreads->join_all();
         delete minerThreads;
         minerThreads = nullptr;
     }

@@ -8,6 +8,7 @@
 #include "wallet/walletdb.h"
 
 #include "base58.h"
+#include "init.h"
 #include "protocol.h"
 #include "serialize.h"
 #include "sync.h"
@@ -916,7 +917,7 @@ void ThreadFlushWalletDB(const string& strFile)
     unsigned int nLastSeen = nWalletDBUpdated;
     unsigned int nLastFlushed = nWalletDBUpdated;
     int64_t nLastWalletUpdate = GetTime();
-    while (true) {
+    while (!ShutdownRequested()) {
         MilliSleep(500);
 
         if (nLastSeen != nWalletDBUpdated) {
