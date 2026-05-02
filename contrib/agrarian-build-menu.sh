@@ -113,8 +113,12 @@ other_user_process_pids() {
   while IFS= read -r pid; do
     [[ -n "$pid" ]] || continue
     owner="$(ps -o user= -p "$pid" 2>/dev/null | awk '{print $1}')"
-    [[ -n "$owner" && "$owner" != "$current_user" ]] && printf '%s %s\n' "$pid" "$owner"
+    if [[ -n "$owner" && "$owner" != "$current_user" ]]; then
+      printf '%s %s\n' "$pid" "$owner"
+    fi
   done < <(all_process_pids "$name")
+
+  return 0
 }
 
 process_cmdline() {
