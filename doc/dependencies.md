@@ -14,7 +14,7 @@ branch. You can find instructions for installing or building them in the
 | D-Bus | [1.10.18](https://cgit.freedesktop.org/dbus/dbus/tree/NEWS?h=dbus-1.10) |  | No | Yes |  |
 | Expat | [2.8.0](https://libexpat.github.io/) |  | Security fixes | Yes |  |
 | fontconfig | [2.12.1](https://www.freedesktop.org/software/fontconfig/release/) |  | No | Yes |  |
-| FreeType | [2.13.3](https://download.savannah.gnu.org/releases/freetype) |  | Qt 6 static font support |  |  |
+| FreeType | [2.14.3](https://download.savannah.gnu.org/releases/freetype) |  | Qt 6 static font support |  |  |
 | GCC |  | C++17 support |  |  |  |
 | HarfBuzz-NG |  |  |  |  |  |
 | libevent | [2.1.8-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |

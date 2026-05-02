@@ -36,7 +36,7 @@ sudo apt install -y mingw-w64
 
 The preferred build path uses the deterministic `depends/` system instead of
 mixing system libraries. The current native Ubuntu wallet path builds Qt 6.8.3,
-OpenSSL 3.5.6, Boost 1.91.0, Expat 2.8.0, FreeType 2.13.3, protobuf,
+OpenSSL 3.5.6, Boost 1.91.0, Expat 2.8.0, FreeType 2.14.3, protobuf,
 Berkeley DB, and supporting libraries inside `depends/<host-triplet>/`.
 
 All dependency builds are executed from within the `depends/` directory or via

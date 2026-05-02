@@ -58,7 +58,7 @@ For the desktop wallet, use:
     JOBS=1 ./contrib/build-linux-wallet.sh
 
 The wallet helper builds/restores the native depends prefix first, including
-Qt 6.8.3, OpenSSL 3.5.6, Boost 1.91.0, Expat 2.8.0, FreeType 2.13.3, and the
+Qt 6.8.3, OpenSSL 3.5.6, Boost 1.91.0, Expat 2.8.0, FreeType 2.14.3, and the
 Linux Qt font/xcb support libraries. It then configures the project with the
 generated depends `config.site` and builds the Ubuntu Qt wallet.
 
@@ -97,7 +97,7 @@ Expat and FreeType
 ------------------
 
 The native Ubuntu Qt wallet path uses Expat 2.8.0 through fontconfig and
-FreeType 2.13.3 for Qt 6 static font support. Keep those in the deterministic
+FreeType 2.14.3 for Qt 6 static font support. Keep those in the deterministic
 depends graph; do not satisfy them with ad hoc system-library fallbacks.
 
 Berkeley DB

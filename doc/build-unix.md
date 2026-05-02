@@ -27,7 +27,7 @@ STANDARD BUILD WITH DEPENDS
     make install  (optional)
 
 The native depends wallet path currently builds Qt 6.8.3, OpenSSL 3.5.6,
-Boost 1.91.0, Expat 2.8.0, FreeType 2.13.3, protobuf, Berkeley DB, and
+Boost 1.91.0, Expat 2.8.0, FreeType 2.14.3, protobuf, Berkeley DB, and
 supporting libraries.
 
 For a daemon-only build:

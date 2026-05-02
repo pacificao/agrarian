@@ -52,7 +52,7 @@ instead of being required as Ubuntu system development packages.
 
 The Linux Qt wallet option also installs Ubuntu desktop development headers
 needed by Qt's xcb platform plugin, including fontconfig, freetype, xcb, and
-xkbcommon packages. Expat 2.8.0 and FreeType 2.13.3 are built through
+xkbcommon packages. Expat 2.8.0 and FreeType 2.14.3 are built through
 `depends/` for the Linux Qt/font stack. The wallet helper uses the matching
 `protoc` built by `depends/`, so a system protobuf compiler is not required. It
 also clears stale Qt work directories before rebuilding, because failed CMake

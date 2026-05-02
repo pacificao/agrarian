@@ -1,8 +1,8 @@
 package=freetype
-$(package)_version=2.13.3
+$(package)_version=2.14.3
 $(package)_download_path=https://download.savannah.gnu.org/releases/$(package)
 $(package)_file_name=$(package)-$($(package)_version).tar.xz
-$(package)_sha256_hash=0550350666d427c74daeb85d5ac7bb353acba5f76956395995311a9c6f063289
+$(package)_sha256_hash=36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f
 
 define $(package)_set_vars
   $(package)_config_opts=--without-zlib --without-png --without-harfbuzz --without-bzip2 --disable-static

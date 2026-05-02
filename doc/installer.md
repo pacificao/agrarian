@@ -10,7 +10,7 @@ The preferred fresh-host workflow for the 2.0 branch is currently
 installer document is retained for the older `installer/agrarian-installer.sh`
 CLI and should be treated as secondary until that installer is revalidated
 against the current Qt 6.8.3/OpenSSL 3.5.6/Boost 1.91.0/Expat 2.8.0/FreeType
-2.13.3 depends baseline.
+2.14.3 depends baseline.
 
 Overview
 ---------------------
