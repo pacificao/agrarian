@@ -60,7 +60,7 @@ Why the helpers exist
 The wallet build is sensitive to tool version mismatches:
 
 * Native Ubuntu uses the deterministic depends Qt6, OpenSSL, Boost, Expat,
-  FreeType, protobuf, and supporting libraries.
+  FreeType, and supporting libraries.
 * Windows cross-target wallets use the deterministic depends Qt6 path and
   matching Qt host tools staged by depends.
 

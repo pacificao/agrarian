@@ -24,7 +24,7 @@ from Ubuntu. See `doc/modernization.md`.
 Dependencies
 ----------------------
 
-    brew install autoconf automake berkeley-db4 libtool boost miniupnpc openssl pkg-config protobuf python3 qt6 zmq libevent qrencode gmp
+    brew install autoconf automake berkeley-db4 libtool boost miniupnpc openssl pkg-config python3 qt6 zmq libevent qrencode gmp
 
 See [dependencies.md](dependencies.md) for a complete overview.
 

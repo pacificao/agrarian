@@ -7,9 +7,6 @@ HOST="${HOST:-x86_64-w64-mingw32}"
 BUILD_HOST="${BUILD_HOST:-$("$ROOT/depends/config.guess")}"
 PREFIX="$ROOT/depends/$HOST"
 NATIVE_BIN="$ROOT/depends/build/$BUILD_HOST/bin"
-PROTOBUF_VERSION="${PROTOBUF_VERSION:-2.6.1}"
-PROTOBUF_SOURCE="$ROOT/depends/sources/protobuf-$PROTOBUF_VERSION.tar.bz2"
-PROTOBUF_BUILD="${PROTOBUF_BUILD:-/tmp/agrarian-protobuf-$PROTOBUF_VERSION-native}"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -51,20 +48,6 @@ EOF
   fi
 }
 
-build_native_protoc() {
-  require_path "$PROTOBUF_SOURCE"
-  rm -rf "$PROTOBUF_BUILD"
-  mkdir -p "$PROTOBUF_BUILD"
-  tar -xjf "$PROTOBUF_SOURCE" -C "$PROTOBUF_BUILD" --strip-components=1
-  chmod -R u+rwX "$PROTOBUF_BUILD"
-  (
-    cd "$PROTOBUF_BUILD"
-    bash configure --disable-shared --without-zlib
-    make -C src protoc -j"$JOBS" SHELL=/bin/bash
-  )
-  cp "$PROTOBUF_BUILD/src/protoc" "$NATIVE_BIN/protoc"
-}
-
 ensure_native_tools() {
   mkdir -p "$NATIVE_BIN"
 
@@ -76,10 +59,6 @@ ensure_native_tools() {
 
   if [[ ! -x "$NATIVE_BIN/lupdate" ]] && command -v lupdate >/dev/null 2>&1; then
     cp "$(command -v lupdate)" "$NATIVE_BIN/lupdate"
-  fi
-
-  if [[ ! -x "$NATIVE_BIN/protoc" ]] || ! "$NATIVE_BIN/protoc" --version | grep -q "libprotoc $PROTOBUF_VERSION"; then
-    build_native_protoc
   fi
 }
 
@@ -130,8 +109,7 @@ CONFIG_SITE="$PREFIX/share/config.site" ./configure \
   --with-qt-libdir="$PREFIX/lib" \
   --with-qt-plugindir="$PREFIX/plugins" \
   --with-qt-translationdir="$PREFIX/translations" \
-  --with-qt-bindir="$NATIVE_BIN" \
-  --with-protoc-bindir="$NATIVE_BIN"
+  --with-qt-bindir="$NATIVE_BIN"
 
 echo "Cleaning stale target objects before compiling..."
 make clean

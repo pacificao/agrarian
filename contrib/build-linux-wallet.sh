@@ -7,8 +7,6 @@ BUILD_HOST="${BUILD_HOST:-$("$ROOT/depends/config.guess")}"
 HOST="${HOST:-$BUILD_HOST}"
 PREFIX="$ROOT/depends/$HOST"
 BASE_CONFIG="$PREFIX/share/config.site"
-NATIVE_BIN="$ROOT/depends/build/$BUILD_HOST/bin"
-PROTOC="$NATIVE_BIN/protoc"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -94,54 +92,6 @@ EOF
   echo "  $QT_SYSTEM_PKG_CONFIG_LIBDIR"
 }
 
-ensure_native_protoc() {
-  local archive found
-
-  if [[ -x "$PROTOC" ]]; then
-    return 0
-  fi
-
-  archive="$(find "$ROOT/depends/built/$HOST/native_protobuf" \
-    -name 'native_protobuf-*.tar.gz' -type f 2>/dev/null | sort | tail -n 1 || true)"
-
-  if [[ -n "$archive" ]]; then
-    echo "Extracting native protoc from $archive"
-    mkdir -p "$ROOT/depends/build/$BUILD_HOST"
-    tar -xzf "$archive" -C "$ROOT/depends/build/$BUILD_HOST" ./bin/protoc
-  fi
-
-  if [[ -x "$PROTOC" ]]; then
-    return 0
-  fi
-
-  found="$(find "$ROOT/depends/build" "$ROOT/depends/work/staging" \
-    -path '*/bin/protoc' -type f 2>/dev/null | sort | head -n 1 || true)"
-
-  if [[ -n "$found" ]]; then
-    echo "Staging native protoc from $found"
-    mkdir -p "$NATIVE_BIN"
-    cp "$found" "$PROTOC"
-    chmod +x "$PROTOC"
-  fi
-
-  require_path "$PROTOC"
-}
-
-remove_invalid_native_protobuf_cache() {
-  local archive
-
-  archive="$(find "$ROOT/depends/built/$HOST/native_protobuf" \
-    -name 'native_protobuf-*.tar.gz' -type f 2>/dev/null | sort | tail -n 1 || true)"
-
-  [[ -n "$archive" ]] || return 0
-  if tar -tzf "$archive" ./bin/protoc >/dev/null 2>&1; then
-    return 0
-  fi
-
-  echo "Removing invalid native_protobuf cache without bin/protoc: $archive"
-  rm -rf "$ROOT/depends/built/$HOST/native_protobuf"
-}
-
 reset_configure_state() {
   rm -f config.cache config.log config.status libtool
 
@@ -170,7 +120,6 @@ else
 fi
 
 reset_qt_configure_state
-remove_invalid_native_protobuf_cache
 
 echo "Building native depends for $HOST..."
 # The legacy depends system mutates depends/$HOST while configuring each
@@ -180,7 +129,6 @@ echo "Building native depends for $HOST..."
 make -C depends clean
 make -C depends HOST="$HOST" NO_QT=0 -j1
 require_path "$BASE_CONFIG"
-ensure_native_protoc
 
 reset_configure_state
 ./autogen.sh
@@ -191,8 +139,7 @@ QT_SYSTEM_PKG_CONFIG_LIBDIR="$QT_SYSTEM_PKG_CONFIG_LIBDIR" CONFIG_SITE="$BASE_CO
   --disable-tests \
   --disable-bench \
   --with-gui=qt6 \
-  --with-qtdbus=no \
-  --with-protoc-bindir="$NATIVE_BIN"
+  --with-qtdbus=no
 
 echo "Cleaning stale target objects before compiling..."
 make clean

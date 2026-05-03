@@ -71,7 +71,6 @@ BuildRequires:	qt5-qtbase-devel
 # for /usr/bin/lrelease-qt5
 BuildRequires:	qt5-linguist
 %endif
-BuildRequires:	protobuf-devel
 BuildRequires:	qrencode-devel
 BuildRequires:	%{_bindir}/desktop-file-validate
 # for icon generation from SVG

@@ -201,7 +201,6 @@ $($(1)_postprocessed): | $($(1)_staged)
 	$(AT)touch $$@
 $($(1)_cached): | $($(1)_dependencies) $($(1)_postprocessed)
 	$(AT)echo Caching $(1)...
-	$(AT)if [[ "$(1)" == "native_protobuf" && ! -x "$$($(1)_staging_prefix_dir)/bin/protoc" ]]; then echo "ERROR: native_protobuf cache missing bin/protoc"; find "$$($(1)_staging_dir)" -maxdepth 5 -print; exit 1; fi
 	$(AT)cd $$($(1)_staging_prefix_dir); find . | sort | tar --no-recursion -czf $$($(1)_staging_dir)/$$(@F) -T -
 	$(AT)mkdir -p $$(@D)
 	$(AT)rm -rf $$(@D) && mkdir -p $$(@D)

@@ -38,8 +38,7 @@ points are the helpers in `contrib/`:
 - `contrib/build-win64-wallet.sh`
 - `contrib/agrarian-build-menu.sh`
 
-Those helpers set the correct Qt, host-tool, and protobuf paths around the
-depends prefix.
+Those helpers set the correct Qt and host-tool paths around the depends prefix.
 
 ### Install the required dependencies: Ubuntu & Debian
 

@@ -6,7 +6,6 @@
 #include "paymentservertests.h"
 
 #include "optionsmodel.h"
-#include "paymentrequestdata.h"
 
 #include "random.h"
 #include "util.h"
@@ -65,50 +64,14 @@ void PaymentServerTests::paymentServerTests()
     SelectParams(CBaseChainParams::MAIN);
     OptionsModel optionsModel;
     PaymentServer* server = new PaymentServer(NULL, false);
-    X509_STORE* caStore = X509_STORE_new();
-    X509_STORE_add_cert(caStore, parse_b64der_cert(caCert_BASE64));
-    PaymentServer::LoadRootCAs(caStore);
     server->setOptionsModel(&optionsModel);
     server->uiReady();
 
-    // Now feed PaymentRequests to server, and observe signals it produces:
-    std::vector<unsigned char> data = DecodeBase64(paymentrequest1_BASE64);
+    // BIP70 payment requests are intentionally unsupported in Agrarian 2.0.
+    // Standard agrarian: URI handling remains covered by uritests.
+    std::vector<unsigned char> data(128, 0);
     SendCoinsRecipient r = handleRequest(server, data);
-    QString merchant;
-    r.paymentRequest.getMerchant(caStore, merchant);
-    QCOMPARE(merchant, QString("testmerchant.org"));
-
-    // Version of the above, with an expired certificate:
-    data = DecodeBase64(paymentrequest2_BASE64);
-    r = handleRequest(server, data);
-    r.paymentRequest.getMerchant(caStore, merchant);
-    QCOMPARE(merchant, QString(""));
-
-    // Long certificate chain:
-    data = DecodeBase64(paymentrequest3_BASE64);
-    r = handleRequest(server, data);
-    r.paymentRequest.getMerchant(caStore, merchant);
-    QCOMPARE(merchant, QString("testmerchant8.org"));
-
-    // Long certificate chain, with an expired certificate in the middle:
-    data = DecodeBase64(paymentrequest4_BASE64);
-    r = handleRequest(server, data);
-    r.paymentRequest.getMerchant(caStore, merchant);
-    QCOMPARE(merchant, QString(""));
-
-    // Validly signed, but by a CA not in our root CA list:
-    data = DecodeBase64(paymentrequest5_BASE64);
-    r = handleRequest(server, data);
-    r.paymentRequest.getMerchant(caStore, merchant);
-    QCOMPARE(merchant, QString(""));
-
-    // Try again with no root CA's, verifiedMerchant should be empty:
-    caStore = X509_STORE_new();
-    PaymentServer::LoadRootCAs(caStore);
-    data = DecodeBase64(paymentrequest1_BASE64);
-    r = handleRequest(server, data);
-    r.paymentRequest.getMerchant(caStore, merchant);
-    QCOMPARE(merchant, QString(""));
+    QCOMPARE(r.paymentRequest.IsInitialized(), false);
 
     unsigned long lDoSProtectionTrigger = (unsigned long) BIP70_MAX_PAYMENTREQUEST_SIZE + 1;
     std::string randData(lDoSProtectionTrigger, '\0');

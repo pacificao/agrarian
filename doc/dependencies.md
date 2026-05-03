@@ -25,7 +25,6 @@ branch. You can find instructions for installing or building them in the
 | OpenSSL | [3.5.6](https://www.openssl.org/source) |  | No |  |  |
 | GMP | [6.3.0](https://gmplib.org/) | | No | | |
 | PCRE |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L66) |
-| protobuf | [2.6.1](https://github.com/google/protobuf/releases) |  | No |  |  |
 | Python (tests) |  | [3.5](https://www.python.org/downloads) |  |  |  |
 | qrencode | [4.1.1](https://github.com/fukuchi/libqrencode/releases/tag/v4.1.1) |  | No |  |  |
 | Qt | [6.8.3](https://download.qt.io/official_releases/qt/) | 6.8 LTS | No |  |  |
@@ -40,6 +39,8 @@ Modernization notes
 * Qt builds target Qt 6.8 LTS through the deterministic depends path.
 * OpenSSL builds target OpenSSL 3.5 LTS through the deterministic depends path.
 * Boost builds target Boost 1.91.0 through the deterministic depends path.
+* Protobuf was removed with obsolete BIP70 payment request support. Normal
+  `agrarian:` URI payment handling remains available.
 * Berkeley DB remains 4.8.30 in depends for legacy wallet portability. Wallets
   built against other BDB major versions may not be portable.
 

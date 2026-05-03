@@ -22,8 +22,8 @@ USE_ZMQ     ?= 0
 USE_UPNP    ?= 1
 
 # ---- Group definitions (as you had them) ----
-qt_native_packages := native_protobuf
-qt_packages := qrencode protobuf zlib
+qt_native_packages :=
+qt_packages := qrencode zlib
 
 qt_linux_packages := expat freetype fontconfig qt
 qt_darwin_packages := qt

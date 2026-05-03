@@ -27,8 +27,8 @@ STANDARD BUILD WITH DEPENDS
     make install  (optional)
 
 The native depends wallet path currently builds Qt 6.8.3, OpenSSL 3.5.6,
-Boost 1.91.0, Expat 2.8.0, FreeType 2.14.3, protobuf, Berkeley DB, and
-supporting libraries.
+Boost 1.91.0, Expat 2.8.0, FreeType 2.14.3, Berkeley DB, and supporting
+libraries.
 
 For a daemon-only build:
 
@@ -45,8 +45,7 @@ data structures) - libevent : Networking (async networking) - libgmp :
 Bignum arithmetic
 
 Optional: - miniupnpc : UPnP support - libdb4.8 : Berkeley DB (wallet
-builds only) - qt : GUI support - protobuf : GUI payment protocol -
-libqrencode: QR code support - univalue : JSON parsing (bundled by
+builds only) - qt : GUI support - libqrencode: QR code support - univalue : JSON parsing (bundled by
 default) - libzmq3 : ZMQ notifications (>= 4.0.0)
 
 See dependencies.md for version details.

@@ -671,8 +671,8 @@ am__qt_libbitcoinqt_a_SOURCES_DIST = qt/bantablemodel.cpp \
 	qt/locale/agrarian_sv.ts qt/locale/agrarian_tr.ts \
 	qt/locale/agrarian_uk.ts qt/locale/agrarian_vi.ts \
 	qt/locale/agrarian_zh_CN.ts qt/locale/agrarian_zh_TW.ts \
-	qt/paymentrequest.proto qt/res/icons/add.png \
-	qt/res/icons/address-book.png qt/res/icons/automint_active.png \
+	qt/res/icons/add.png qt/res/icons/address-book.png \
+	qt/res/icons/automint_active.png \
 	qt/res/icons/automint_inactive.png qt/res/icons/bitcoin.ico \
 	qt/res/icons/bitcoin.png qt/res/icons/bitcoin_testnet.ico \
 	qt/res/icons/bitcoin_testnet.png \
@@ -793,7 +793,7 @@ am__qt_libbitcoinqt_a_SOURCES_DIST = qt/bantablemodel.cpp \
 @ENABLE_QT_TRUE@	$(am__objects_3) $(am__objects_3) \
 @ENABLE_QT_TRUE@	$(am__objects_3) $(am__objects_3) \
 @ENABLE_QT_TRUE@	$(am__objects_3) $(am__objects_3) \
-@ENABLE_QT_TRUE@	$(am__objects_3) $(am__objects_3)
+@ENABLE_QT_TRUE@	$(am__objects_3)
 @ENABLE_QT_TRUE@am__objects_13 = qt/libbitcoinqt_a-moc_addressbookpage.$(OBJEXT) \
 @ENABLE_QT_TRUE@	qt/libbitcoinqt_a-moc_addresstablemodel.$(OBJEXT) \
 @ENABLE_QT_TRUE@	qt/libbitcoinqt_a-moc_askpassphrasedialog.$(OBJEXT) \
@@ -848,14 +848,11 @@ am__qt_libbitcoinqt_a_SOURCES_DIST = qt/bantablemodel.cpp \
 @ENABLE_QT_TRUE@	qt/libbitcoinqt_a-moc_walletview.$(OBJEXT) \
 @ENABLE_QT_TRUE@	qt/libbitcoinqt_a-moc_zagrcontroldialog.$(OBJEXT)
 @ENABLE_QT_TRUE@am__objects_14 =  \
-@ENABLE_QT_TRUE@	qt/libbitcoinqt_a-paymentrequest.pb.$(OBJEXT)
-@ENABLE_QT_TRUE@am__objects_15 =  \
 @ENABLE_QT_TRUE@	qt/libbitcoinqt_a-qrc_agrarian.$(OBJEXT)
-@ENABLE_QT_TRUE@am__objects_16 = qt/libbitcoinqt_a-qrc_agrarian_locale.$(OBJEXT)
+@ENABLE_QT_TRUE@am__objects_15 = qt/libbitcoinqt_a-qrc_agrarian_locale.$(OBJEXT)
 @ENABLE_QT_TRUE@nodist_qt_libbitcoinqt_a_OBJECTS = $(am__objects_13) \
 @ENABLE_QT_TRUE@	$(am__objects_3) $(am__objects_14) \
-@ENABLE_QT_TRUE@	$(am__objects_3) $(am__objects_15) \
-@ENABLE_QT_TRUE@	$(am__objects_16)
+@ENABLE_QT_TRUE@	$(am__objects_15)
 qt_libbitcoinqt_a_OBJECTS = $(am_qt_libbitcoinqt_a_OBJECTS) \
 	$(nodist_qt_libbitcoinqt_a_OBJECTS)
 @BUILD_BITCOIN_LIBS_TRUE@libbitcoinconsensus_la_DEPENDENCIES =  \
@@ -867,7 +864,7 @@ am__libbitcoinconsensus_la_SOURCES_DIST = allocators.cpp \
 	script/script.cpp script/interpreter.cpp \
 	script/bitcoinconsensus.cpp uint256.cpp utilstrencodings.cpp \
 	compat/glibc_compat.cpp
-@BUILD_BITCOIN_LIBS_TRUE@@GLIBC_BACK_COMPAT_TRUE@am__objects_17 = compat/libbitcoinconsensus_la-glibc_compat.lo
+@BUILD_BITCOIN_LIBS_TRUE@@GLIBC_BACK_COMPAT_TRUE@am__objects_16 = compat/libbitcoinconsensus_la-glibc_compat.lo
 @BUILD_BITCOIN_LIBS_TRUE@am_libbitcoinconsensus_la_OBJECTS =  \
 @BUILD_BITCOIN_LIBS_TRUE@	libbitcoinconsensus_la-allocators.lo \
 @BUILD_BITCOIN_LIBS_TRUE@	primitives/libbitcoinconsensus_la-transaction.lo \
@@ -884,7 +881,7 @@ am__libbitcoinconsensus_la_SOURCES_DIST = allocators.cpp \
 @BUILD_BITCOIN_LIBS_TRUE@	script/libbitcoinconsensus_la-bitcoinconsensus.lo \
 @BUILD_BITCOIN_LIBS_TRUE@	libbitcoinconsensus_la-uint256.lo \
 @BUILD_BITCOIN_LIBS_TRUE@	libbitcoinconsensus_la-utilstrencodings.lo \
-@BUILD_BITCOIN_LIBS_TRUE@	$(am__objects_17)
+@BUILD_BITCOIN_LIBS_TRUE@	$(am__objects_16)
 libbitcoinconsensus_la_OBJECTS = $(am_libbitcoinconsensus_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -897,9 +894,9 @@ libbitcoinconsensus_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 @BUILD_BITCOIN_LIBS_TRUE@am_libbitcoinconsensus_la_rpath = -rpath \
 @BUILD_BITCOIN_LIBS_TRUE@	$(libdir)
 am__agrarian_cli_SOURCES_DIST = agrarian-cli.cpp agrarian-cli-res.rc
-@TARGET_WINDOWS_TRUE@am__objects_18 = agrarian-cli-res.$(OBJEXT)
+@TARGET_WINDOWS_TRUE@am__objects_17 = agrarian-cli-res.$(OBJEXT)
 am_agrarian_cli_OBJECTS = agrarian_cli-agrarian-cli.$(OBJEXT) \
-	$(am__objects_18)
+	$(am__objects_17)
 agrarian_cli_OBJECTS = $(am_agrarian_cli_OBJECTS)
 am__DEPENDENCIES_1 =
 @EMBEDDED_UNIVALUE_FALSE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
@@ -912,9 +909,9 @@ agrarian_cli_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(agrarian_cli_CXXFLAGS) \
 	$(CXXFLAGS) $(agrarian_cli_LDFLAGS) $(LDFLAGS) -o $@
 am__agrarian_tx_SOURCES_DIST = agrarian-tx.cpp agrarian-tx-res.rc
-@TARGET_WINDOWS_TRUE@am__objects_19 = agrarian-tx-res.$(OBJEXT)
+@TARGET_WINDOWS_TRUE@am__objects_18 = agrarian-tx-res.$(OBJEXT)
 am_agrarian_tx_OBJECTS = agrarian_tx-agrarian-tx.$(OBJEXT) \
-	$(am__objects_19)
+	$(am__objects_18)
 agrarian_tx_OBJECTS = $(am_agrarian_tx_OBJECTS)
 agrarian_tx_DEPENDENCIES = $(am__DEPENDENCIES_2) $(LIBBITCOIN_COMMON) \
 	$(LIBBITCOIN_ZEROCOIN) $(LIBBITCOIN_UTIL) $(LIBBITCOIN_CRYPTO) \
@@ -923,8 +920,8 @@ agrarian_tx_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(agrarian_tx_CXXFLAGS) \
 	$(CXXFLAGS) $(agrarian_tx_LDFLAGS) $(LDFLAGS) -o $@
 am__agrariand_SOURCES_DIST = agrariand.cpp agrariand-res.rc
-@TARGET_WINDOWS_TRUE@am__objects_20 = agrariand-res.$(OBJEXT)
-am_agrariand_OBJECTS = agrariand-agrariand.$(OBJEXT) $(am__objects_20)
+@TARGET_WINDOWS_TRUE@am__objects_19 = agrariand-res.$(OBJEXT)
+am_agrariand_OBJECTS = agrariand-agrariand.$(OBJEXT) $(am__objects_19)
 agrariand_OBJECTS = $(am_agrariand_OBJECTS)
 am__DEPENDENCIES_3 = $(am__append_12)
 am__DEPENDENCIES_4 = $(am__append_13)
@@ -943,17 +940,17 @@ agrariand_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 am__qt_agrarian_qt_SOURCES_DIST = qt/agrarian.cpp \
 	qt/macdockiconhandler.mm qt/macnotificationhandler.mm \
 	qt/res/agrarian-qt-res.rc
-@ENABLE_QT_TRUE@am__objects_21 =  \
+@ENABLE_QT_TRUE@am__objects_20 =  \
 @ENABLE_QT_TRUE@	qt/agrarian_qt-macdockiconhandler.$(OBJEXT) \
 @ENABLE_QT_TRUE@	qt/agrarian_qt-macnotificationhandler.$(OBJEXT)
-@ENABLE_QT_TRUE@@TARGET_DARWIN_TRUE@am__objects_22 =  \
-@ENABLE_QT_TRUE@@TARGET_DARWIN_TRUE@	$(am__objects_21)
-@ENABLE_QT_TRUE@am__objects_23 = qt/res/agrarian-qt-res.$(OBJEXT)
-@ENABLE_QT_TRUE@@TARGET_WINDOWS_TRUE@am__objects_24 =  \
-@ENABLE_QT_TRUE@@TARGET_WINDOWS_TRUE@	$(am__objects_23)
+@ENABLE_QT_TRUE@@TARGET_DARWIN_TRUE@am__objects_21 =  \
+@ENABLE_QT_TRUE@@TARGET_DARWIN_TRUE@	$(am__objects_20)
+@ENABLE_QT_TRUE@am__objects_22 = qt/res/agrarian-qt-res.$(OBJEXT)
+@ENABLE_QT_TRUE@@TARGET_WINDOWS_TRUE@am__objects_23 =  \
+@ENABLE_QT_TRUE@@TARGET_WINDOWS_TRUE@	$(am__objects_22)
 @ENABLE_QT_TRUE@am_qt_agrarian_qt_OBJECTS =  \
 @ENABLE_QT_TRUE@	qt/agrarian_qt-agrarian.$(OBJEXT) \
-@ENABLE_QT_TRUE@	$(am__objects_22) $(am__objects_24)
+@ENABLE_QT_TRUE@	$(am__objects_21) $(am__objects_23)
 qt_agrarian_qt_OBJECTS = $(am_qt_agrarian_qt_OBJECTS)
 @ENABLE_QT_TRUE@@ENABLE_ZMQ_TRUE@am__DEPENDENCIES_5 =  \
 @ENABLE_QT_TRUE@@ENABLE_ZMQ_TRUE@	$(LIBBITCOIN_ZMQ) \
@@ -969,8 +966,8 @@ qt_agrarian_qt_OBJECTS = $(am_qt_agrarian_qt_OBJECTS)
 @ENABLE_QT_TRUE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 @ENABLE_QT_TRUE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 @ENABLE_QT_TRUE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-@ENABLE_QT_TRUE@	$(am__DEPENDENCIES_1) $(LIBSECP256K1) \
-@ENABLE_QT_TRUE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+@ENABLE_QT_TRUE@	$(LIBSECP256K1) $(am__DEPENDENCIES_1) \
+@ENABLE_QT_TRUE@	$(am__DEPENDENCIES_1)
 qt_agrarian_qt_LINK = $(LIBTOOL) $(AM_V_lt) \
 	$(qt_agrarian_qt_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(OBJCXXLD) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) \
@@ -979,15 +976,15 @@ am__qt_test_test_agrarian_qt_SOURCES_DIST = qt/test/test_main.cpp \
 	qt/test/uritests.cpp qt/test/uritests.h \
 	qt/test/paymentrequestdata.h qt/test/paymentservertests.h \
 	qt/test/paymentservertests.cpp
-@ENABLE_QT_TESTS_TRUE@@ENABLE_WALLET_TRUE@am__objects_25 = qt/test/test_agrarian_qt-paymentservertests.$(OBJEXT)
+@ENABLE_QT_TESTS_TRUE@@ENABLE_WALLET_TRUE@am__objects_24 = qt/test/test_agrarian_qt-paymentservertests.$(OBJEXT)
 @ENABLE_QT_TESTS_TRUE@am_qt_test_test_agrarian_qt_OBJECTS = qt/test/test_agrarian_qt-test_main.$(OBJEXT) \
 @ENABLE_QT_TESTS_TRUE@	qt/test/test_agrarian_qt-uritests.$(OBJEXT) \
-@ENABLE_QT_TESTS_TRUE@	$(am__objects_3) $(am__objects_25)
-@ENABLE_QT_TESTS_TRUE@@ENABLE_WALLET_TRUE@am__objects_26 = qt/test/test_agrarian_qt-moc_paymentservertests.$(OBJEXT)
-@ENABLE_QT_TESTS_TRUE@am__objects_27 = qt/test/test_agrarian_qt-moc_uritests.$(OBJEXT) \
-@ENABLE_QT_TESTS_TRUE@	$(am__objects_26)
+@ENABLE_QT_TESTS_TRUE@	$(am__objects_3) $(am__objects_24)
+@ENABLE_QT_TESTS_TRUE@@ENABLE_WALLET_TRUE@am__objects_25 = qt/test/test_agrarian_qt-moc_paymentservertests.$(OBJEXT)
+@ENABLE_QT_TESTS_TRUE@am__objects_26 = qt/test/test_agrarian_qt-moc_uritests.$(OBJEXT) \
+@ENABLE_QT_TESTS_TRUE@	$(am__objects_25)
 @ENABLE_QT_TESTS_TRUE@nodist_qt_test_test_agrarian_qt_OBJECTS =  \
-@ENABLE_QT_TESTS_TRUE@	$(am__objects_27)
+@ENABLE_QT_TESTS_TRUE@	$(am__objects_26)
 qt_test_test_agrarian_qt_OBJECTS =  \
 	$(am_qt_test_test_agrarian_qt_OBJECTS) \
 	$(nodist_qt_test_test_agrarian_qt_OBJECTS)
@@ -1004,7 +1001,6 @@ qt_test_test_agrarian_qt_OBJECTS =  \
 @ENABLE_QT_TESTS_TRUE@	$(am__DEPENDENCIES_3) \
 @ENABLE_QT_TESTS_TRUE@	$(LIBLEVELDB_SSE42) \
 @ENABLE_QT_TESTS_TRUE@	$(am__DEPENDENCIES_4) \
-@ENABLE_QT_TESTS_TRUE@	$(am__DEPENDENCIES_1) \
 @ENABLE_QT_TESTS_TRUE@	$(am__DEPENDENCIES_1) \
 @ENABLE_QT_TESTS_TRUE@	$(am__DEPENDENCIES_1) \
 @ENABLE_QT_TESTS_TRUE@	$(am__DEPENDENCIES_1) \
@@ -1054,12 +1050,12 @@ am__test_test_agrarian_SOURCES_DIST = test/test_agrarian.h \
 	test/data/script_invalid.json test/data/tx_invalid.json \
 	test/data/tx_valid.json test/data/sighash.json \
 	test/data/alertTests.raw
-@ENABLE_TESTS_TRUE@am__objects_28 =  \
+@ENABLE_TESTS_TRUE@am__objects_27 =  \
 @ENABLE_TESTS_TRUE@	test/test_agrarian-test_agrarian.$(OBJEXT)
-@ENABLE_TESTS_TRUE@@ENABLE_WALLET_TRUE@am__objects_29 = test/test_agrarian-accounting_tests.$(OBJEXT) \
+@ENABLE_TESTS_TRUE@@ENABLE_WALLET_TRUE@am__objects_28 = test/test_agrarian-accounting_tests.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@@ENABLE_WALLET_TRUE@	wallet/test/test_test_agrarian-wallet_tests.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@@ENABLE_WALLET_TRUE@	test/test_agrarian-rpc_wallet_tests.$(OBJEXT)
-@ENABLE_TESTS_TRUE@am__objects_30 = test/test_agrarian-zerocoin_implementation_tests.$(OBJEXT) \
+@ENABLE_TESTS_TRUE@am__objects_29 = test/test_agrarian-zerocoin_implementation_tests.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@	test/test_agrarian-zerocoin_denomination_tests.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@	test/test_agrarian-zerocoin_transactions_tests.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@	test/test_agrarian-zerocoin_coinspend_tests.$(OBJEXT) \
@@ -1105,13 +1101,13 @@ am__test_test_agrarian_SOURCES_DIST = test/test_agrarian.h \
 @ENABLE_TESTS_TRUE@	test/test_agrarian-uint256_tests.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@	test/test_agrarian-univalue_tests.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@	test/test_agrarian-util_tests.$(OBJEXT) \
-@ENABLE_TESTS_TRUE@	$(am__objects_29)
-@ENABLE_TESTS_TRUE@am_test_test_agrarian_OBJECTS = $(am__objects_28) \
-@ENABLE_TESTS_TRUE@	$(am__objects_30) $(am__objects_3) \
+@ENABLE_TESTS_TRUE@	$(am__objects_28)
+@ENABLE_TESTS_TRUE@am_test_test_agrarian_OBJECTS = $(am__objects_27) \
+@ENABLE_TESTS_TRUE@	$(am__objects_29) $(am__objects_3) \
 @ENABLE_TESTS_TRUE@	$(am__objects_3)
-@ENABLE_TESTS_TRUE@am__objects_31 = $(am__objects_3) $(am__objects_3)
+@ENABLE_TESTS_TRUE@am__objects_30 = $(am__objects_3) $(am__objects_3)
 @ENABLE_TESTS_TRUE@nodist_test_test_agrarian_OBJECTS =  \
-@ENABLE_TESTS_TRUE@	$(am__objects_31)
+@ENABLE_TESTS_TRUE@	$(am__objects_30)
 test_test_agrarian_OBJECTS = $(am_test_test_agrarian_OBJECTS) \
 	$(nodist_test_test_agrarian_OBJECTS)
 @ENABLE_TESTS_TRUE@@ENABLE_ZMQ_TRUE@am__DEPENDENCIES_7 =  \
@@ -1392,7 +1388,6 @@ am__depfiles_remade = ./$(DEPDIR)/agrarian_cli-agrarian-cli.Po \
 	qt/$(DEPDIR)/libbitcoinqt_a-optionsdialog.Po \
 	qt/$(DEPDIR)/libbitcoinqt_a-optionsmodel.Po \
 	qt/$(DEPDIR)/libbitcoinqt_a-overviewpage.Po \
-	qt/$(DEPDIR)/libbitcoinqt_a-paymentrequest.pb.Po \
 	qt/$(DEPDIR)/libbitcoinqt_a-paymentrequestplus.Po \
 	qt/$(DEPDIR)/libbitcoinqt_a-paymentserver.Po \
 	qt/$(DEPDIR)/libbitcoinqt_a-peertablemodel.Po \
@@ -2004,9 +1999,6 @@ PKG_CONFIG = @PKG_CONFIG@
 PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
 PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 PORT = @PORT@
-PROTOBUF_CFLAGS = @PROTOBUF_CFLAGS@
-PROTOBUF_LIBS = @PROTOBUF_LIBS@
-PROTOC = @PROTOC@
 PTHREAD_CC = @PTHREAD_CC@
 PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 PTHREAD_LIBS = @PTHREAD_LIBS@
@@ -2886,9 +2878,6 @@ EXTRA_DIST =
 @ENABLE_QT_TRUE@QT_QRC = qt/agrarian.qrc
 @ENABLE_QT_TRUE@QT_QRC_LOCALE_CPP = qt/qrc_agrarian_locale.cpp
 @ENABLE_QT_TRUE@QT_QRC_LOCALE = qt/agrarian_locale.qrc
-@ENABLE_QT_TRUE@PROTOBUF_CC = qt/paymentrequest.pb.cc
-@ENABLE_QT_TRUE@PROTOBUF_H = qt/paymentrequest.pb.h
-@ENABLE_QT_TRUE@PROTOBUF_PROTO = qt/paymentrequest.proto
 @ENABLE_QT_TRUE@BITCOIN_QT_H = \
 @ENABLE_QT_TRUE@  qt/addressbookpage.h \
 @ENABLE_QT_TRUE@  qt/addresstablemodel.h \
@@ -3110,23 +3099,21 @@ EXTRA_DIST =
 @ENABLE_QT_TRUE@  -I$(builddir)/qt/forms
 
 @ENABLE_QT_TRUE@qt_libbitcoinqt_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(BITCOIN_QT_INCLUDES) \
-@ENABLE_QT_TRUE@  $(QT_INCLUDES) $(QT_DBUS_INCLUDES) $(PROTOBUF_CFLAGS) $(QR_CFLAGS)
+@ENABLE_QT_TRUE@  $(QT_INCLUDES) $(QT_DBUS_INCLUDES) $(QR_CFLAGS)
 
 @ENABLE_QT_TRUE@qt_libbitcoinqt_a_CXXFLAGS = $(AM_CXXFLAGS) $(QT_PIE_FLAGS)
 @ENABLE_QT_TRUE@qt_libbitcoinqt_a_OBJCXXFLAGS = $(AM_OBJCXXFLAGS) $(QT_PIE_FLAGS)
 @ENABLE_QT_TRUE@qt_libbitcoinqt_a_SOURCES = $(BITCOIN_QT_CPP) $(BITCOIN_QT_H) $(QT_FORMS_UI) \
-@ENABLE_QT_TRUE@  $(QT_QRC) $(QT_QRC_LOCALE) $(QT_TS) $(PROTOBUF_PROTO) $(RES_ICONS) $(RES_IMAGES) $(RES_CSS) $(RES_MOVIES)
+@ENABLE_QT_TRUE@  $(QT_QRC) $(QT_QRC_LOCALE) $(QT_TS) $(RES_ICONS) $(RES_IMAGES) $(RES_CSS) $(RES_MOVIES)
 
-@ENABLE_QT_TRUE@nodist_qt_libbitcoinqt_a_SOURCES = $(QT_MOC_CPP) $(QT_MOC) $(PROTOBUF_CC) \
-@ENABLE_QT_TRUE@  $(PROTOBUF_H) $(QT_QRC_CPP) $(QT_QRC_LOCALE_CPP)
-
+@ENABLE_QT_TRUE@nodist_qt_libbitcoinqt_a_SOURCES = $(QT_MOC_CPP) $(QT_MOC) $(QT_QRC_CPP) $(QT_QRC_LOCALE_CPP)
 
 # forms/foo.h -> forms/ui_foo.h
 @ENABLE_QT_TRUE@QT_FORMS_H = $(join $(dir $(QT_FORMS_UI)),$(addprefix ui_, $(notdir $(QT_FORMS_UI:.ui=.h))))
 
 # agrarian-qt binary #
 @ENABLE_QT_TRUE@qt_agrarian_qt_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(BITCOIN_QT_INCLUDES) \
-@ENABLE_QT_TRUE@  $(QT_INCLUDES) $(PROTOBUF_CFLAGS) $(QR_CFLAGS)
+@ENABLE_QT_TRUE@  $(QT_INCLUDES) $(QR_CFLAGS)
 
 @ENABLE_QT_TRUE@qt_agrarian_qt_CXXFLAGS = $(AM_CXXFLAGS) $(QT_PIE_FLAGS)
 @ENABLE_QT_TRUE@qt_agrarian_qt_SOURCES = qt/agrarian.cpp \
@@ -3139,10 +3126,9 @@ EXTRA_DIST =
 @ENABLE_QT_TRUE@	$(LIBBITCOIN_ZEROCOIN) $(LIBLEVELDB) \
 @ENABLE_QT_TRUE@	$(LIBLEVELDB_SSE42) $(LIBMEMENV) $(BOOST_LIBS) \
 @ENABLE_QT_TRUE@	$(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) \
-@ENABLE_QT_TRUE@	$(PROTOBUF_LIBS) $(BDB_LIBS) $(SSL_LIBS) \
-@ENABLE_QT_TRUE@	$(CRYPTO_LIBS) $(MINIUPNPC_LIBS) \
-@ENABLE_QT_TRUE@	$(LIBSECP256K1) $(EVENT_PTHREADS_LIBS) \
-@ENABLE_QT_TRUE@	$(EVENT_LIBS)
+@ENABLE_QT_TRUE@	$(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) \
+@ENABLE_QT_TRUE@	$(MINIUPNPC_LIBS) $(LIBSECP256K1) \
+@ENABLE_QT_TRUE@	$(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
 @ENABLE_QT_TRUE@qt_agrarian_qt_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(QT_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 @ENABLE_QT_TRUE@qt_agrarian_qt_LIBTOOLFLAGS = $(AM_LIBTOOLFLAGS) --tag CXX
 
@@ -3157,7 +3143,7 @@ EXTRA_DIST =
 @ENABLE_QT_TESTS_TRUE@  qt/test/paymentservertests.h
 
 @ENABLE_QT_TESTS_TRUE@qt_test_test_agrarian_qt_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(BITCOIN_QT_INCLUDES) \
-@ENABLE_QT_TESTS_TRUE@  $(QT_INCLUDES) $(QT_TEST_INCLUDES) $(PROTOBUF_CFLAGS)
+@ENABLE_QT_TESTS_TRUE@  $(QT_INCLUDES) $(QT_TEST_INCLUDES)
 
 @ENABLE_QT_TESTS_TRUE@qt_test_test_agrarian_qt_SOURCES =  \
 @ENABLE_QT_TESTS_TRUE@	qt/test/test_main.cpp \
@@ -3173,8 +3159,8 @@ EXTRA_DIST =
 @ENABLE_QT_TESTS_TRUE@	$(LIBLEVELDB) $(LIBLEVELDB_SSE42) \
 @ENABLE_QT_TESTS_TRUE@	$(LIBMEMENV) $(BOOST_LIBS) \
 @ENABLE_QT_TESTS_TRUE@	$(QT_DBUS_LIBS) $(QT_TEST_LIBS) \
-@ENABLE_QT_TESTS_TRUE@	$(QT_LIBS) $(QR_LIBS) $(PROTOBUF_LIBS) \
-@ENABLE_QT_TESTS_TRUE@	$(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) \
+@ENABLE_QT_TESTS_TRUE@	$(QT_LIBS) $(QR_LIBS) $(BDB_LIBS) \
+@ENABLE_QT_TESTS_TRUE@	$(SSL_LIBS) $(CRYPTO_LIBS) \
 @ENABLE_QT_TESTS_TRUE@	$(MINIUPNPC_LIBS) $(LIBSECP256K1) \
 @ENABLE_QT_TESTS_TRUE@	$(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
 @ENABLE_QT_TESTS_TRUE@qt_test_test_agrarian_qt_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(QT_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
@@ -3962,8 +3948,6 @@ qt/libbitcoinqt_a-moc_walletview.$(OBJEXT): qt/$(am__dirstamp) \
 	qt/$(DEPDIR)/$(am__dirstamp)
 qt/libbitcoinqt_a-moc_zagrcontroldialog.$(OBJEXT): qt/$(am__dirstamp) \
 	qt/$(DEPDIR)/$(am__dirstamp)
-qt/libbitcoinqt_a-paymentrequest.pb.$(OBJEXT): qt/$(am__dirstamp) \
-	qt/$(DEPDIR)/$(am__dirstamp)
 qt/libbitcoinqt_a-qrc_agrarian.$(OBJEXT): qt/$(am__dirstamp) \
 	qt/$(DEPDIR)/$(am__dirstamp)
 qt/libbitcoinqt_a-qrc_agrarian_locale.$(OBJEXT): qt/$(am__dirstamp) \
@@ -4442,7 +4426,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@qt/$(DEPDIR)/libbitcoinqt_a-optionsdialog.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@qt/$(DEPDIR)/libbitcoinqt_a-optionsmodel.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@qt/$(DEPDIR)/libbitcoinqt_a-overviewpage.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@qt/$(DEPDIR)/libbitcoinqt_a-paymentrequest.pb.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@qt/$(DEPDIR)/libbitcoinqt_a-paymentrequestplus.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@qt/$(DEPDIR)/libbitcoinqt_a-paymentserver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@qt/$(DEPDIR)/libbitcoinqt_a-peertablemodel.Po@am__quote@ # am--include-marker
@@ -8757,20 +8740,6 @@ qt/libbitcoinqt_a-moc_zagrcontroldialog.obj: qt/moc_zagrcontroldialog.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(qt_libbitcoinqt_a_CPPFLAGS) $(CPPFLAGS) $(qt_libbitcoinqt_a_CXXFLAGS) $(CXXFLAGS) -c -o qt/libbitcoinqt_a-moc_zagrcontroldialog.obj `if test -f 'qt/moc_zagrcontroldialog.cpp'; then $(CYGPATH_W) 'qt/moc_zagrcontroldialog.cpp'; else $(CYGPATH_W) '$(srcdir)/qt/moc_zagrcontroldialog.cpp'; fi`
 
-qt/libbitcoinqt_a-paymentrequest.pb.o: qt/paymentrequest.pb.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(qt_libbitcoinqt_a_CPPFLAGS) $(CPPFLAGS) $(qt_libbitcoinqt_a_CXXFLAGS) $(CXXFLAGS) -MT qt/libbitcoinqt_a-paymentrequest.pb.o -MD -MP -MF qt/$(DEPDIR)/libbitcoinqt_a-paymentrequest.pb.Tpo -c -o qt/libbitcoinqt_a-paymentrequest.pb.o `test -f 'qt/paymentrequest.pb.cc' || echo '$(srcdir)/'`qt/paymentrequest.pb.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) qt/$(DEPDIR)/libbitcoinqt_a-paymentrequest.pb.Tpo qt/$(DEPDIR)/libbitcoinqt_a-paymentrequest.pb.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='qt/paymentrequest.pb.cc' object='qt/libbitcoinqt_a-paymentrequest.pb.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(qt_libbitcoinqt_a_CPPFLAGS) $(CPPFLAGS) $(qt_libbitcoinqt_a_CXXFLAGS) $(CXXFLAGS) -c -o qt/libbitcoinqt_a-paymentrequest.pb.o `test -f 'qt/paymentrequest.pb.cc' || echo '$(srcdir)/'`qt/paymentrequest.pb.cc
-
-qt/libbitcoinqt_a-paymentrequest.pb.obj: qt/paymentrequest.pb.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(qt_libbitcoinqt_a_CPPFLAGS) $(CPPFLAGS) $(qt_libbitcoinqt_a_CXXFLAGS) $(CXXFLAGS) -MT qt/libbitcoinqt_a-paymentrequest.pb.obj -MD -MP -MF qt/$(DEPDIR)/libbitcoinqt_a-paymentrequest.pb.Tpo -c -o qt/libbitcoinqt_a-paymentrequest.pb.obj `if test -f 'qt/paymentrequest.pb.cc'; then $(CYGPATH_W) 'qt/paymentrequest.pb.cc'; else $(CYGPATH_W) '$(srcdir)/qt/paymentrequest.pb.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) qt/$(DEPDIR)/libbitcoinqt_a-paymentrequest.pb.Tpo qt/$(DEPDIR)/libbitcoinqt_a-paymentrequest.pb.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='qt/paymentrequest.pb.cc' object='qt/libbitcoinqt_a-paymentrequest.pb.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(qt_libbitcoinqt_a_CPPFLAGS) $(CPPFLAGS) $(qt_libbitcoinqt_a_CXXFLAGS) $(CXXFLAGS) -c -o qt/libbitcoinqt_a-paymentrequest.pb.obj `if test -f 'qt/paymentrequest.pb.cc'; then $(CYGPATH_W) 'qt/paymentrequest.pb.cc'; else $(CYGPATH_W) '$(srcdir)/qt/paymentrequest.pb.cc'; fi`
-
 qt/libbitcoinqt_a-qrc_agrarian.o: qt/qrc_agrarian.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(qt_libbitcoinqt_a_CPPFLAGS) $(CPPFLAGS) $(qt_libbitcoinqt_a_CXXFLAGS) $(CXXFLAGS) -MT qt/libbitcoinqt_a-qrc_agrarian.o -MD -MP -MF qt/$(DEPDIR)/libbitcoinqt_a-qrc_agrarian.Tpo -c -o qt/libbitcoinqt_a-qrc_agrarian.o `test -f 'qt/qrc_agrarian.cpp' || echo '$(srcdir)/'`qt/qrc_agrarian.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) qt/$(DEPDIR)/libbitcoinqt_a-qrc_agrarian.Tpo qt/$(DEPDIR)/libbitcoinqt_a-qrc_agrarian.Po
@@ -10504,7 +10473,6 @@ distclean: distclean-recursive
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-optionsdialog.Po
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-optionsmodel.Po
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-overviewpage.Po
-	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-paymentrequest.pb.Po
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-paymentrequestplus.Po
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-paymentserver.Po
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-peertablemodel.Po
@@ -10924,7 +10892,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-optionsdialog.Po
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-optionsmodel.Po
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-overviewpage.Po
-	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-paymentrequest.pb.Po
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-paymentrequestplus.Po
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-paymentserver.Po
 	-rm -f qt/$(DEPDIR)/libbitcoinqt_a-peertablemodel.Po
@@ -11137,10 +11104,6 @@ check-security: $(bin_PROGRAMS)
 @HARDEN_TRUE@	@echo "Checking binary security..."
 @HARDEN_TRUE@	$(AM_V_at) READELF=$(READELF) OBJDUMP=$(OBJDUMP) $(PYTHON) $(top_srcdir)/contrib/devtools/security-check.py < $(bin_PROGRAMS)
 
-%.pb.cc %.pb.h: %.proto
-	@test -f $(PROTOC)
-	$(AM_V_GEN) $(PROTOC) --cpp_out=$(@D) --proto_path=$(<D) $<
-
 @ENABLE_TESTS_TRUE@$(BITCOIN_TESTS): $(GENERATED_TEST_FILES)
 
 @ENABLE_TESTS_TRUE@agrarian_test: $(TEST_BINARY)
@@ -11186,11 +11149,6 @@ check-security: $(bin_PROGRAMS)
 @ENABLE_QT_TRUE@$(QT_MOC): $(QT_FORMS_H)
 @ENABLE_QT_TRUE@$(qt_libbitcoinqt_a_OBJECTS) $(qt_agrarian_qt_OBJECTS) : | $(QT_MOC)
 
-#Generating these with a half-written protobuf header leads to wacky results.
-#This makes sure it's done.
-@ENABLE_QT_TRUE@$(QT_MOC): $(PROTOBUF_H)
-@ENABLE_QT_TRUE@$(QT_MOC_CPP): $(PROTOBUF_H)
-
 @ENABLE_QT_TRUE@SECONDARY: $(QT_QM)
 
 @ENABLE_QT_TRUE@$(srcdir)/qt/agrarianstrings.cpp: $(libbitcoin_server_a_SOURCES) $(libbitcoin_wallet_a_SOURCES) $(libbitcoin_common_a_SOURCES) $(libbitcoin_zmq_a_SOURCES) $(libbitcoin_util_a_SOURCES)
@@ -11208,7 +11166,7 @@ check-security: $(bin_PROGRAMS)
 @ENABLE_QT_TRUE@	  $(SED) -e '/^\*\*.*Created:/d' -e '/^\*\*.*by:/d' > $@
 @ENABLE_QT_TRUE@	@rm $(@D)/temp_$(<F)
 
-@ENABLE_QT_TRUE@$(QT_QRC_CPP): $(QT_QRC) $(QT_FORMS_H) $(RES_ICONS) $(RES_IMAGES) $(RES_CSS) $(RES_MOVIES) $(PROTOBUF_H)
+@ENABLE_QT_TRUE@$(QT_QRC_CPP): $(QT_QRC) $(QT_FORMS_H) $(RES_ICONS) $(RES_IMAGES) $(RES_CSS) $(RES_MOVIES)
 @ENABLE_QT_TRUE@	@test -f $(RCC)
 @ENABLE_QT_TRUE@	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(RCC) -name agrarian $< | \
 @ENABLE_QT_TRUE@	  $(SED) -e '/^\*\*.*Created:/d' -e '/^\*\*.*by:/d' > $@
