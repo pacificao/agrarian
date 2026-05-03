@@ -482,8 +482,8 @@ ensure_repo() {
   if [[ -d "$WORKDIR/.git" ]]; then
     ROOT="$WORKDIR"
     run_step 25 "Fetching existing Agrarian checkout" git -C "$ROOT" fetch origin "$BRANCH"
-    run_step 30 "Checking out $BRANCH" git -C "$ROOT" checkout -B "$BRANCH" "origin/$BRANCH"
-    run_step 35 "Resetting checkout to origin/$BRANCH" git -C "$ROOT" reset --hard "origin/$BRANCH"
+    run_step 30 "Resetting checkout to origin/$BRANCH" git -C "$ROOT" reset --hard "origin/$BRANCH"
+    run_step 35 "Checking out $BRANCH" git -C "$ROOT" checkout -B "$BRANCH" "origin/$BRANCH"
     run_step 37 "Removing local untracked checkout files" git -C "$ROOT" clean -fd
   else
     mkdir -p "$(dirname "$WORKDIR")"
