@@ -482,6 +482,7 @@ ensure_repo() {
   if [[ -d "$WORKDIR/.git" ]]; then
     ROOT="$WORKDIR"
     run_step 25 "Fetching existing Agrarian checkout" git -C "$ROOT" fetch origin "$BRANCH"
+    run_step 27 "Resetting local checkout files" git -C "$ROOT" reset --hard HEAD
     run_step 30 "Checking out $BRANCH" git -C "$ROOT" checkout "$BRANCH"
     run_step 35 "Fast-forwarding $BRANCH" git -C "$ROOT" pull --ff-only origin "$BRANCH"
   else
