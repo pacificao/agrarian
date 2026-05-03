@@ -41,8 +41,10 @@ Modernization notes
 * Boost builds target Boost 1.91.0 through the deterministic depends path.
 * Protobuf was removed with obsolete BIP70 payment request support. Normal
   `agrarian:` URI payment handling remains available.
-* Berkeley DB remains 4.8.30 in depends for legacy wallet portability. Wallets
-  built against other BDB major versions may not be portable.
+* Berkeley DB intentionally remains 4.8.30 in depends for legacy `wallet.dat`
+  portability. Do not upgrade Berkeley DB in-place for normal releases; migrate
+  to a new wallet backend such as SQLite through a dedicated, tested wallet
+  migration path.
 
 Controlling dependencies
 ------------------------

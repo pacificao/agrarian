@@ -27,6 +27,10 @@ Obsolete BIP70 payment request support was removed to eliminate the protobuf
 and `protoc` dependency from the wallet build. Standard `agrarian:` URI payment
 links are still supported.
 
+Berkeley DB 4.8.30 is intentionally retained for legacy `wallet.dat`
+compatibility. Future wallet-storage modernization should add a dedicated SQLite
+backend and migration flow instead of changing the BDB version in-place.
+
 The currently verified binaries are:
 
 - Ubuntu daemon and command-line tools

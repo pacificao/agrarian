@@ -17,9 +17,9 @@ For a manual build, build depends first and configure against its config.site:
     make
 
 The current native Qt wallet depends baseline includes Qt 6.8.3, OpenSSL 3.5.6,
-Boost 1.91.0, Expat 2.8.0, FreeType 2.13.3, protobuf, Berkeley DB, libevent,
-and GMP. Prefer the helper scripts in `contrib/` for repeatable fresh-host
-builds.
+Boost 1.91.0, Expat 2.8.0, FreeType 2.14.3, Berkeley DB 4.8.30, libevent, and
+GMP. Protobuf/BIP70 payment requests were removed. Prefer the helper scripts in
+`contrib/` for repeatable fresh-host builds.
 
 Always verify source checksums and release signatures when building a release.
 
