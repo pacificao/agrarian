@@ -21,6 +21,7 @@ The current deterministic `depends/` baseline is:
 - qrencode 4.1.1 for Qt wallet QR code support
 - libevent 2.1.12-stable
 - GMP 6.1.2
+- MiniUPnPc 2.3.3 when UPnP support is enabled
 - ZeroMQ 4.3.5 when enabled
 
 The currently verified binaries are:

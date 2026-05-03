@@ -21,7 +21,7 @@ branch. You can find instructions for installing or building them in the
 | libjpeg |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L65) |
 | libpng |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L64) |
 | librsvg | |  |  |  |  |
-| MiniUPnPc | [2.0.20180203](http://miniupnp.free.fr/files) |  | No |  |  |
+| MiniUPnPc | [2.3.3](https://miniupnp.tuxfamily.org/files/) |  | No |  |  |
 | OpenSSL | [3.5.6](https://www.openssl.org/source) |  | No |  |  |
 | GMP | [6.1.2](https://gmplib.org/) | | No | | |
 | PCRE |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L66) |
