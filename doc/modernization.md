@@ -18,6 +18,7 @@ The current deterministic `depends/` baseline is:
 - FreeType 2.14.3 for Qt 6 static font support
 - Berkeley DB 4.8.30 for portable legacy wallet compatibility
 - protobuf 2.6.1 for the existing Qt payment request sources
+- qrencode 4.1.1 for Qt wallet QR code support
 - libevent 2.1.12-stable
 - GMP 6.1.2
 - ZeroMQ 4.3.5 when enabled

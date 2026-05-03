@@ -27,7 +27,7 @@ branch. You can find instructions for installing or building them in the
 | PCRE |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L66) |
 | protobuf | [2.6.1](https://github.com/google/protobuf/releases) |  | No |  |  |
 | Python (tests) |  | [3.5](https://www.python.org/downloads) |  |  |  |
-| qrencode | [3.4.4](https://fukuchi.org/works/qrencode) |  | No |  |  |
+| qrencode | [4.1.1](https://github.com/fukuchi/libqrencode/releases/tag/v4.1.1) |  | No |  |  |
 | Qt | [6.8.3](https://download.qt.io/official_releases/qt/) | 6.8 LTS | No |  |  |
 | XCB |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L87) (Linux only) |
 | xkbcommon |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L86) (Linux only) |

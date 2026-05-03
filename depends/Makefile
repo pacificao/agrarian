@@ -91,19 +91,12 @@ install-prefix: $(packages)
 	@rm -rf "$(host_prefix)"
 	@mkdir -p "$(host_prefix)"
 	@set -euo pipefail; \
-	shopt -s nullglob; \
-	for p in $(packages); do \
-	  artifacts=( "$(BASE_CACHE)/$(HOST)/$$p/"*.tar.gz ); \
-	  if (( $${#artifacts[@]} == 0 )); then \
-	    echo "ERROR: expected a built artifact for $$p under $(BASE_CACHE)/$(HOST)/$$p"; \
+	for f in $(foreach p,$(packages),$($(p)_cached)); do \
+	  p="$$(basename "$$(dirname "$$f")")"; \
+	  if [[ ! -f "$$f" ]]; then \
+	    echo "ERROR: expected current built artifact for $$p: $$f"; \
 	    exit 1; \
 	  fi; \
-	  if (( $${#artifacts[@]} > 1 )); then \
-	    echo "WARN: multiple built artifacts for $$p; using newest by modification time"; \
-	  fi; \
-	  IFS=$$'\n' sorted=( $$(ls -t "$${artifacts[@]}") ); \
-	  unset IFS; \
-	  f="$${sorted[0]}"; \
 	  echo "  - $$p: $$f"; \
 	  tar --no-same-owner -xzf "$$f" -C "$(host_prefix)"; \
 	done
@@ -112,19 +105,12 @@ ifneq ($(native_packages),)
 	@rm -rf "$(build_prefix)"
 	@mkdir -p "$(build_prefix)"
 	@set -euo pipefail; \
-	shopt -s nullglob; \
-	for p in $(native_packages); do \
-	  artifacts=( "$(BASE_CACHE)/$(HOST)/$$p/"*.tar.gz ); \
-	  if (( $${#artifacts[@]} == 0 )); then \
-	    echo "ERROR: expected a built artifact for $$p under $(BASE_CACHE)/$(HOST)/$$p"; \
+	for f in $(foreach p,$(native_packages),$($(p)_cached)); do \
+	  p="$$(basename "$$(dirname "$$f")")"; \
+	  if [[ ! -f "$$f" ]]; then \
+	    echo "ERROR: expected current native built artifact for $$p: $$f"; \
 	    exit 1; \
 	  fi; \
-	  if (( $${#artifacts[@]} > 1 )); then \
-	    echo "WARN: multiple built artifacts for $$p; using newest by modification time"; \
-	  fi; \
-	  IFS=$$'\n' sorted=( $$(ls -t "$${artifacts[@]}") ); \
-	  unset IFS; \
-	  f="$${sorted[0]}"; \
 	  echo "  - $$p: $$f"; \
 	  tar --no-same-owner -xzf "$$f" -C "$(build_prefix)"; \
 	done
