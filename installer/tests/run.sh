@@ -36,9 +36,7 @@ for tool in \
   x86_64-w64-mingw32-g++ \
   i686-w64-mingw32-g++ \
   aarch64-linux-gnu-gcc \
-  aarch64-linux-gnu-g++ \
-  arm-linux-gnueabihf-gcc \
-  arm-linux-gnueabihf-g++; do
+  aarch64-linux-gnu-g++; do
   cat > "${FAKE_BIN}/${tool}" <<'SH'
 #!/usr/bin/env bash
 exit 0
@@ -68,16 +66,16 @@ seed_fake_depends_prefix() {
   : > "${prefix}/include/db_cxx.h"
   : > "${prefix}/lib/libboost_thread.a"
   : > "${prefix}/lib/libboost_system.a"
-  : > "${prefix}/lib/pkgconfig/Qt5Core.pc"
-  : > "${prefix}/lib/pkgconfig/Qt5Gui.pc"
-  : > "${prefix}/lib/pkgconfig/Qt5Network.pc"
-  : > "${prefix}/lib/pkgconfig/Qt5Widgets.pc"
+  : > "${prefix}/lib/pkgconfig/Qt6Core.pc"
+  : > "${prefix}/lib/pkgconfig/Qt6Gui.pc"
+  : > "${prefix}/lib/pkgconfig/Qt6Network.pc"
+  : > "${prefix}/lib/pkgconfig/Qt6Widgets.pc"
 }
 
 echo "[test 1] help output works"
 bash "${WORK_REPO}/installer/agrarian-installer.sh" --help > "${LOG_DIR}/help.out"
 rg -q -- "--action <depends|daemon|qt|all>" "${LOG_DIR}/help.out"
-rg -q -- "--qt-target <native|win64|win32|armhf|aarch64|all>" "${LOG_DIR}/help.out"
+rg -q -- "--qt-target <native|win64|win32|all>" "${LOG_DIR}/help.out"
 rg -q -- "--host <triplet>" "${LOG_DIR}/help.out"
 rg -q -- "--wallet <0|1>" "${LOG_DIR}/help.out"
 rg -q -- "--jobs <n>" "${LOG_DIR}/help.out"

@@ -8,6 +8,8 @@ for common Agrarian targets:
 - Linux Qt GUI wallet
 - Windows daemon and CLI tools
 - Windows Qt GUI wallet
+- Linux ARM64 daemon and CLI tools
+- Linux ARM64 Qt GUI wallet
 
 The script clones the Agrarian repository if the selected checkout directory
 does not exist. If the checkout already exists, it fetches, checks out the
@@ -58,6 +60,16 @@ obsolete BIP70 payment request support was removed. The helper also clears
 stale Qt work directories before rebuilding, because failed CMake
 feature checks can otherwise be cached between attempts.
 
+The Linux ARM64 daemon option cross-compiles the daemon and CLI tools from an
+x86_64 Ubuntu host when the `g++-aarch64-linux-gnu` and
+`binutils-aarch64-linux-gnu` packages are available. On an ARM64 Ubuntu host it
+uses the normal native Linux daemon path.
+
+The Linux ARM64 Qt wallet option is native-only. Run it on an ARM64 Ubuntu
+desktop/server with the Qt/XCB development packages installed. The current Qt 6
+Linux wallet build depends on target-system XCB/font pkg-config metadata, so the
+menu does not advertise a fragile x86_64-to-ARM64 Qt GUI cross-build path.
+
 Defaults
 --------
 
@@ -97,3 +109,11 @@ Windows Build Output
 For Windows targets, the script prints the `.exe` artifact paths when the build
 finishes. Copy the generated files from `src/` and `src/qt/` to the Windows
 machine and run either `agrariand.exe` or `agrarian-qt.exe`.
+
+ARM64 Build Output
+------------------
+
+For ARM64 daemon targets, the script prints the generated Linux binaries in
+`src/`. Copy them to the ARM64 machine if the build was cross-compiled. For the
+ARM64 Qt wallet target, the build should be run directly on the ARM64 machine
+and the wallet binary is `src/qt/agrarian-qt`.

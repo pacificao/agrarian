@@ -20,13 +20,13 @@ The Agrarian installer is `installer/agrarian-installer.sh`. It automates the Ub
 - Configuring the project with the depends `config.site` and prefix.
 - Building the daemon and CLI utilities (via `--action daemon` or `--action all`).
 - Building the Qt wallet on Linux hosts (via `--action qt`, or `--action all` when Qt is enabled).
-- Cross-compiling Qt wallets for Windows and Linux ARM targets (via `--action qt --qt-target ...`).
+- Cross-compiling Qt wallets for Windows targets (via `--action qt --qt-target ...`).
 
 It does not:
 
 - Install system packages (it only checks for required toolchains and prints an `apt-get` command if missing).
 - Run `make install` or copy binaries into `/usr/local`.
-- Package platform installers (e.g., Windows/macOS/ARM Qt wallet bundles).
+- Package platform installers (e.g., Windows/macOS wallet bundles).
 - Run or configure the daemon after the build.
 
 Quick Start (Ubuntu/Debian)
@@ -56,10 +56,12 @@ Build Qt wallets for cross targets (examples):
 ```bash
 ./installer/agrarian-installer.sh --action qt --qt-target win64
 ./installer/agrarian-installer.sh --action qt --qt-target win32
-./installer/agrarian-installer.sh --action qt --qt-target armhf
-./installer/agrarian-installer.sh --action qt --qt-target aarch64
 ./installer/agrarian-installer.sh --action qt --qt-target all
 ```
+
+Use `contrib/agrarian-build-menu.sh` for the current ARM64 daemon and native
+ARM64 Qt wallet flows. The legacy installer document is kept as secondary
+reference and should not be treated as the release authority for ARM builds.
 
 Expected outputs:
 
@@ -84,14 +86,12 @@ Common Installer Options
 - `qt` builds the Qt wallet (`src/qt/agrarian-qt`). If depends are missing, the installer builds them first.
 - `all` builds depends and then runs top-level `make` in the repo root.
 
-`--qt-target <native|win64|win32|armhf|aarch64|all>`
+`--qt-target <native|win64|win32|all>`
 
 - `native` uses `--host` as-is (default).
 - `win64` maps to `x86_64-w64-mingw32`.
 - `win32` maps to `i686-w64-mingw32`.
-- `armhf` maps to `arm-linux-gnueabihf`.
-- `aarch64` maps to `aarch64-unknown-linux-gnu`.
-- `all` builds native + all cross targets listed above.
+- `all` builds native + the Windows cross targets listed above.
 
 `--host <triplet>`
 
@@ -171,7 +171,7 @@ Then install toolchains per target:
 
 - win64: `g++-mingw-w64-x86-64` (see `doc/build-windows.md`)
 - win32: `g++-mingw-w64-i686` (see `doc/build-windows.md`)
-- armhf: `g++-arm-linux-gnueabihf` and `binutils-arm-linux-gnueabihf`
-- aarch64: `g++-aarch64-linux-gnu` and `binutils-aarch64-linux-gnu`
+- aarch64 daemon builds through `contrib/agrarian-build-menu.sh` use
+  `g++-aarch64-linux-gnu` and `binutils-aarch64-linux-gnu`
 
 If any toolchain binaries are missing, the installer prints a single `apt-get install` command that includes the required packages for the selected Qt targets.

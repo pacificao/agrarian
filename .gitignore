@@ -23,6 +23,12 @@ Thumbs.db
 core
 core.*
 
+# Runtime node/wallet config. Examples under contrib/ stay tracked.
+/agrarian.conf
+/bitcoin.conf
+/.agrarian/
+/.bitcoin/
+
 # -----------------------------
 # Autotools / configure outputs
 # -----------------------------
@@ -100,6 +106,8 @@ ninja-build/
 # Qt build artifacts (if applicable)
 *.qrc.depends
 moc_*.cpp
+*.moc
+*.qm
 ui_*.h
 qrc_*.cpp
 
@@ -115,6 +123,7 @@ qrc_*.cpp
 /depends/i686-w64-mingw32/
 /depends/x86_64-w64-mingw32/
 /depends/*-apple-darwin*/
+/depends/*-linux-gnu/
 /depends/*-unknown-linux-gnu*/
 /depends/*-pc-linux-gnu*/
 /depends/*-w64-mingw32*/

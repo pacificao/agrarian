@@ -27,7 +27,7 @@ Options:
   --host <triplet>          Build host triplet (default: x86_64-pc-linux-gnu)
   --action <depends|daemon|qt|all>
                             Action to run (default: all)
-  --qt-target <native|win64|win32|armhf|aarch64|all>
+  --qt-target <native|win64|win32|all>
                             Qt wallet target (default: native)
   --wallet <0|1>            Enable wallet-related dependencies/build flags (default: 1)
   --jobs <n>                Parallel build jobs (default: nproc)
@@ -144,14 +144,6 @@ check_toolchains_for_host() {
     i686-w64-mingw32)
       add_missing_toolchain "i686-w64-mingw32-g++" "g++-mingw-w64-i686"
       ;;
-    arm-linux-gnueabihf)
-      add_missing_toolchain "arm-linux-gnueabihf-g++" "g++-arm-linux-gnueabihf"
-      add_missing_toolchain "arm-linux-gnueabihf-ar" "binutils-arm-linux-gnueabihf"
-      ;;
-    aarch64-unknown-linux-gnu)
-      add_missing_toolchain "aarch64-linux-gnu-g++" "g++-aarch64-linux-gnu"
-      add_missing_toolchain "aarch64-linux-gnu-ar" "binutils-aarch64-linux-gnu"
-      ;;
     *)
       ;;
   esac
@@ -263,7 +255,7 @@ ensure_qt_pkgconfig_prereqs() {
     return 0
   fi
 
-  for module in Qt5Core Qt5Gui Qt5Network Qt5Widgets; do
+  for module in Qt6Core Qt6Gui Qt6Network Qt6Widgets; do
     found_path=""
     if [[ -f "${prefix}/lib/pkgconfig/${module}.pc" ]]; then
       found_path="${prefix}/lib/pkgconfig/${module}.pc"
@@ -317,12 +309,6 @@ qt_target_host() {
     win32)
       echo "i686-w64-mingw32"
       ;;
-    armhf)
-      echo "arm-linux-gnueabihf"
-      ;;
-    aarch64)
-      echo "aarch64-unknown-linux-gnu"
-      ;;
     *)
       return 1
       ;;
@@ -342,7 +328,7 @@ qt_target_list() {
   local target="$1"
   case "${target}" in
     all)
-      echo "native win64 win32 armhf aarch64"
+      echo "native win64 win32"
       ;;
     *)
       echo "${target}"
@@ -479,7 +465,7 @@ case "$ACTION" in
 esac
 
 case "$QT_TARGET" in
-  native|win64|win32|armhf|aarch64|all) ;;
+  native|win64|win32|all) ;;
   *) fail "Invalid --qt-target: ${QT_TARGET}" ;;
 esac
 

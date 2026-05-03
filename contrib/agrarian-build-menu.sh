@@ -4,6 +4,7 @@ set -euo pipefail
 REPO_URL="${REPO_URL:-https://github.com/pacificao/agrarian.git}"
 WORKDIR="${WORKDIR:-$HOME/agrarian}"
 HOST_WIN64="${HOST_WIN64:-x86_64-w64-mingw32}"
+HOST_ARM64="${HOST_ARM64:-aarch64-linux-gnu}"
 
 MENU_CHOICE="${AGRARIAN_MENU_CHOICE:-}"
 ROOT=""
@@ -291,11 +292,13 @@ select_target() {
   fi
 
   if has_cmd whiptail; then
-    MENU_CHOICE="$(whiptail --title "Agrarian Build Menu" --menu "Select a build target" 17 76 8 \
+    MENU_CHOICE="$(whiptail --title "Agrarian Build Menu" --menu "Select a build target" 20 78 10 \
       "linux-daemon" "Compile Linux daemon and CLI tools" \
       "linux-qt" "Compile Linux Qt GUI wallet" \
       "windows-daemon" "Cross-compile Windows daemon and CLI tools" \
       "windows-qt" "Cross-compile Windows Qt GUI wallet" \
+      "linux-arm64-daemon" "Compile Linux ARM64 daemon and CLI tools" \
+      "linux-arm64-qt" "Compile Linux ARM64 Qt GUI wallet" \
       3>&1 1>&2 2>&3)" || exit 0
   else
     echo "Agrarian Build Menu"
@@ -303,13 +306,17 @@ select_target() {
     echo "2) Compile Linux Qt GUI wallet"
     echo "3) Cross-compile Windows daemon and CLI tools"
     echo "4) Cross-compile Windows Qt GUI wallet"
+    echo "5) Compile Linux ARM64 daemon and CLI tools"
+    echo "6) Compile Linux ARM64 Qt GUI wallet"
     local choice
-    read -r -p "Selection [1-4]: " choice
+    read -r -p "Selection [1-6]: " choice
     case "$choice" in
       1) MENU_CHOICE="linux-daemon" ;;
       2) MENU_CHOICE="linux-qt" ;;
       3) MENU_CHOICE="windows-daemon" ;;
       4) MENU_CHOICE="windows-qt" ;;
+      5) MENU_CHOICE="linux-arm64-daemon" ;;
+      6) MENU_CHOICE="linux-arm64-qt" ;;
       *) fail "Invalid selection: $choice" ;;
     esac
   fi
@@ -406,7 +413,7 @@ install_packages() {
   )
 
   case "$MENU_CHOICE" in
-    linux-qt)
+    linux-qt|linux-arm64-qt)
       packages+=(
         xvfb
         libfontconfig1-dev libfreetype6-dev libharfbuzz-dev
@@ -423,6 +430,11 @@ install_packages() {
       ;;
     windows-daemon|windows-qt)
       packages+=(mingw-w64 g++-mingw-w64-x86-64 g++-mingw-w64-x86-64-posix)
+      ;;
+    linux-arm64-daemon)
+      if [[ "$(detect_native_host)" != aarch64-* ]]; then
+        packages+=(g++-aarch64-linux-gnu binutils-aarch64-linux-gnu)
+      fi
       ;;
   esac
 
@@ -507,7 +519,12 @@ reexec_from_checkout() {
     WORKDIR="$WORKDIR" \
     JOBS="$JOBS" \
     HOST_WIN64="$HOST_WIN64" \
+    HOST_ARM64="$HOST_ARM64" \
     "$repo_script"
+}
+
+detect_native_host() {
+  "$ROOT/depends/config.guess"
 }
 
 ensure_posix_mingw() {
@@ -545,6 +562,57 @@ build_windows_daemon() {
   run_step 90 "Compiling Windows daemon and CLI tools" make -j"$JOBS"
 }
 
+ensure_arm64_toolchain() {
+  if [[ "$(detect_native_host)" == aarch64-* ]]; then
+    return 0
+  fi
+
+  has_cmd aarch64-linux-gnu-g++ || fail "Missing aarch64-linux-gnu-g++. Install g++-aarch64-linux-gnu."
+  has_cmd aarch64-linux-gnu-ar || fail "Missing aarch64-linux-gnu-ar. Install binutils-aarch64-linux-gnu."
+}
+
+build_linux_arm64_daemon() {
+  local build_host
+  build_host="$(detect_native_host)"
+
+  if [[ "$build_host" == aarch64-* ]]; then
+    run_step 45 "Compiling native Linux ARM64 daemon and CLI tools" env JOBS="$JOBS" ./contrib/build-linux.sh
+    return 0
+  fi
+
+  ensure_arm64_toolchain
+  run_step 45 "Building Linux ARM64 daemon depends" make -C depends HOST="$HOST_ARM64" NO_QT=1 -j1
+
+  if [[ ! -f configure || ! -f src/secp256k1/configure || ! -f src/secp256k1/Makefile.in ]]; then
+    run_step 60 "Generating configure script" ./autogen.sh
+  fi
+
+  run_step 72 "Configuring Linux ARM64 daemon build" env CONFIG_SITE="$ROOT/depends/$HOST_ARM64/share/config.site" ./configure \
+    --build="$build_host" \
+    --host="$HOST_ARM64" \
+    --prefix=/ \
+    --without-gui \
+    --disable-maintainer-mode \
+    --disable-tests \
+    --disable-bench \
+    --disable-zmq \
+    --with-miniupnpc=no
+
+  run_step 82 "Cleaning stale target objects" make clean
+  run_step 90 "Compiling Linux ARM64 daemon and CLI tools" make -j"$JOBS"
+}
+
+build_linux_arm64_qt() {
+  local build_host
+  build_host="$(detect_native_host)"
+
+  if [[ "$build_host" != aarch64-* ]]; then
+    fail "Linux ARM64 Qt wallet builds are native-only for now. Run this option on an ARM64 Ubuntu machine, or use the ARM64 daemon cross-build from this host."
+  fi
+
+  run_step 45 "Compiling native Linux ARM64 Qt GUI wallet" env JOBS="$JOBS" ./contrib/build-linux-wallet.sh
+}
+
 build_selected() {
   case "$MENU_CHOICE" in
     linux-daemon)
@@ -558,6 +626,12 @@ build_selected() {
       ;;
     windows-qt)
       run_step 45 "Compiling Windows Qt GUI wallet" env JOBS="$JOBS" ./contrib/build-win64-wallet.sh
+      ;;
+    linux-arm64-daemon)
+      build_linux_arm64_daemon
+      ;;
+    linux-arm64-qt)
+      build_linux_arm64_qt
       ;;
     *)
       fail "Unknown build choice: $MENU_CHOICE"
@@ -637,7 +711,7 @@ show_completion() {
   echo
 
   case "$MENU_CHOICE" in
-    linux-daemon)
+    linux-daemon|linux-arm64-daemon)
       echo "Linux daemon binaries:"
       echo "  $ROOT/src/agrariand"
       echo "  $ROOT/src/agrarian-cli"
@@ -650,7 +724,7 @@ show_completion() {
         echo "Start manually with: $ROOT/src/agrariand -daemon"
       fi
       ;;
-    linux-qt)
+    linux-qt|linux-arm64-qt)
       echo "Linux wallet binaries:"
       echo "  $ROOT/src/qt/agrarian-qt"
       echo "  $ROOT/src/agrariand"
