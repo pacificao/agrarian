@@ -23,7 +23,7 @@ branch. You can find instructions for installing or building them in the
 | librsvg | |  |  |  |  |
 | MiniUPnPc | [2.3.3](https://miniupnp.tuxfamily.org/files/) |  | No |  |  |
 | OpenSSL | [3.5.6](https://www.openssl.org/source) |  | No |  |  |
-| GMP | [6.1.2](https://gmplib.org/) | | No | | |
+| GMP | [6.3.0](https://gmplib.org/) | | No | | |
 | PCRE |  |  |  |  | [Yes](https://github.com/agrarian-project/agrarian/blob/master/depends/packages/qt.mk#L66) |
 | protobuf | [2.6.1](https://github.com/google/protobuf/releases) |  | No |  |  |
 | Python (tests) |  | [3.5](https://www.python.org/downloads) |  |  |  |

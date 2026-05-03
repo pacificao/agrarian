@@ -246,7 +246,7 @@ DEPENDS BASELINE NOTE
 The 2.0 branch currently verifies Windows x86_64 builds against the same
 modernized core dependency baseline as Linux: OpenSSL 3.5.6, Boost 1.91.0,
 Qt 6.8.3, Berkeley DB 4.8.30, protobuf 2.6.1, libevent 2.1.8-stable, and GMP
-6.1.2. Expat 2.8.0 and FreeType 2.14.3 are part of the Linux Qt/font depends
+6.3.0. Expat 2.8.0 and FreeType 2.14.3 are part of the Linux Qt/font depends
 path and are documented in `doc/dependencies.md`.
 
 ============================================================
