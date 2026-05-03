@@ -83,8 +83,12 @@ download: $(foreach p,$(all_packages),$($(p)_fetched))
 # and generate share/config.site for top-level ./configure.
 # --------------------------------------------------------------------
 
-.PHONY: install install-clean reinstall install-prefix
+.PHONY: install install-clean reinstall install-prefix clean-sources
 install: install-prefix
+
+clean-sources:
+	@echo "== Removing downloaded source archives and fetch stamps"
+	@rm -rf "$(SOURCES_PATH)"
 
 install-prefix: $(packages)
 	@echo "== Installing depends into: $(host_prefix)"
