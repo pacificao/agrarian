@@ -404,6 +404,64 @@ EOF
   echo "Added $source_file"
 }
 
+disable_known_bad_ubuntu_mirrors() {
+  local files=()
+  local file backup temp_file
+
+  [[ -e /etc/apt/sources.list ]] && files+=("/etc/apt/sources.list")
+  for file in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+    [[ -e "$file" ]] && files+=("$file")
+  done
+
+  for file in "${files[@]}"; do
+    if grep -q 'asi-fs-w\.contabo\.net/ubuntu' "$file" 2>/dev/null; then
+      backup="$file.agrarian-disabled"
+      temp_file="$(mktemp)"
+      if [[ "$file" == *.sources ]]; then
+        cat > "$temp_file" <<EOF
+# Disabled by Agrarian build menu because this Ubuntu mirror returned apt errors.
+# Original file saved at: $backup
+EOF
+      else
+        sed 's/^/# Disabled by Agrarian build menu: /' "$file" > "$temp_file"
+      fi
+      sudo_cmd cp "$file" "$backup"
+      sudo_cmd install -m 0644 "$temp_file" "$file"
+      rm -f "$temp_file"
+      echo "Disabled broken Ubuntu mirror in $file"
+    fi
+  done
+}
+
+repair_ubuntu_apt_on_failure() {
+  local reason="$1"
+
+  cat >&2 <<EOF
+
+apt-get update failed while using the current Ubuntu apt sources.
+$reason
+
+The script can add official Ubuntu apt sources and disable known broken Ubuntu
+mirrors such as asi-fs-w.contabo.net/ubuntu.
+EOF
+
+  if ! confirm "Repair Ubuntu apt sources and retry?"; then
+    return 1
+  fi
+
+  repair_ubuntu_sources
+  disable_known_bad_ubuntu_mirrors
+  sudo_cmd apt-get update
+}
+
+apt_get_update_with_repair() {
+  if sudo_cmd apt-get update; then
+    return 0
+  fi
+
+  repair_ubuntu_apt_on_failure "This commonly happens on VPS images with stale provider mirrors."
+}
+
 install_packages() {
   has_cmd apt-get || fail "This installer currently supports Ubuntu/Debian apt-get hosts."
 
@@ -442,7 +500,7 @@ install_packages() {
   if ubuntu_sources_need_repair; then
     repair_ubuntu_sources
   fi
-  sudo_cmd apt-get update
+  apt_get_update_with_repair
   if ! sudo_cmd apt-get install -y "${packages[@]}"; then
     cat >&2 <<EOF
 
@@ -467,7 +525,7 @@ install_bootstrap_packages() {
   if ubuntu_sources_need_repair; then
     repair_ubuntu_sources
   fi
-  sudo_cmd apt-get update
+  apt_get_update_with_repair
   sudo_cmd apt-get install -y ca-certificates git
 }
 
