@@ -29,9 +29,12 @@ define fetch_file_inner
 endef
 
 define fetch_file
-    ( test -f $$($(1)_source_dir)/$(4) || \
+    ( test -f $$($(1)_source_dir)/$(4) && \
+      echo "$(5)  $$($(1)_source_dir)/$(4)" > $$($(1)_source_dir)/.$(4).existing.hash && \
+      $(build_SHA256SUM) -c $$($(1)_source_dir)/.$(4).existing.hash || \
+    ( rm -f $$($(1)_source_dir)/$(4) && \
     ( $(call fetch_file_inner,$(1),$(2),$(3),$(4),$(5)) || \
-      $(call fetch_file_inner,$(1),$(FALLBACK_DOWNLOAD_PATH),$(3),$(4),$(5))))
+      $(call fetch_file_inner,$(1),$(FALLBACK_DOWNLOAD_PATH),$(3),$(4),$(5)))))
 endef
 
 define int_get_build_recipe_hash
@@ -163,7 +166,6 @@ define int_add_cmds
 $($(1)_fetched):
 	$(AT)mkdir -p $$(@D) $(SOURCES_PATH)
 	$(AT)rm -f $$@
-	$(AT)touch $$@
 	$(AT)cd $$(@D); $(call $(1)_fetch_cmds,$(1))
 	$(AT)cd $($(1)_source_dir); $(foreach source,$($(1)_all_sources),$(build_SHA256SUM) $(source) >> $$(@);)
 	$(AT)touch $$@
