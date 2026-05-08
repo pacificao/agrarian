@@ -605,6 +605,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     result.push_back(Pair("curtime", pblock->GetBlockTime()));
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight + 1)));
+    result.push_back(Pair("acc_checkpoint", pblock->nAccumulatorCheckpoint.GetHex()));
     result.push_back(Pair("votes", aVotes));
 
 

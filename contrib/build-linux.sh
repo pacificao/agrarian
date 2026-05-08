@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JOBS="${JOBS:-1}"
 MODE="${MODE:-daemon}"
+DAEMON_TARGETS="${DAEMON_TARGETS:-agrariand agrarian-cli agrarian-tx}"
 HOST="${HOST:-$("$ROOT/depends/config.guess")}"
 PREFIX="$ROOT/depends/$HOST"
 BASE_CONFIG="$PREFIX/share/config.site"
@@ -65,5 +66,9 @@ case "$MODE" in
     ;;
 esac
 
-make -j"$JOBS"
+if [[ "$MODE" == "daemon" ]]; then
+  make -j"$JOBS" $DAEMON_TARGETS
+else
+  make -j"$JOBS"
+fi
 echo "Linux $MODE build complete."
