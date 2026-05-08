@@ -2094,11 +2094,13 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, CAmount> >& vecSend,
     const CCoinControl* coinControl,
     AvailableCoinsType coin_type,
     bool useIX,
-    CAmount nFeePay)
+    CAmount nFeePay,
+    const std::set<int>* setSubtractFeeFromOutputs)
 {
     if (useIX && nFeePay < CENT) nFeePay = CENT;
 
     CAmount nValue = 0;
+    const bool fSubtractFeeFromAmount = setSubtractFeeFromOutputs && !setSubtractFeeFromOutputs->empty();
 
     for (const PAIRTYPE(CScript, CAmount) & s : vecSend) {
         if (nValue < 0) {
@@ -2126,13 +2128,29 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, CAmount> >& vecSend,
                 txNew.vout.clear();
                 wtxNew.fFromMe = true;
 
-                CAmount nTotalValue = nValue + nFeeRet;
+                CAmount nTotalValue = nValue + (fSubtractFeeFromAmount ? 0 : nFeeRet);
                 double dPriority = 0;
 
                 // vouts to the payees
                 if (coinControl && !coinControl->fSplitBlock) {
-                    for (const PAIRTYPE(CScript, CAmount) & s : vecSend) {
-                        CTxOut txout(s.second, s.first);
+                    for (unsigned int i = 0; i < vecSend.size(); i++) {
+                        const PAIRTYPE(CScript, CAmount)& s = vecSend[i];
+                        CAmount nAmount = s.second;
+
+                        if(fSubtractFeeFromAmount && setSubtractFeeFromOutputs->count(i)) {
+                            CAmount nSubtractFee = nFeeRet / setSubtractFeeFromOutputs->size();
+                            if (i == (unsigned int)*setSubtractFeeFromOutputs->begin())
+                                nSubtractFee += nFeeRet % setSubtractFeeFromOutputs->size();
+
+                            nAmount -= nSubtractFee;
+                        }
+
+                        if (nAmount <= 0) {
+                            strFailReason = _("The transaction amount is too small to pay the fee");
+                            return false;
+                        }
+
+                        CTxOut txout(nAmount, s.first);
                         if (txout.IsDust(::minRelayTxFee)) {
                             strFailReason = _("Transaction amount too small");
                             return false;
@@ -2148,13 +2166,29 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, CAmount> >& vecSend,
                     else
                         nSplitBlock = 1;
 
-                    for (const PAIRTYPE(CScript, CAmount) & s : vecSend) {
-                        for (int i = 0; i < nSplitBlock; i++) {
-                            if (i == nSplitBlock - 1) {
-                                uint64_t nRemainder = s.second % nSplitBlock;
-                                txNew.vout.push_back(CTxOut((s.second / nSplitBlock) + nRemainder, s.first));
+                    for (unsigned int i = 0; i < vecSend.size(); i++) {
+                        const PAIRTYPE(CScript, CAmount)& s = vecSend[i];
+                        CAmount nAmount = s.second;
+
+                        if(fSubtractFeeFromAmount && setSubtractFeeFromOutputs->count(i)) {
+                            CAmount nSubtractFee = nFeeRet / setSubtractFeeFromOutputs->size();
+                            if (i == (unsigned int)*setSubtractFeeFromOutputs->begin())
+                                nSubtractFee += nFeeRet % setSubtractFeeFromOutputs->size();
+
+                            nAmount -= nSubtractFee;
+                        }
+
+                        if (nAmount <= 0) {
+                            strFailReason = _("The transaction amount is too small to pay the fee");
+                            return false;
+                        }
+
+                        for (int j = 0; j < nSplitBlock; j++) {
+                            if (j == nSplitBlock - 1) {
+                                uint64_t nRemainder = nAmount % nSplitBlock;
+                                txNew.vout.push_back(CTxOut((nAmount / nSplitBlock) + nRemainder, s.first));
                             } else
-                                txNew.vout.push_back(CTxOut(s.second / nSplitBlock, s.first));
+                                txNew.vout.push_back(CTxOut(nAmount / nSplitBlock, s.first));
                         }
                     }
                 }

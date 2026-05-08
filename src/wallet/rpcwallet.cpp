@@ -914,9 +914,9 @@ UniValue sendfrom(const UniValue& params, bool fHelp)
 
 UniValue sendmany(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() < 2 || params.size() > 4)
+    if (fHelp || params.size() < 2 || params.size() > 8)
         throw runtime_error(
-            "sendmany \"fromaccount\" {\"address\":amount,...} ( minconf \"comment\" )\n"
+            "sendmany \"fromaccount\" {\"address\":amount,...} ( minconf \"comment\" subtractfeefrom )\n"
             "\nSend multiple times. Amounts are double-precision floating point numbers." +
             HelpRequiringPassphrase() + "\n"
 
@@ -929,6 +929,8 @@ UniValue sendmany(const UniValue& params, bool fHelp)
             "    }\n"
             "3. minconf                 (numeric, optional, default=1) Only use the balance confirmed at least this many times.\n"
             "4. \"comment\"             (string, optional) A comment\n"
+            "5. subtractfeefrom        (array, optional) A json array with addresses that pay the fee\n"
+            "\nAlso accepts Dash/PIVX-style sendmany arguments where comment is argument 5 and subtractfeefrom is argument 6.\n"
 
             "\nResult:\n"
             "\"transactionid\"          (string) The transaction id for the send. Only 1 transaction is created regardless of \n"
@@ -952,15 +954,31 @@ UniValue sendmany(const UniValue& params, bool fHelp)
 
     CWalletTx wtx;
     wtx.strFromAccount = strAccount;
-    if (params.size() > 3 && !params[3].isNull() && !params[3].get_str().empty())
-        wtx.mapValue["comment"] = params[3].get_str();
+    int nCommentIndex = 3;
+    int nSubtractFeeFromIndex = 4;
+    if (params.size() > 3 && params[3].isBool()) {
+        nCommentIndex = 4;
+        nSubtractFeeFromIndex = 5;
+    }
+
+    if (params.size() > nCommentIndex && !params[nCommentIndex].isNull() && params[nCommentIndex].isStr() && !params[nCommentIndex].get_str().empty())
+        wtx.mapValue["comment"] = params[nCommentIndex].get_str();
 
     set<CBitcoinAddress> setAddress;
+    set<string> setSubtractFeeFromAddress;
+    set<int> setSubtractFeeFromOutputs;
     vector<pair<CScript, CAmount> > vecSend;
+
+    if (params.size() > nSubtractFeeFromIndex && !params[nSubtractFeeFromIndex].isNull()) {
+        UniValue subtractFeeFrom = params[nSubtractFeeFromIndex].get_array();
+        for (unsigned int idx = 0; idx < subtractFeeFrom.size(); idx++)
+            setSubtractFeeFromAddress.insert(subtractFeeFrom[idx].get_str());
+    }
 
     CAmount totalAmount = 0;
     vector<string> keys = sendTo.getKeys();
-    for (const string& name_ : keys) {
+    for (unsigned int i = 0; i < keys.size(); i++) {
+        const string& name_ = keys[i];
         CBitcoinAddress address(name_);
         if (!address.IsValid())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("Invalid Agrarian address: ")+name_);
@@ -974,6 +992,14 @@ UniValue sendmany(const UniValue& params, bool fHelp)
         totalAmount += nAmount;
 
         vecSend.push_back(make_pair(scriptPubKey, nAmount));
+
+        if (setSubtractFeeFromAddress.count(name_))
+            setSubtractFeeFromOutputs.insert(i);
+    }
+
+    for (const string& name_ : setSubtractFeeFromAddress) {
+        if (!sendTo.exists(name_))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, subtract fee from address not in send set: ")+name_);
     }
 
     EnsureWalletIsUnlocked();
@@ -987,7 +1013,7 @@ UniValue sendmany(const UniValue& params, bool fHelp)
     CReserveKey keyChange(pwalletMain);
     CAmount nFeeRequired = 0;
     string strFailReason;
-    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason);
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason, NULL, ALL_COINS, false, 0, &setSubtractFeeFromOutputs);
     if (!fCreated)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
     if (!pwalletMain->CommitTransaction(wtx, keyChange))
