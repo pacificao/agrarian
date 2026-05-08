@@ -460,7 +460,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     if (strMode != "template")
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
 
-    if (vNodes.empty())
+    if (vNodes.empty() && Params().MiningRequiresPeers())
         throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Agrarian is not connected!");
 
     if (IsInitialBlockDownload())
