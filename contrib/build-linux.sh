@@ -67,7 +67,7 @@ case "$MODE" in
 esac
 
 if [[ "$MODE" == "daemon" ]]; then
-  make -j"$JOBS" $DAEMON_TARGETS
+  make -C src -j"$JOBS" $DAEMON_TARGETS
 else
   make -j"$JOBS"
 fi
