@@ -1004,8 +1004,9 @@ UniValue sendmany(const UniValue& params, bool fHelp)
 
     EnsureWalletIsUnlocked();
 
-    // Check funds
-    CAmount nBalance = GetAccountBalance(strAccount, nMinDepth, ISMINE_SPENDABLE);
+    // Check funds. Treat an empty fromaccount as whole-wallet spendable balance for
+    // compatibility with modern Bitcoin-family payout callers.
+    CAmount nBalance = strAccount.empty() ? pwalletMain->GetBalance() : GetAccountBalance(strAccount, nMinDepth, ISMINE_SPENDABLE);
     if (totalAmount > nBalance)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account has insufficient funds");
 
