@@ -3423,3 +3423,42 @@ Roadmap state:
 - Current version section: `0.1.D Single Biome MVP Map`
 - Items remaining in `0.1.D`: `1`
 - Immediate next roadmap item: `Add developer travel command`.
+
+## Agrarian Developer Travel Command - 2026-05-16
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed commit: `e436455 Add developer travel command`
+
+Completed roadmap item:
+
+- `Add developer travel command`
+  - Added server-authoritative `AgrarianTravel X Y Z` and
+    `AgrarianTravelHome` exec commands on `AAgrarianGamePlayerController`.
+  - `AgrarianTravel` teleports the controlled pawn to explicit Unreal world
+    coordinates, rejects invalid NaN destinations, stops active character
+    movement after teleport, and reports the destination to the issuing player.
+  - `AgrarianTravelHome` returns the player to the validated Ground Zero safe
+    spawn fallback near `AGR_DemoPlayerStart` at `(-22000, -3500, 1148)`.
+  - Added `Scripts/verify_developer_travel_command.py`.
+  - Updated the technical design document and roadmap.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_developer_travel_command.py` passed.
+- `python3 Scripts/verify_developer_travel_command.py` passed.
+- `git diff --check` passed.
+- Windows editor build through `/home/nathan/bin/agrarian-build-editor`
+  initially failed on a `Character` local-variable shadow warning; after
+  renaming it to `ControlledCharacter`, the editor build passed.
+
+Roadmap state:
+
+- Completed version section: `0.1.D Single Biome MVP Map`
+- Items remaining in `0.1.D`: `0`
+- Current/next version section: `0.1.E Inventory System`
+- Items remaining in `0.1.E`: `9`
+- Immediate next roadmap item: `Design inventory data model`.
