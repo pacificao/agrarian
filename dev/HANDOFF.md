@@ -3638,3 +3638,40 @@ Roadmap state:
 - Current version section: `0.1.E Inventory System`
 - Items remaining in `0.1.E`: `4`
 - Immediate next roadmap item: `Add equipment slots if needed`.
+
+## Agrarian Equipment Slot Decision - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed commit: `edd4050 Document equipment slot decision`
+
+Completed roadmap item:
+
+- `Add equipment slots if needed`
+  - Decision: dedicated equipment slots are deferred for the 0.1.E MVP.
+  - Reason: current tools, including `basic_tool`, do not yet drive active hand,
+    worn, backpack, armor, weapon, durability, animation, or mesh-attachment
+    rules; adding slots now would create replicated/UI/save state with no
+    gameplay consumer.
+  - Documented the future trigger: add server-authoritative, replicated,
+    persisted equipment slot state when an implemented system actually needs
+    equipped state.
+  - Added `Scripts/verify_equipment_slot_decision.py`.
+  - Updated the inventory data model, technical design document, and roadmap.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_equipment_slot_decision.py` passed.
+- `python3 Scripts/verify_equipment_slot_decision.py` passed.
+- `git diff --check` passed.
+- No Windows editor build was run because this item only changed docs and Python
+  verification.
+
+Roadmap state:
+
+- Current version section: `0.1.E Inventory System`
+- Items remaining in `0.1.E`: `3`
+- Immediate next roadmap item: `Add weight or carry capacity placeholder`.
