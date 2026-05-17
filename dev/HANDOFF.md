@@ -3498,3 +3498,37 @@ Roadmap state:
 - Current version section: `0.1.E Inventory System`
 - Items remaining in `0.1.E`: `8`
 - Immediate next roadmap item: `Add item pickup`.
+
+## Agrarian Item Pickup - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed commit: `03d856e Add item pickup actor`
+
+Completed roadmap item:
+
+- `Add item pickup`
+  - Added native `AAgrarianItemPickup`, a replicated interactable world actor
+    with a static mesh, definition-backed or inline `FAgrarianItemStack` data,
+    quantity, prompt text, and server-authoritative pickup behavior.
+  - Pickup interaction validates authority and stack validity, adds the stack to
+    the player's `UAgrarianInventoryComponent`, and destroys the world pickup
+    only after `Inventory->AddItem` succeeds so failed pickups remain available.
+  - Added `Scripts/verify_item_pickup.py`.
+  - Updated the technical design document and roadmap.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_item_pickup.py` passed.
+- `python3 Scripts/verify_item_pickup.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through `/home/nathan/bin/agrarian-build-editor`.
+
+Roadmap state:
+
+- Current version section: `0.1.E Inventory System`
+- Items remaining in `0.1.E`: `7`
+- Immediate next roadmap item: `Add item drop`.
