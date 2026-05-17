@@ -3675,3 +3675,49 @@ Roadmap state:
 - Current version section: `0.1.E Inventory System`
 - Items remaining in `0.1.E`: `3`
 - Immediate next roadmap item: `Add weight or carry capacity placeholder`.
+
+## Agrarian Carry Capacity Placeholder - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed commit: `cb663fb Document carry capacity placeholder`
+
+Completed roadmap item:
+
+- `Add weight or carry capacity placeholder`
+  - Confirmed the existing carry-capacity placeholder is weight-first.
+  - Item stacks carry `UnitWeight`.
+  - `UAgrarianInventoryComponent::GetTotalWeight` sums `Quantity * UnitWeight`.
+  - `AAgrarianGameCharacter::GetCurrentCarryWeight` reads inventory total.
+  - Movement uses comfort/heavy thresholds of `25.0` and `60.0`.
+  - `StrengthMultiplier` scales effective carry thresholds.
+  - Heavy loads reduce carry movement multiplier down to `45%`.
+  - The debug HUD shows current carried weight for tuning.
+  - Documented that later volume, backpack, awkward-object, injury/fatigue, and
+    hard overload systems should extend this total-weight hook.
+  - Added `Scripts/verify_carry_capacity_placeholder.py`.
+  - Updated the inventory data model, technical design document, and roadmap.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_carry_capacity_placeholder.py` passed.
+- `python3 Scripts/verify_carry_capacity_placeholder.py` passed.
+- `git diff --check` passed.
+- No Windows editor build was run because this item only changed docs and
+  Python verification around existing C++ behavior.
+
+Automation notes:
+
+- AWS SES in `us-west-2` is available.
+- `pacificao.com` is a verified SES identity.
+- Per-item summaries can be sent to `nathan@pacificao.com` from a
+  `pacificao.com` sender.
+
+Roadmap state:
+
+- Current version section: `0.1.E Inventory System`
+- Items remaining in `0.1.E`: `2`
+- Immediate next roadmap item: `Add inventory UI`.
