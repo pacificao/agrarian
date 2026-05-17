@@ -3915,3 +3915,43 @@ Roadmap state:
 - Current version section: `0.1.F Gathering And Resources`
 - Items remaining in `0.1.F`: `4`
 - Immediate next roadmap item: `Add water gathering interaction`.
+
+## Agrarian 0.1.F Water Gathering Interaction - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `fa9d183 Verify water gathering interaction`
+
+Completed roadmap item:
+
+- `Add water gathering interaction`
+  - Confirmed water gathering already exists through `AAgrarianWaterSource` and
+    `BP_FreshWaterSource`.
+  - Confirmed the water source uses the shared focused
+    `IAgrarianInteractable` path.
+  - Confirmed player-facing prompt text flows through
+    `AAgrarianGameCharacter::FindFocusedInteractable`.
+  - Confirmed server-authoritative `AAgrarianGameCharacter::ServerInteract`
+    range validation before interaction.
+  - Confirmed interaction restores thirst through
+    `UAgrarianSurvivalComponent::AddWater` with restore amount `45`.
+  - Added `Scripts/verify_water_gathering_interaction.py`.
+  - Updated the roadmap, technical design document, Ground Zero resource pass,
+    and Ground Zero freshwater source docs.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_water_gathering_interaction.py` passed.
+- `python3 Scripts/verify_water_gathering_interaction.py` passed.
+- Windows Unreal Python `verify_ground_zero_water_source.py` passed and
+  reported `AGR_GZ_FreshWaterSource_01, restore=45.0`.
+- `git diff --check` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.F Gathering And Resources`
+- Items remaining in `0.1.F`: `3`
+- Immediate next roadmap item: `Add respawn rules for MVP`.
