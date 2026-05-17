@@ -3839,3 +3839,39 @@ Instruction:
 
 - Stop here per user request. Next development item should be selected only
   after review of the investor demo or a new instruction.
+
+## Agrarian 0.1.F Stone Resource - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `d693113 Document stone resource support`
+
+Completed roadmap item:
+
+- `Add stone resource`
+  - Confirmed stone already exists as `DA_Item_Stone`.
+  - Confirmed `BP_StoneResourceNode` is configured through playable Blueprint
+    setup.
+  - Confirmed deterministic Ground Zero stone node placements exist.
+  - Confirmed playable Blueprint and Ground Zero resource verifiers cover
+    stone.
+  - Documented the gatherable resource baseline in the technical design doc.
+  - Marked the roadmap item complete.
+  - Added `Scripts/verify_stone_resource.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_stone_resource.py` passed.
+- `python3 Scripts/verify_stone_resource.py` passed.
+- `git diff --check` passed.
+- No Windows editor build was run because this item closed existing content via
+  docs and Python verification only.
+
+Roadmap state:
+
+- Current version section: `0.1.F Gathering And Resources`
+- Items remaining in `0.1.F`: `5`
+- Immediate next roadmap item: `Add edible plant resource`.
