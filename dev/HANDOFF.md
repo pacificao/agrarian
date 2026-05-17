@@ -3801,3 +3801,41 @@ Roadmap state:
 - Current version section: `0.1.E Inventory System`
 - Items remaining in `0.1.E`: `0`
 - Immediate next action: build Windows investor demo and stop.
+
+## Agrarian Windows Investor Demo - 2026-05-17
+
+Stop point completed:
+
+- Remaining `0.1.E Inventory System` items are complete.
+- Investor demo version strings were bumped before packaging:
+  - splash/demo notice: `Investor Demo v0.1.E - Build 2026.05.17`;
+  - `Config/DefaultGame.ini`: `ProjectVersion=0.1.E-investor.20260517`;
+  - packaged README/launchers use the same demo version.
+- Latest pushed game commit after the version bump:
+  `5fc6a61 Bump investor demo version to 0.1.E`.
+
+Windows package:
+
+- Package command run on Windows builder from `P:\AgrarianGameBulid`:
+  `Scripts\PackageWindowsDevelopment.bat`
+- Result: success.
+- Output folder:
+  `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment`
+- Approximate size: `1.1G`
+- Key files:
+  - `AgrarianGame.exe`
+  - `README-Investor-Demo.txt`
+  - `Install Prerequisites.cmd`
+  - `Start Agrarian Demo.cmd`
+  - `Start Agrarian Demo - DX12.cmd`
+  - `Start Agrarian Demo - Compatibility DX11.cmd`
+
+Repo state after package:
+
+- Game repo clean on `main...origin/main`.
+- Handoff repo clean on `main...origin/main`.
+
+Instruction:
+
+- Stop here per user request. Next development item should be selected only
+  after review of the investor demo or a new instruction.
