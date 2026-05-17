@@ -3875,3 +3875,43 @@ Roadmap state:
 - Current version section: `0.1.F Gathering And Resources`
 - Items remaining in `0.1.F`: `5`
 - Immediate next roadmap item: `Add edible plant resource`.
+
+## Agrarian 0.1.F Edible Plant Resource - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `0545522 Add edible plant resource nodes`
+
+Completed roadmap item:
+
+- `Add edible plant resource`
+  - Added `BP_EdiblePlantResourceNode` as an Agrarian resource Blueprint.
+  - The edible plant node yields the MVP `food` item from forage patches.
+  - Added `M_AGR_GZ_EdiblePlant_Resource`.
+  - Added three deterministic Ground Zero edible plant resource nodes:
+    - `AGR_GZ_EdiblePlant_CoastalScrub_01`
+    - `AGR_GZ_EdiblePlant_Grassland_02`
+    - `AGR_GZ_EdiblePlant_DrainageCandidate_03`
+  - Updated the Ground Zero resource pass and technical design documentation.
+  - Added `Scripts/verify_edible_plant_resource.py`.
+  - Extended playable Blueprint and Ground Zero resource verifiers.
+
+Verification:
+
+- `python3 -m py_compile Scripts/setup_playable_blueprints.py Scripts/setup_ground_zero_demo_map.py Scripts/verify_playable_blueprints.py Scripts/verify_ground_zero_resources.py Scripts/verify_edible_plant_resource.py` passed.
+- `python3 Scripts/verify_edible_plant_resource.py` passed.
+- Windows Unreal Python setup for playable Blueprints passed.
+- Windows Unreal Python setup for Ground Zero map resources passed.
+- Windows Unreal Python `verify_playable_blueprints.py` passed.
+- Windows Unreal Python `verify_ground_zero_resources.py` passed and reported
+  `4 wood, 5 fiber, 3 edible plant, 4 stone nodes`.
+- `git diff --check` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.F Gathering And Resources`
+- Items remaining in `0.1.F`: `4`
+- Immediate next roadmap item: `Add water gathering interaction`.
