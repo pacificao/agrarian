@@ -3568,3 +3568,38 @@ Roadmap state:
 - Current version section: `0.1.E Inventory System`
 - Items remaining in `0.1.E`: `6`
 - Immediate next roadmap item: `Add stack splitting`.
+
+## Agrarian Stack Splitting - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed commit: `555ad6d Add stack splitting`
+
+Completed roadmap item:
+
+- `Add stack splitting`
+  - Added server-authoritative `UAgrarianInventoryComponent::SplitStackByIndex`.
+  - Added `ServerSplitStackByIndex` RPC for future UI use.
+  - Added `AgrarianSplitStack StackIndex SplitQuantity` debug command on
+    `AAgrarianGamePlayerController`.
+  - Split operation validates source slot, split quantity, and free slot
+    capacity, copies source stack metadata, reduces the source quantity, creates
+    a separate stack slot, and intentionally avoids re-merging through `AddItem`.
+  - Added `Scripts/verify_stack_splitting.py`.
+  - Updated the technical design document and roadmap.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_stack_splitting.py` passed.
+- `python3 Scripts/verify_stack_splitting.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through `/home/nathan/bin/agrarian-build-editor`.
+
+Roadmap state:
+
+- Current version section: `0.1.E Inventory System`
+- Items remaining in `0.1.E`: `5`
+- Immediate next roadmap item: `Add item use`.
