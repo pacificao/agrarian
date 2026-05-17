@@ -3721,3 +3721,43 @@ Roadmap state:
 - Current version section: `0.1.E Inventory System`
 - Items remaining in `0.1.E`: `2`
 - Immediate next roadmap item: `Add inventory UI`.
+
+## Agrarian Inventory UI - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed commit: `09eed7c Add MVP inventory HUD panel`
+
+Completed roadmap item:
+
+- `Add inventory UI`
+  - Added a compact MVP inventory panel to `AAgrarianDebugHUD`.
+  - The panel is controlled separately from the full developer HUD by
+    `bShowInventoryHUD`.
+  - It reads the replicated inventory component and shows occupied slots, max
+    slots, total carried weight, visible item stacks, stack quantity, and total
+    stack weight.
+  - Kept mutation flows on existing server-authoritative commands/RPCs until a
+    full UMG inventory screen is introduced.
+  - Added `Scripts/verify_inventory_ui.py`.
+  - Updated the inventory data model, technical design document, and roadmap.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_inventory_ui.py` passed.
+- `python3 Scripts/verify_inventory_ui.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through `/home/nathan/bin/agrarian-build-editor`.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.E Inventory System`
+- Items remaining in `0.1.E`: `1`
+- Immediate next roadmap item: `Add persistence for inventory`.
