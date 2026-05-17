@@ -3761,3 +3761,43 @@ Roadmap state:
 - Current version section: `0.1.E Inventory System`
 - Items remaining in `0.1.E`: `1`
 - Immediate next roadmap item: `Add persistence for inventory`.
+
+## Agrarian Inventory Persistence - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed commit: `ac9fee4 Add inventory persistence restore hook`
+
+Completed roadmap item:
+
+- `Add persistence for inventory`
+  - `FAgrarianSavedPlayer::Inventory` stores the player stack array.
+  - Player capture writes `InventoryComponent->Items`.
+  - Added `UAgrarianInventoryComponent::RestoreSavedItems`.
+  - Restore broadcasts `OnInventoryChanged`.
+  - `UAgrarianPersistenceSubsystem::RestorePlayers` now uses the restore helper
+    instead of assigning `Items` directly.
+  - HUD/UI listeners and future inventory UI stay synchronized after loading.
+  - Total carry weight remains derived from stack data.
+  - Added `Scripts/verify_inventory_persistence.py`.
+  - Updated the inventory data model, technical design document, and roadmap.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_inventory_persistence.py` passed.
+- `python3 Scripts/verify_inventory_persistence.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through `/home/nathan/bin/agrarian-build-editor`.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.E Inventory System`
+- Items remaining in `0.1.E`: `0`
+- Immediate next action: build Windows investor demo and stop.
