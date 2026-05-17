@@ -3955,3 +3955,48 @@ Roadmap state:
 - Current version section: `0.1.F Gathering And Resources`
 - Items remaining in `0.1.F`: `3`
 - Immediate next roadmap item: `Add respawn rules for MVP`.
+
+## Agrarian 0.1.F Resource Respawn Rules - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `a5ec210 Add MVP resource respawn rules`
+
+Completed roadmap item:
+
+- `Add respawn rules for MVP`
+  - Added native resource-node respawn fields:
+    `bRespawnsForMvp`, `RespawnDelaySeconds`, and `MaxHarvests`.
+  - Added server-side respawn timer logic. Renewable nodes schedule a timer
+    only when fully depleted.
+  - Respawn restores replicated `RemainingHarvests` and re-enables
+    visibility/collision.
+  - Configured MVP Blueprint defaults:
+    - wood respawns after `900` seconds;
+    - fiber respawns after `600` seconds;
+    - edible plants respawn after `1200` seconds;
+    - stone remains nonrespawning.
+  - Regenerated and saved resource Blueprints with the respawn defaults.
+  - Added `Scripts/verify_resource_respawn_rules.py`.
+  - Updated the roadmap, technical design document, Ground Zero resource pass,
+    `setup_playable_blueprints.py`, and `verify_playable_blueprints.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/setup_playable_blueprints.py Scripts/verify_playable_blueprints.py Scripts/verify_resource_respawn_rules.py` passed.
+- `python3 Scripts/verify_resource_respawn_rules.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through direct `Scripts\BuildEditor-Windows.bat`.
+- Windows Unreal Python `setup_playable_blueprints.py` passed.
+- Windows Unreal Python `verify_playable_blueprints.py` passed.
+- Note: `/home/nathan/bin/agrarian-build-editor` appeared to hang silently and
+  was stopped; the direct Windows build command completed successfully.
+
+Roadmap state:
+
+- Current version section: `0.1.F Gathering And Resources`
+- Items remaining in `0.1.F`: `2`
+- Immediate next roadmap item: `Add tool requirement rules`.
