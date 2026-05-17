@@ -3603,3 +3603,38 @@ Roadmap state:
 - Current version section: `0.1.E Inventory System`
 - Items remaining in `0.1.E`: `5`
 - Immediate next roadmap item: `Add item use`.
+
+## Agrarian Item Use - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed commit: `712a854 Add item use command`
+
+Completed roadmap item:
+
+- `Add item use`
+  - Added server-authoritative `AgrarianUseItem ItemId Quantity`.
+  - Added `ApplyAgrarianItemUseEffect` MVP rules:
+    - `food` restores hunger.
+    - `meat` restores more hunger but adds raw-meat sickness risk.
+    - `bandage` reduces injury severity and restores a small amount of health.
+  - Added `UAgrarianSurvivalComponent::ReduceInjury`.
+  - Unsupported items are restored to inventory instead of consumed.
+  - Added `Scripts/verify_item_use.py`.
+  - Updated the technical design document and roadmap.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_item_use.py` passed.
+- `python3 Scripts/verify_item_use.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through `/home/nathan/bin/agrarian-build-editor`.
+
+Roadmap state:
+
+- Current version section: `0.1.E Inventory System`
+- Items remaining in `0.1.E`: `4`
+- Immediate next roadmap item: `Add equipment slots if needed`.
