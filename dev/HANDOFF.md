@@ -3532,3 +3532,39 @@ Roadmap state:
 - Current version section: `0.1.E Inventory System`
 - Items remaining in `0.1.E`: `7`
 - Immediate next roadmap item: `Add item drop`.
+
+## Agrarian Item Drop - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed commit: `b48595f Add item drop command`
+
+Completed roadmap item:
+
+- `Add item drop`
+  - Added `UAgrarianInventoryComponent::ExtractItem` so item removal can return
+    dropped stack metadata for world pickups while preserving existing
+    `RemoveItem` behavior.
+  - Added server-authoritative `AgrarianDropItem ItemId Quantity` on
+    `AAgrarianGamePlayerController`.
+  - Drop command extracts inventory stack data, spawns an
+    `AAgrarianItemPickup` in front of the player, and restores the removed stack
+    if pickup spawning fails.
+  - Added `Scripts/verify_item_drop.py`.
+  - Updated the technical design document and roadmap.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_item_drop.py` passed.
+- `python3 Scripts/verify_item_drop.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through `/home/nathan/bin/agrarian-build-editor`.
+
+Roadmap state:
+
+- Current version section: `0.1.E Inventory System`
+- Items remaining in `0.1.E`: `6`
+- Immediate next roadmap item: `Add stack splitting`.
