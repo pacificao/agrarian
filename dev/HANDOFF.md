@@ -3462,3 +3462,39 @@ Roadmap state:
 - Current/next version section: `0.1.E Inventory System`
 - Items remaining in `0.1.E`: `9`
 - Immediate next roadmap item: `Design inventory data model`.
+
+## Agrarian Inventory Data Model - 2026-05-16
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed commit: `c511ae9 Design inventory data model`
+
+Completed roadmap item:
+
+- `Design inventory data model`
+  - Added `Docs/InventoryDataModel.md` defining the MVP contract for stable
+    item definitions, runtime/save-game item stacks, server-authoritative
+    replicated inventory components, persistence, carry weight, and the
+    pickup/drop/split/use equipment/UI operations that build on the current
+    code.
+  - Updated the technical design document to point future inventory work at the
+    new model instead of parallel state.
+  - Added `Scripts/verify_inventory_data_model.py`.
+  - Updated the roadmap.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_inventory_data_model.py` passed.
+- `python3 Scripts/verify_inventory_data_model.py` passed.
+- `git diff --check` passed.
+- No Windows editor build was run for this item because it only changed docs and
+  Python verification.
+
+Roadmap state:
+
+- Current version section: `0.1.E Inventory System`
+- Items remaining in `0.1.E`: `8`
+- Immediate next roadmap item: `Add item pickup`.
