@@ -4000,3 +4000,45 @@ Roadmap state:
 - Current version section: `0.1.F Gathering And Resources`
 - Items remaining in `0.1.F`: `2`
 - Immediate next roadmap item: `Add tool requirement rules`.
+
+## Agrarian 0.1.F Resource Tool Rules - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `843340e Add MVP resource tool rules`
+
+Completed roadmap item:
+
+- `Add tool requirement rules`
+  - Added inventory-based resource tool fields:
+    `RequiredToolItemId`, `bAllowBareHandGathering`, and
+    `ToolQuantityBonus`.
+  - Added harvest yield logic that keeps current MVP resources gatherable by
+    hand while granting a yield bonus when the player has the configured tool.
+  - Configured MVP Blueprint defaults:
+    - wood, fiber, and stone declare `basic_tool`, allow bare-hand gathering,
+      and gain `+1` yield with the tool;
+    - edible plants remain bare-hand gatherable without a tool bonus.
+  - Avoided a first-loop deadlock by not hard-requiring `basic_tool` for
+    stone, since the `basic_tool` recipe requires stone.
+  - Added `Scripts/verify_resource_tool_requirements.py`.
+  - Updated the roadmap, technical design document, Ground Zero resource pass,
+    `setup_playable_blueprints.py`, and `verify_playable_blueprints.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/setup_playable_blueprints.py Scripts/verify_playable_blueprints.py Scripts/verify_resource_tool_requirements.py` passed.
+- `python3 Scripts/verify_resource_tool_requirements.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through direct `Scripts\BuildEditor-Windows.bat`.
+- Windows Unreal Python `setup_playable_blueprints.py` passed.
+- Windows Unreal Python `verify_playable_blueprints.py` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.F Gathering And Resources`
+- Items remaining in `0.1.F`: `1`
+- Immediate next roadmap item: `Add resource node persistence`.
