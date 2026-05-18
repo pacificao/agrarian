@@ -5114,3 +5114,37 @@ Roadmap state:
 
 - `0.1.K Wildlife Prototype` is complete.
 - Next required action: build the Windows investor demo and stop.
+
+## Agrarian 0.1.K Windows Investor Demo Package - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `6178e77 Update investor demo to 0.1.K`
+
+Completed final package step:
+
+- Built the Windows investor demo for `0.1.K Wildlife Prototype`.
+- Output path: `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment`
+- README label verified:
+  `Investor Demo v0.1.K - Build 2026.05.18`.
+- Packaged folder size: `1.1G`.
+- Fresh package artifacts were written at `2026-05-18 14:33`, including
+  `Builds/WindowsDevelopment/AgrarianGame.exe`, launcher command files, README,
+  and `AgrarianGame/Content/Paks` files.
+
+Verification:
+
+- Windows package command passed via `Scripts\PackageWindowsDevelopment.bat`.
+- AutomationTool reported `BUILD SUCCESSFUL`.
+- AutomationTool exited with `ExitCode=0`.
+- README and package artifacts were verified from Linux side.
+- Game repo status is clean after package verification.
+
+Roadmap state:
+
+- `0.1.K Wildlife Prototype` is complete.
+- Windows investor demo has been rebuilt and is ready at the package path.
+- Stop here per user instruction.
