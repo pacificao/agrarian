@@ -5243,6 +5243,51 @@ Roadmap state:
   - Open `7777/udp` for Unreal gameplay traffic.
   - Keep SSH restricted to admin IPs.
 
+## Agrarian 0.1.L Windows Investor Demo Package - 2026-05-18
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- Build-share checkout: `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `9c808f4 Update investor demo to 0.1.L`
+
+Completed final package step:
+
+- Refreshed the restored Windows builder `P:` mapping to
+  `\\192.168.5.8\projects`.
+- Fast-forwarded the build-share checkout from `6178e77` to `9c808f4`.
+- Built the Windows investor demo for `0.1.L Basic Multiplayer`.
+- Output path: `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment`.
+- README label verified:
+  `Investor Demo v0.1.L - Build 2026.05.18`.
+- Packaged folder size: `1.1G`.
+- Fresh top-level package artifacts were written at `2026-05-18 15:43`,
+  including `AgrarianGame.exe`, launcher command files, manifests, and README.
+
+Verification:
+
+- Windows package command passed via `Scripts\PackageWindowsDevelopment.bat`.
+- AutomationTool reported `BUILD SUCCESSFUL`.
+- AutomationTool exited with `ExitCode=0`.
+- `AgrarianGame.exe` exists and is a PE32+ x86-64 Windows GUI executable.
+- `/home/nathan/AgrarianGameBuild` and `/mnt/projects/AgrarianGameBulid` were
+  clean after package verification.
+
+Notes:
+
+- Windows build VM reported 10 logical cores and 32 GB RAM during packaging.
+- UE 5.7 emitted deprecation warnings for direct public access to
+  `AActor::NetCullDistanceSquared`; future cleanup should move those MVP
+  relevancy assignments to `SetNetCullDistanceSquared()`.
+
+Roadmap state:
+
+- `0.1.L Basic Multiplayer` is complete.
+- Windows investor demo has been rebuilt and is ready at the package path.
+- Stop here per user instruction.
+
 ## Agrarian 0.1.K Wildlife Spawn Manager - 2026-05-18
 
 Current repo:
