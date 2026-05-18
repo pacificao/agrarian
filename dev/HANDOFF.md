@@ -2,6 +2,26 @@
 
 ## Latest AgrarianGameBuild Update - 2026-05-17
 
+- Added native cinematic startup credits to the investor-demo notice sequence.
+- Latest pushed game commit:
+  `075689d Add cinematic startup credits`.
+- Credits include Nathan, Hunter, Lisa, River, Fisher, and the funding note for
+  cherished individuals, Pacificao seed funding, and Lina Family Investment
+  Funds.
+- The credits run as native Slate drawing in `UAgrarianDemoNoticeWidget`: each
+  card slams in, holds briefly with a stylized illustration, and slides out.
+- Updated investor demo labels to `0.1.H`.
+- Added forest-fire risk/spread from irresponsible campfire/open-flame placement
+  to the roadmap as a future server-authoritative system.
+- Validation completed:
+  - `python3 -m py_compile Scripts/verify_startup_credits_sequence.py`
+  - `python3 Scripts/verify_startup_credits_sequence.py`
+  - `git diff --check`
+  - Windows editor build via `Scripts\BuildEditor-Windows.bat`
+- Next required action:
+  rebuild the Windows investor demo from `075689d`, verify archive output, and
+  stop.
+
 - Completed the final `0.1.H Fire System` roadmap item:
   `Connect rain/weather to fire behavior`.
 - Latest pushed game commit:
