@@ -4747,3 +4747,40 @@ Roadmap state:
 
 - Current version section: `0.1.J Injury And Basic Survival Consequences`
 - Immediate next roadmap item: `Add sprain or movement penalty placeholder`.
+
+## Agrarian 0.1.J Sprain/Movement Placeholder - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `559a5b2 Add sprain movement placeholder`
+
+Completed roadmap item:
+
+- `Add sprain or movement penalty placeholder`
+  - Survival now tracks replicated `SprainSeverity` inside
+    `FAgrarianSurvivalSnapshot`.
+  - Added `SprainExhaustionPerSecond`, `AddSprain`, and `ReduceSprain` to
+    `UAgrarianSurvivalComponent`.
+  - Generic injuries now seed sprain severity at a light placeholder ratio.
+  - Active sprains add light exhaustion pressure and contribute to care-history
+    injury burden.
+  - `AAgrarianGameCharacter::CalculateSurvivalMovementMultiplier` now includes
+    an explicit sprain movement multiplier.
+  - Debug HUD and `AgrarianSurvival` console output now display sprain state.
+  - Added `Scripts/verify_sprain_movement_placeholder.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_sprain_movement_placeholder.py`
+  passed.
+- `python3 Scripts/verify_sprain_movement_placeholder.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- Current version section: `0.1.J Injury And Basic Survival Consequences`
+- Immediate next roadmap item: `Add treatment item`.
