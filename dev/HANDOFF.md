@@ -5327,6 +5327,46 @@ DNS/network:
 - No Unreal Linux dedicated server package has been deployed yet, so nothing is
   currently listening on `7777/udp`.
 
+Follow-up:
+
+- Nathan reported Unraid UI showed the VM requires guest agent installed.
+- Verified guest agent is actually installed and active inside
+  `Agrarian-PlayServer`.
+- Libvirt backend confirms agent health:
+  `virsh qemu-agent-command Agrarian-PlayServer --cmd '{"execute":"guest-ping"}'`
+  succeeds.
+- `virsh domifaddr Agrarian-PlayServer --source agent` returns
+  `192.168.5.15/22`.
+- Rebooted `Agrarian-PlayServer` once so Unraid UI can refresh with the agent
+  present from boot.
+- Post-reboot checks:
+  - `qemu-guest-agent`: active
+  - `ssh`: active
+  - `ufw`: active
+  - `7777/udp`: allowed
+  - `agrarian-game-server.service`: inactive because
+    `/opt/agrarian/server/AgrarianGameServer.sh` does not exist yet.
+
+Dedicated server deployment attempt:
+
+- Ran `Scripts\BuildLinuxDedicatedServer-Windows.bat` from Windows-Builder.
+- Build failed immediately with UnrealBuildTool:
+  `Missing files required to build Linux targets. Enable Linux as an optional
+  download component in the Epic Games Launcher.`
+- Windows-Builder UE 5.7 has installed target platform folders for Android,
+  IOS, VisionOS, and Windows, but not Linux under `Engine\Platforms`.
+- No existing Linux dedicated server package was found in
+  `Builds/LinuxServerDevelopment`.
+
+Required next step:
+
+- Install the UE 5.7 Linux target platform/toolchain on Windows-Builder through
+  Epic Games Launcher options.
+- Rerun `Scripts\BuildLinuxDedicatedServer-Windows.bat`.
+- Copy the produced Linux server package to
+  `nathan@192.168.5.15:/opt/agrarian/server`.
+- Start `agrarian-game-server.service` and verify `ss -lunp` shows `7777/udp`.
+
 ## Agrarian 0.1.K Wildlife Spawn Manager - 2026-05-18
 
 Current repo:
