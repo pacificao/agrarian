@@ -4555,3 +4555,33 @@ Roadmap state:
 
 - Current version section: `0.1.I Shelter Building`
 - Immediate next roadmap item: `Add door/opening if needed`.
+
+## Agrarian 0.1.I Shelter Door/Opening Scope - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `01d439c Decide MVP shelter opening scope`
+
+Completed roadmap item:
+
+- `Add door/opening if needed`
+  - MVP primitive shelters use an open entrance and do not include an
+    interactive door.
+  - Door actors, locks, ownership permissions, and modular openings are
+    deferred to `0.2.E Permanent Structures`.
+  - Added `Scripts/verify_shelter_door_opening_decision.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_shelter_door_opening_decision.py`
+  passed.
+- `python3 Scripts/verify_shelter_door_opening_decision.py` passed.
+- `git diff --check` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.I Shelter Building`
+- Immediate next roadmap item: `Add deconstruction or damage placeholder`.
