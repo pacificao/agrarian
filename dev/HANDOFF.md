@@ -4887,3 +4887,37 @@ Roadmap state:
 
 - Current version section: `0.1.J Injury And Basic Survival Consequences`
 - Immediate next roadmap item: `Add corpse/backpack placeholder if needed`.
+
+## Agrarian 0.1.J Corpse/Backpack Decision - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `e8f4acb Document corpse backpack MVP decision`
+
+Completed roadmap item:
+
+- `Add corpse/backpack placeholder if needed`
+  - Decision: no physical corpse/backpack actor is needed for the 0.1.J MVP
+    respawn loop because death inventory loss is not active yet.
+  - Reserved future corpse/backpack recovery as a persistent, server-owned,
+    interaction-gated death-recovery record once inventory loss and decay rules
+    exist.
+  - Updated persistence and multiplayer networking design docs with the
+    decision.
+  - Added `Scripts/verify_corpse_backpack_decision.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_corpse_backpack_decision.py` passed.
+- `python3 Scripts/verify_corpse_backpack_decision.py` passed.
+- `git diff --check` passed.
+- No Windows editor build was run because this item only changed docs and
+  Python verification.
+
+Roadmap state:
+
+- Current version section: `0.1.J Injury And Basic Survival Consequences`
+- Immediate next roadmap item: `Add replicated death feedback`.
