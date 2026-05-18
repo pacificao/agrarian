@@ -4981,3 +4981,38 @@ Roadmap state:
 
 - `0.1.J Injury And Basic Survival Consequences` is complete.
 - Next required action: build the Windows investor demo and stop.
+
+## Agrarian 0.1.J Windows Investor Demo Package - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `f0d8e3e Update investor demo to 0.1.J`
+
+Completed final package step:
+
+- Built the Windows investor demo for `0.1.J Injury And Basic Survival
+  Consequences`.
+- Output path: `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment`
+- README label verified:
+  `Investor Demo v0.1.J - Build 2026.05.18`.
+- Packaged folder size: `1.1G`.
+- Fresh package artifacts were written at `2026-05-18 13:50`, including
+  `Builds/WindowsDevelopment/AgrarianGame.exe`, launcher command files, README,
+  and `AgrarianGame/Content/Paks` files.
+
+Verification:
+
+- Windows package command passed via `Scripts\PackageWindowsDevelopment.bat`.
+- AutomationTool reported `BUILD SUCCESSFUL`.
+- AutomationTool exited with `ExitCode=0`.
+- README and package artifacts were verified from Linux side.
+- Game repo status is clean after package verification.
+
+Roadmap state:
+
+- `0.1.J Injury And Basic Survival Consequences` is complete.
+- Windows investor demo has been rebuilt and is ready at the package path.
+- Stop here per user instruction.
