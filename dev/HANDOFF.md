@@ -4126,3 +4126,45 @@ Roadmap state:
 - Current version section: `0.1.G Primitive Crafting Loop`
 - Items remaining in `0.1.G`: `2`
 - Immediate next roadmap item: `Add crafting UI`.
+
+## Agrarian 0.1.G Crafting UI - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `3509641 Add MVP crafting HUD`
+
+Completed roadmap item:
+
+- `Add crafting UI`
+  - Added `UAgrarianCraftingComponent::GetKnownRecipes` so UI and Blueprint
+    code can read a merged list of recipe data assets and runtime recipes.
+  - Added a compact `AAgrarianDebugHUD` crafting panel beside the inventory
+    HUD.
+  - The panel lists known MVP recipes, shows current inventory counts against
+    required ingredients, and color-codes craftable versus blocked rows.
+  - Updated `BP_AgrarianPlayerCharacter` and
+    `Scripts/setup_agrarian_player_blueprints.py` so the player starts with
+    primitive recipe data assets loaded in `KnownRecipeAssets`.
+  - Extended `Scripts/verify_agrarian_player_blueprints.py` to verify the exact
+    MVP recipe list, including `simple_container` and `bandage`.
+  - Added `Scripts/verify_crafting_ui.py`.
+  - Updated the roadmap and technical design document with the MVP HUD approach
+    and deferred full UMG crafting controls.
+
+Verification:
+
+- `python3 -m py_compile Scripts/setup_agrarian_player_blueprints.py Scripts/verify_agrarian_player_blueprints.py Scripts/verify_crafting_ui.py` passed.
+- `python3 Scripts/verify_crafting_ui.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through direct `Scripts\BuildEditor-Windows.bat`.
+- Windows Unreal Python `setup_agrarian_player_blueprints.py` passed.
+- Windows Unreal Python `verify_agrarian_player_blueprints.py` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.G Primitive Crafting Loop`
+- Items remaining in `0.1.G`: `1`
+- Immediate next roadmap item: `Add crafting debug tools`.
