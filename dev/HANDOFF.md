@@ -4428,3 +4428,35 @@ Investor demo output:
   - pak/container files: 2026-05-17 20:52
   - launchers and README: 2026-05-17 20:53
 - Package size: approximately `1.1G`.
+
+## Agrarian 0.1.I Shelter Building Style - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `27be644 Decide MVP shelter building style`
+
+Completed roadmap item:
+
+- `Decide MVP building style`
+  - Version 0.1 shelter construction is crafted-kit based.
+  - Players gather natural materials, craft primitive frame/wall/roof panel
+    inventory parts, combine those parts into one placeable primitive shelter,
+    then place it through the server-authoritative placement component.
+  - Fully modular wall-by-wall building remains deferred to `0.2.E Permanent
+    Structures`.
+  - Added `Scripts/verify_shelter_building_style_decision.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_shelter_building_style_decision.py`
+  passed.
+- `python3 Scripts/verify_shelter_building_style_decision.py` passed.
+- `git diff --check` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.I Shelter Building`
+- Immediate next roadmap item: `Add ghost preview`.
