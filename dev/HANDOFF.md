@@ -4646,3 +4646,35 @@ Roadmap state:
 
 - `0.1.I Shelter Building` is complete.
 - Next required action: rebuild the Windows investor demo package and stop.
+
+## Agrarian 0.1.I Windows Investor Demo Package - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `0ea9af1 Update investor demo to 0.1.I`
+
+Completed final package:
+
+- Rebuilt the Windows Development investor demo package successfully after the
+  0.1.I metadata correction.
+- Package path: `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment`.
+- Packaged README now reports:
+  `Investor Demo v0.1.I - Build 2026.05.18`.
+- Fresh archive timestamps confirmed at 2026-05-18 11:43-11:44 for the
+  executable, pak/iostore files, launchers, manifests, and README.
+- Package size: `1.1G`.
+
+Verification:
+
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+- Windows package passed via `Scripts\PackageWindowsDevelopment.bat`.
+- AutomationTool reported `BUILD SUCCESSFUL`, ExitCode=0.
+- Game repo was clean after commit/push and package verification.
+
+Roadmap state:
+
+- `0.1.I Shelter Building` is complete.
+- Stop point reached as requested: Windows investor demo rebuilt.
