@@ -4713,3 +4713,37 @@ Verification:
 
 - Roadmap/design section search passed.
 - `git diff --check` passed.
+
+## Agrarian 0.1.J Bleeding Placeholder - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `c796a99 Add bleeding survival placeholder`
+
+Completed roadmap item:
+
+- `Add bleeding placeholder`
+  - Survival now tracks replicated `BleedingSeverity` inside
+    `FAgrarianSurvivalSnapshot`.
+  - Added `BleedingDamagePerMinute`, `BleedingExhaustionPerSecond`,
+    `AddBleeding`, and `ReduceBleeding` to `UAgrarianSurvivalComponent`.
+  - Generic injuries now seed bleeding at a light placeholder ratio.
+  - Active bleeding applies small health and exhaustion pressure and contributes
+    to care-history injury burden.
+  - Debug HUD and `AgrarianSurvival` console output now display bleeding.
+  - Added `Scripts/verify_bleeding_placeholder.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_bleeding_placeholder.py` passed.
+- `python3 Scripts/verify_bleeding_placeholder.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- Current version section: `0.1.J Injury And Basic Survival Consequences`
+- Immediate next roadmap item: `Add sprain or movement penalty placeholder`.
