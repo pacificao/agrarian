@@ -4272,3 +4272,34 @@ Roadmap state:
 - Current version section: `0.1.H Fire System`
 - Items remaining in `0.1.H`: `3`
 - Immediate next roadmap item: `Add smoke/visual effect placeholder`.
+
+## Agrarian 0.1.H Campfire Smoke Placeholder - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `c60b975 Add campfire smoke placeholder`
+
+Completed roadmap item:
+
+- `Add smoke/visual effect placeholder`
+  - Added a native assetless `SmokeEffect` `UParticleSystemComponent` to `AAgrarianCampfire`.
+  - Smoke starts inactive, is attached above the fire mesh, and activates/deactivates through the same replicated visual-state path as fire light intensity.
+  - Final smoke/ember assets can now be assigned later without changing gameplay code.
+  - Added `Scripts/verify_fire_smoke_placeholder.py`.
+  - Updated the roadmap and technical design document.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_fire_smoke_placeholder.py` passed.
+- `python3 Scripts/verify_fire_smoke_placeholder.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through direct `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- Current version section: `0.1.H Fire System`
+- Items remaining in `0.1.H`: `2`
+- Immediate next roadmap item: `Add persistence`.
