@@ -4460,3 +4460,38 @@ Roadmap state:
 
 - Current version section: `0.1.I Shelter Building`
 - Immediate next roadmap item: `Add ghost preview`.
+
+## Agrarian 0.1.I Building Ghost Preview - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `6baeca2 Add building ghost preview`
+
+Completed roadmap item:
+
+- `Add ghost preview`
+  - Added native placement preview state on
+    `UAgrarianBuildingPlacementComponent`.
+  - The component now broadcasts `OnBuildPreviewUpdated` with placement
+    validity, snapped transform, and failure reason for Blueprint/UI use.
+  - Added an assetless green/red wireframe ghost footprint via `DrawDebugBox`
+    for development/investor builds before final mesh/material ghost assets
+    exist.
+  - Added `Scripts/verify_building_ghost_preview.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_building_ghost_preview.py Scripts/verify_shelter_building_style_decision.py`
+  passed.
+- `python3 Scripts/verify_building_ghost_preview.py` passed.
+- `python3 Scripts/verify_shelter_building_style_decision.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- Current version section: `0.1.I Shelter Building`
+- Immediate next roadmap item: `Add wall piece if needed`.
