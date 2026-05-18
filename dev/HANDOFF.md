@@ -4784,3 +4784,36 @@ Roadmap state:
 
 - Current version section: `0.1.J Injury And Basic Survival Consequences`
 - Immediate next roadmap item: `Add treatment item`.
+
+## Agrarian 0.1.J Treatment Item - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `164169f Expand bandage treatment effects`
+
+Completed roadmap item:
+
+- `Add treatment item`
+  - The existing craftable `bandage` medicine item is now the MVP treatment
+    item.
+  - Server-authoritative `AgrarianUseItem bandage Quantity` now reduces injury,
+    bleeding, and sprain severity with a small health bump.
+  - Updated item-use verification and technical design documentation.
+  - Added `Scripts/verify_treatment_item.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_treatment_item.py Scripts/verify_item_use.py`
+  passed.
+- `python3 Scripts/verify_treatment_item.py` passed.
+- `python3 Scripts/verify_item_use.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- Current version section: `0.1.J Injury And Basic Survival Consequences`
+- Immediate next roadmap item: `Add death state`.
