@@ -4585,3 +4585,37 @@ Roadmap state:
 
 - Current version section: `0.1.I Shelter Building`
 - Immediate next roadmap item: `Add deconstruction or damage placeholder`.
+
+## Agrarian 0.1.I Shelter Damage/Deconstruction Placeholder - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `e75ee71 Add shelter damage placeholder`
+
+Completed roadmap item:
+
+- `Add deconstruction or damage placeholder`
+  - Primitive shelters now have replicated `MaxStructureHealth` and
+    `CurrentStructureHealth`.
+  - Added authority-only `ApplyStructureDamage`, `RepairStructure`, and
+    `Deconstruct` hooks.
+  - Integrated `TakeDamage`, depletion destruction, health ratio/damaged
+    helpers, and save/load support for current/max structure health through the
+    persistent actor component.
+  - Added `Scripts/verify_shelter_damage_placeholder.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_shelter_damage_placeholder.py` passed.
+- `python3 Scripts/verify_shelter_damage_placeholder.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- Current version section: `0.1.I Shelter Building`
+- Items remaining in `0.1.I`: `0`
+- Next required action: build the Windows investor demo and stop.
