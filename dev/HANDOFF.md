@@ -4851,3 +4851,39 @@ Roadmap state:
 
 - Current version section: `0.1.J Injury And Basic Survival Consequences`
 - Immediate next roadmap item: `Add respawn rules for MVP`.
+
+## Agrarian 0.1.J MVP Respawn Rules - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `11f051c Add MVP respawn command`
+
+Completed roadmap item:
+
+- `Add respawn rules for MVP`
+  - Added server-authoritative `AgrarianRespawn` exec command and
+    `ServerAgrarianRespawn` RPC.
+  - Respawn is only available after death; living characters are told to use
+    `AgrarianHeal` for admin recovery.
+  - MVP respawn stops movement, returns the character to the Ground Zero
+    spawn/home location, revives at partial health, stabilizes
+    hunger/thirst/body temperature, and clears acute injury, bleeding, sprain,
+    sickness, and exhaustion.
+  - Family/inheritance respawn remains deferred to later generational
+    milestones.
+  - Added `Scripts/verify_mvp_respawn_rules.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_respawn_rules.py` passed.
+- `python3 Scripts/verify_mvp_respawn_rules.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- Current version section: `0.1.J Injury And Basic Survival Consequences`
+- Immediate next roadmap item: `Add corpse/backpack placeholder if needed`.
