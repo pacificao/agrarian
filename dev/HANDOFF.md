@@ -4204,3 +4204,37 @@ Roadmap state:
 - Current version section: `0.1.G Primitive Crafting Loop`
 - Items remaining in `0.1.G`: `0`
 - Next required action: build the Windows investor demo and stop.
+
+## Agrarian 0.1.H Campfire Extinguish Logic - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `c61b226 Add campfire extinguish logic`
+
+Completed roadmap item:
+
+- `Add extinguish logic`
+  - Added `AAgrarianCampfire::Extinguish()` as a native Blueprint-callable
+    authority path.
+  - Extinguish clears remaining fuel, turns off replicated `bLit`, and reuses
+    the same visual update path as natural fuel depletion.
+  - Added `SetLit` helper so fuel depletion, fuel addition, and extinguish all
+    update replicated state consistently.
+  - Added `Scripts/verify_fire_extinguish_logic.py`.
+  - Updated the roadmap and technical design document.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_fire_extinguish_logic.py` passed.
+- `python3 Scripts/verify_fire_extinguish_logic.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through direct `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- Current version section: `0.1.H Fire System`
+- Items remaining in `0.1.H`: `4`
+- Immediate next roadmap item: `Add cooking placeholder if needed`.
