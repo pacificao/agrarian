@@ -5086,3 +5086,31 @@ Roadmap state:
 - `0.1.K Wildlife Prototype` items remaining: `0`.
 - Next required action: update investor demo metadata to 0.1.K, build the
   Windows investor demo, and stop.
+
+## Agrarian 0.1.K Investor Demo Metadata - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `6178e77 Update investor demo to 0.1.K`
+
+Completed follow-up:
+
+- Corrected the investor demo build label from `0.1.J` to `0.1.K`.
+- Updated project version, package launcher README generation, startup notice
+  actor/widget defaults, startup credits verifier, and investor roadmap HTML.
+- Investor roadmap HTML now describes 0.1.K wildlife prototype as completed.
+
+Verification:
+
+- `python3 Scripts/verify_startup_credits_sequence.py` passed.
+- Stale `0.1.J` demo-label search passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- `0.1.K Wildlife Prototype` is complete.
+- Next required action: build the Windows investor demo and stop.
