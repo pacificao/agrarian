@@ -4168,3 +4168,39 @@ Roadmap state:
 - Current version section: `0.1.G Primitive Crafting Loop`
 - Items remaining in `0.1.G`: `1`
 - Immediate next roadmap item: `Add crafting debug tools`.
+
+## Agrarian 0.1.G Crafting Debug Tools - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `70eb22d Add crafting debug exec tools`
+
+Completed roadmap item:
+
+- `Add crafting debug tools`
+  - Added player-controller exec command `AgrarianCraftStatus` to list known
+    recipes and current craftability.
+  - Added player-controller exec command `AgrarianCraft <RecipeId>` to request
+    a server-authoritative craft through `UAgrarianCraftingComponent`.
+  - Kept crafting mutations on the server-authoritative component path instead
+    of adding a separate debug-only inventory mutation.
+  - Added `Scripts/verify_crafting_debug_tools.py`.
+  - Updated the roadmap and technical design document with the debug tool
+    commands and demo-rehearsal intent.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_crafting_debug_tools.py` passed.
+- `python3 Scripts/verify_crafting_debug_tools.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through direct `Scripts\BuildEditor-Windows.bat`.
+- Windows Unreal Python `verify_agrarian_player_blueprints.py` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.G Primitive Crafting Loop`
+- Items remaining in `0.1.G`: `0`
+- Next required action: build the Windows investor demo and stop.
