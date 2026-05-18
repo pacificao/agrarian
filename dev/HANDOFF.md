@@ -5017,6 +5017,50 @@ Roadmap state:
 - Windows investor demo has been rebuilt and is ready at the package path.
 - Stop here per user instruction.
 
+## Agrarian 0.1.L Dedicated Server Target/Bootstrap - 2026-05-18
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `1367f59 Add dedicated server bootstrap target`
+
+Completed roadmap item:
+
+- `Create dedicated server build target if needed`
+  - Confirmed `Source/AgrarianGameServer.Target.cs` already defines the
+    `AgrarianGameServer` Linux dedicated server target.
+  - Confirmed `Scripts/BuildLinuxDedicatedServer-Windows.bat` already exists
+    for Windows-Builder Linux server cross-compile/package output at
+    `Builds/LinuxServerDevelopment`.
+  - Added reusable Ubuntu gameplay host bootstrap script:
+    `Operations/cloud-game-server/bootstrap_ubuntu_game_server.sh`.
+  - Standardized first MVP gameplay DNS/port convention:
+    `play.agrariangame.com`, `7777/udp`.
+  - Updated `Docs/Ops/DedicatedServerBuildRunbook.md` with Ubuntu/DigitalOcean
+    deploy steps, DNS, port, systemd service, and separation from the tile
+    server.
+  - Added `Scripts/verify_dedicated_server_target.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_dedicated_server_target.py` passed.
+- `python3 Scripts/verify_dedicated_server_target.py` passed.
+- `git diff --check` passed.
+- Attempted Windows-Builder dedicated server package verification, but Unraid
+  libvirt/VM Manager is currently down:
+  `/etc/rc.d/rc.libvirt status` reports the libvirt daemon is not running, and
+  starting it fails because `/etc/libvirt/virtlockd.conf` and
+  `/etc/libvirt/virtlogd.conf` are missing.
+
+Roadmap state:
+
+- Current version section: `0.1.L Basic Multiplayer`
+- Immediate next roadmap item: `Add server travel flow`.
+- Windows/Linux build verification and any new VM startup are blocked until
+  Unraid libvirt/VM Manager is repaired.
+
 ## Agrarian 0.1.K Wildlife Spawn Manager - 2026-05-18
 
 Current repo:
