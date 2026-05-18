@@ -5132,6 +5132,38 @@ Roadmap state:
 - Current version section: `0.1.L Basic Multiplayer`
 - Immediate next roadmap item: `Add basic latency testing`.
 
+## Agrarian 0.1.L Basic Latency Testing - 2026-05-18
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `3b772da Add multiplayer latency test plan`
+
+Completed roadmap item:
+
+- `Add basic latency testing`
+  - Added `Docs/Ops/MultiplayerLatencyTestPlan.md` with clean LAN, mild WAN,
+    and rough WAN Unreal packet-simulation profiles.
+  - Added `Scripts/LatencyTestProfiles-Windows.bat` to print the test console
+    commands and reset commands.
+  - Updated multiplayer networking design with the 0.1.L latency gate.
+  - Added `Scripts/verify_basic_latency_testing.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_basic_latency_testing.py` passed.
+- `python3 Scripts/verify_basic_latency_testing.py` passed.
+- `git diff --check` passed.
+- Interactive latency playthrough is blocked until a playable server/client test
+  host is available; VM-based builds remain blocked by Unraid libvirt.
+
+Roadmap state:
+
+- Current version section: `0.1.L Basic Multiplayer`
+- Immediate next roadmap item: `Add disconnect/reconnect handling`.
+
 ## Agrarian 0.1.K Wildlife Spawn Manager - 2026-05-18
 
 Current repo:
