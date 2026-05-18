@@ -5050,3 +5050,39 @@ Roadmap state:
 
 - Current version section: `0.1.K Wildlife Prototype`
 - Immediate next roadmap item: `Add performance limits`.
+
+## Agrarian 0.1.K Wildlife Performance Limits - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `a834eb7 Add wildlife performance limits`
+
+Completed roadmap item:
+
+- `Add performance limits`
+  - Wildlife now has MVP server-side performance throttling.
+  - Nearby wildlife inside `FullUpdateRadius` updates normally for responsive
+    flee/chase behavior.
+  - Far wildlife batches server thinking on `FarUpdateIntervalSeconds`.
+  - Dead wildlife disables ticking after entering the dead state.
+  - Spawn-manager `MaxActiveWildlife` remains the MVP population cap.
+  - Updated roadmap and technical design documentation.
+  - Added `Scripts/verify_wildlife_performance_limits.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_wildlife_performance_limits.py
+  Scripts/verify_wildlife_spawn_manager.py` passed.
+- `python3 Scripts/verify_wildlife_performance_limits.py` passed.
+- `python3 Scripts/verify_wildlife_spawn_manager.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- `0.1.K Wildlife Prototype` items remaining: `0`.
+- Next required action: update investor demo metadata to 0.1.K, build the
+  Windows investor demo, and stop.
