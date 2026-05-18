@@ -4678,3 +4678,38 @@ Roadmap state:
 
 - `0.1.I Shelter Building` is complete.
 - Stop point reached as requested: Windows investor demo rebuilt.
+
+## Agrarian Long-Term Family/NPC Intelligence Roadmap - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit:
+  `f3316b3 Add long-term family NPC intelligence roadmap`
+
+Completed design/roadmap update:
+
+- Added a phased roadmap for family members, community NPCs, and offline player
+  stewardship so future NPCs behave like living contributors instead of static
+  quest characters.
+- Updated `AGRARIAN_DEVELOPMENT_ROADMAP.md` with:
+  - core commitments for living family/community characters and
+    proprietary-first NPC intelligence;
+  - `0.2.H Household Task And Helper Foundations`;
+  - `0.3.G Community NPC Behavior Foundation`;
+  - `0.4.F Family Agency And Emotional Life`;
+  - `0.4.G Offline Character Stewardship`;
+  - `0.5.G Settlement Labor, Care, And Community Schedules`;
+  - `0.6.F NPC Hardship, Adaptation, And Recovery`;
+  - `0.8.E Proprietary AI Simulation Research`;
+  - cross-cutting `N. NPC, Family, And Offline Simulation Intelligence`.
+- Updated `Docs/TechnicalDesignDocument.md` with server-authoritative,
+  deterministic-first NPC intelligence rules, local/self-hosted AI boundaries,
+  and offline character stewardship constraints.
+
+Verification:
+
+- Roadmap/design section search passed.
+- `git diff --check` passed.
