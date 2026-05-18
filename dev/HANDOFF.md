@@ -4083,3 +4083,46 @@ Roadmap state:
 - Current version section: `0.1.F Gathering And Resources`
 - Items remaining in `0.1.F`: `0`
 - Next required action: build the Windows investor demo and stop.
+
+## Agrarian 0.1.G Simple Container Recipe - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `ef658a3 Add simple container recipe`
+
+Completed roadmap item:
+
+- `Add simple container recipe`
+  - Added `simple_container` as an inventory item definition and generated
+    `/Game/Agrarian/DataAssets/Items/DA_Item_SimpleContainer`.
+  - Added `DA_Recipe_SimpleContainer` using wood, fiber, and hide as MVP
+    inputs.
+  - The recipe produces one simple container after 10 seconds and does not
+    require a campfire.
+  - Updated item and recipe setup/verification scripts so future asset
+    regeneration preserves the container item and recipe.
+  - Added `Scripts/verify_simple_container_recipe.py` for static roadmap/docs
+    coverage.
+  - Updated the roadmap, technical design document, and inventory data model
+    to clarify that the simple container is currently craftable inventory
+    output; placed storage, permissions, volume, and persistence remain later
+    system work.
+
+Verification:
+
+- `python3 -m py_compile Scripts/setup_item_definitions.py Scripts/verify_item_definitions.py Scripts/setup_recipe_definitions.py Scripts/verify_recipe_definitions.py Scripts/verify_simple_container_recipe.py` passed.
+- `python3 Scripts/verify_simple_container_recipe.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through direct `Scripts\BuildEditor-Windows.bat`.
+- Windows Unreal Python `setup_recipe_definitions.py` passed.
+- Windows Unreal Python `verify_item_definitions.py` passed.
+- Windows Unreal Python `verify_recipe_definitions.py` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.G Primitive Crafting Loop`
+- Items remaining in `0.1.G`: `2`
+- Immediate next roadmap item: `Add crafting UI`.
