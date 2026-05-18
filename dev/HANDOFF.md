@@ -5203,6 +5203,46 @@ Roadmap state:
   Windows investor demo, and stop, but this is blocked until Unraid libvirt/VM
   Manager is repaired.
 
+## Agrarian 0.1.L Investor Demo Metadata - 2026-05-18
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `9c808f4 Update investor demo to 0.1.L`
+
+Completed follow-up:
+
+- Updated the investor demo metadata baseline from `0.1.K` to `0.1.L`.
+- Updated project version, Windows launcher README generation, startup notice
+  actor/widget defaults, startup credits verifier, and investor roadmap HTML.
+- Investor roadmap HTML now describes 0.1.L Basic Multiplayer as completed:
+  dedicated server target/bootstrap, server travel flow, replicated session
+  foundations, network relevancy rules, latency test plan, and
+  disconnect/reconnect snapshots.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_startup_credits_sequence.py` passed.
+- `python3 Scripts/verify_startup_credits_sequence.py` passed.
+- Stale 0.1.K demo-label search passed.
+- `git diff --check` passed.
+
+Roadmap state:
+
+- `0.1.L Basic Multiplayer` is complete.
+- Windows investor demo metadata is ready for `Investor Demo v0.1.L - Build
+  2026.05.18`.
+- Final Windows investor demo packaging remains blocked because Unraid
+  libvirt/VM Manager is still down/missing `/etc/libvirt/virtlockd.conf` and
+  `/etc/libvirt/virtlogd.conf`.
+- Gameplay server DNS/firewall plan:
+  - Point `play.agrariangame.com` to the future Ubuntu gameplay server public
+    IP.
+  - Open `7777/udp` for Unreal gameplay traffic.
+  - Keep SSH restricted to admin IPs.
+
 ## Agrarian 0.1.K Wildlife Spawn Manager - 2026-05-18
 
 Current repo:
