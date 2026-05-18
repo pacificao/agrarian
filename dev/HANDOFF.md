@@ -4495,3 +4495,33 @@ Roadmap state:
 
 - Current version section: `0.1.I Shelter Building`
 - Immediate next roadmap item: `Add wall piece if needed`.
+
+## Agrarian 0.1.I Shelter Wall Piece - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `8c6aa7c Document MVP shelter wall piece`
+
+Completed roadmap item:
+
+- `Add wall piece if needed`
+  - Confirmed the MVP wall piece is the existing craftable
+    `primitive_wall_panel` inventory construction part consumed by the
+    primitive shelter recipe.
+  - Documented that separately placeable modular wall actors remain deferred to
+    `0.2.E Permanent Structures`.
+  - Added `Scripts/verify_shelter_wall_piece.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_shelter_wall_piece.py` passed.
+- `python3 Scripts/verify_shelter_wall_piece.py` passed.
+- `git diff --check` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.I Shelter Building`
+- Immediate next roadmap item: `Add roof piece if needed`.
