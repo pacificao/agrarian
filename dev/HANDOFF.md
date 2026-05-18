@@ -4952,3 +4952,32 @@ Roadmap state:
 
 - `0.1.J Injury And Basic Survival Consequences` items remaining: `0`
 - Next required action: build the Windows investor demo and stop.
+
+## Agrarian 0.1.J Investor Demo Metadata - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `f0d8e3e Update investor demo to 0.1.J`
+
+Completed follow-up:
+
+- Corrected the investor demo build label from `0.1.I` to `0.1.J`.
+- Updated project version, package launcher README generation, startup notice
+  actor/widget defaults, startup credits verifier, and investor roadmap HTML.
+- Investor roadmap HTML now describes 0.1.J injury/basic survival consequences
+  as completed.
+
+Verification:
+
+- `python3 Scripts/verify_startup_credits_sequence.py` passed.
+- Stale `0.1.I` demo-label search passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- `0.1.J Injury And Basic Survival Consequences` is complete.
+- Next required action: build the Windows investor demo and stop.
