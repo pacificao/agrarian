@@ -4238,3 +4238,37 @@ Roadmap state:
 - Current version section: `0.1.H Fire System`
 - Items remaining in `0.1.H`: `4`
 - Immediate next roadmap item: `Add cooking placeholder if needed`.
+
+## Agrarian 0.1.H Campfire Cooking Placeholder - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `0ac4bec Add campfire cooking placeholder`
+
+Completed roadmap item:
+
+- `Add cooking placeholder if needed`
+  - Added native replicated campfire cooking placeholder state on `AAgrarianCampfire`: `bCookingPlaceholderEnabled`, `CookingSecondsRequired`, and `CookingProgressSeconds`.
+  - Lit campfires now advance cooking progress server-side while the placeholder is enabled.
+  - Added Blueprint-callable `CanCook()` and `GetCookingProgressRatio()` helpers for future recipe UI, food transformation, and interaction hooks.
+  - Kept the playable Blueprint setup repeatable by leaving the new cooking defaults native; Unreal Python did not expose these freshly-added native fields on the existing BP_Campfire CDO during this pass.
+  - Added `Scripts/verify_fire_cooking_placeholder.py`.
+  - Updated the roadmap and technical design document.
+
+Verification:
+
+- `python3 -m py_compile Scripts/setup_playable_blueprints.py Scripts/verify_playable_blueprints.py Scripts/verify_fire_cooking_placeholder.py` passed.
+- `python3 Scripts/verify_fire_cooking_placeholder.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through direct `Scripts\BuildEditor-Windows.bat`.
+- Windows Unreal Python `setup_playable_blueprints.py` passed.
+- Windows Unreal Python `verify_playable_blueprints.py` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.H Fire System`
+- Items remaining in `0.1.H`: `3`
+- Immediate next roadmap item: `Add smoke/visual effect placeholder`.
