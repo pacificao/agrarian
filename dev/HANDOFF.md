@@ -4379,3 +4379,52 @@ Roadmap state:
 - Current version section: `0.1.H Fire System`
 - Items remaining in `0.1.H`: `1`
 - Immediate next roadmap item: `Connect rain/weather to fire behavior`.
+
+## Agrarian 0.1.H Cinematic Startup Credits And Demo Package - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `7472b0e Fix startup credits packaging warning`
+
+Completed request:
+
+- Added a native cinematic startup credits sequence to the existing demo notice
+  widget.
+  - Nathan Slaven - Lead Developer
+  - Hunter Slaven - Junior Developer
+  - Lisa Reiley - Quality Control
+  - River Slaven - Alpha Game Tester
+  - Fisher Slaven - Beta Game Tester
+  - Funding by cherished individuals, Pacificao seed funding, and Lina Family
+    Investment Funds
+- Each credit card slams into frame, holds briefly, shows a stylized native
+  Slate illustration panel, then slides out.
+- Updated investor demo labels to `Investor Demo v0.1.H - Build 2026.05.17`.
+- Added `Scripts/verify_startup_credits_sequence.py`.
+- Added the requested forest-fire ignition/spread concept to the roadmap as a
+  future server-authoritative fire risk/spread system.
+- Fixed the Windows packaging warning-as-error by renaming a local timeline
+  accumulator from `Cursor` to `TimelineCursor`.
+
+Verification:
+
+- `python3 Scripts/verify_startup_credits_sequence.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed earlier via `Scripts\BuildEditor-Windows.bat`.
+- Windows investor demo package passed via `Scripts\PackageWindowsDevelopment.bat`.
+- Package log ended with `BUILD SUCCESSFUL` and
+  `AutomationTool exiting with ExitCode=0 (Success)`.
+
+Investor demo output:
+
+- Path: `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment`
+- Main launcher: `Builds/WindowsDevelopment/Start Agrarian Demo.cmd`
+- README version: `Investor Demo v0.1.H - Build 2026.05.17`
+- Fresh archive timestamps:
+  - `AgrarianGame.exe`: 2026-05-17 20:52
+  - pak/container files: 2026-05-17 20:52
+  - launchers and README: 2026-05-17 20:53
+- Package size: approximately `1.1G`.
