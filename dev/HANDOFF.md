@@ -4042,3 +4042,44 @@ Roadmap state:
 - Current version section: `0.1.F Gathering And Resources`
 - Items remaining in `0.1.F`: `1`
 - Immediate next roadmap item: `Add resource node persistence`.
+
+## Agrarian 0.1.F Resource Node Persistence - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `5da545e Add resource node persistence`
+
+Completed roadmap item:
+
+- `Add resource node persistence`
+  - Added `FAgrarianSavedResourceNode` to `UAgrarianSaveGame`.
+  - Added `AAgrarianResourceNode::PersistenceNodeId`, capture, and restore
+    methods so resource depletion persists by stable map/tile node id.
+  - Added persistence subsystem capture/restore paths for resource nodes.
+  - The subsystem only captures nodes that exist in the loaded world and
+    restores matching existing nodes by id; it does not spawn resource nodes
+    from saves.
+  - Updated Ground Zero placement to assign `PersistenceNodeId` values matching
+    actor labels.
+  - Extended the Ground Zero resource verifier to require stable persistence
+    ids.
+  - Updated persistence/resource documentation and closed the roadmap item.
+  - Added `Scripts/verify_resource_node_persistence.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/setup_ground_zero_demo_map.py Scripts/verify_ground_zero_resources.py Scripts/verify_resource_node_persistence.py` passed.
+- `python3 Scripts/verify_resource_node_persistence.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through direct `Scripts\BuildEditor-Windows.bat`.
+- Windows Unreal Python `setup_ground_zero_demo_map.py` passed.
+- Windows Unreal Python `verify_ground_zero_resources.py` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.F Gathering And Resources`
+- Items remaining in `0.1.F`: `0`
+- Next required action: build the Windows investor demo and stop.
