@@ -4817,3 +4817,37 @@ Roadmap state:
 
 - Current version section: `0.1.J Injury And Basic Survival Consequences`
 - Immediate next roadmap item: `Add death state`.
+
+## Agrarian 0.1.J Death State - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `d318e97 Add survival death state`
+
+Completed roadmap item:
+
+- `Add death state`
+  - Survival now has replicated `bIsDead` and `LastDeathReason` fields in
+    `FAgrarianSurvivalSnapshot`.
+  - Health depletion latches death, zeros stamina, and records
+    `health_depleted` when no other death reason is set.
+  - Ordinary `RestoreHealth` no longer revives dead characters.
+  - Added explicit `MarkDead` and `Revive` hooks for future respawn/admin flows.
+  - Updated `AgrarianHeal` to use `Revive`.
+  - Debug HUD and `AgrarianSurvival` console output now show alive/dead state.
+  - Added `Scripts/verify_death_state.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_death_state.py` passed.
+- `python3 Scripts/verify_death_state.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- Current version section: `0.1.J Injury And Basic Survival Consequences`
+- Immediate next roadmap item: `Add respawn rules for MVP`.
