@@ -5288,6 +5288,45 @@ Roadmap state:
 - Windows investor demo has been rebuilt and is ready at the package path.
 - Stop here per user instruction.
 
+## Agrarian MVP Gameplay Server VM - 2026-05-18
+
+Created Unraid VM:
+
+- VM name: `Agrarian-PlayServer`
+- Hostname/FQDN: `play.agrariangame.com`
+- LAN IP: `192.168.5.15/22`
+- Gateway: `192.168.4.1`
+- MAC: `52:54:00:7a:77:15`
+- vCPU/RAM: 2 vCPU, 4 GB RAM
+- Disk: 40 GB qcow2 backed by Ubuntu 24.04 cloud image
+- Autostart: enabled
+
+Access:
+
+- User: `nathan`
+- Password uses the usual MVP account password requested by Nathan.
+- SSH password login is enabled for MVP convenience.
+
+Server setup:
+
+- `ufw` active.
+- OpenSSH allowed.
+- `7777/udp` allowed.
+- Deployment directory exists and is owned by `nathan:nathan`:
+  `/opt/agrarian/server`.
+- Systemd service installed:
+  `agrarian-game-server.service`.
+- Service is enabled but inactive until the expected dedicated-server wrapper
+  exists:
+  `/opt/agrarian/server/AgrarianGameServer.sh`.
+
+DNS/network:
+
+- `play.agrariangame.com` resolves to public IP `208.79.250.18`.
+- Router/NAT follow-up: forward public `7777/udp` to `192.168.5.15`.
+- No Unreal Linux dedicated server package has been deployed yet, so nothing is
+  currently listening on `7777/udp`.
+
 ## Agrarian 0.1.K Wildlife Spawn Manager - 2026-05-18
 
 Current repo:
