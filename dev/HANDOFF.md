@@ -4303,3 +4303,36 @@ Roadmap state:
 - Current version section: `0.1.H Fire System`
 - Items remaining in `0.1.H`: `2`
 - Immediate next roadmap item: `Add persistence`.
+
+## Agrarian 0.1.H Campfire Persistence - 2026-05-17
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `7291c48 Add campfire persistence state`
+
+Completed roadmap item:
+
+- `Add persistence`
+  - Added `IAgrarianPersistentStateProvider` so persistent actors can capture/apply custom save fields through the existing `UAgrarianPersistentActorComponent` path.
+  - Campfires now have a persistent actor component with actor type `campfire`.
+  - Campfire save state captures transform plus lit state, fuel seconds, cooking placeholder enabled state, required cooking seconds, and cooking progress seconds.
+  - Campfire load state restores those values and reapplies the replicated visual state.
+  - The admin/world load path now registers the `campfire` actor type along with shelters.
+  - Added `Scripts/verify_fire_persistence.py`.
+  - Updated the roadmap and technical design document.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_fire_persistence.py` passed.
+- `python3 Scripts/verify_fire_persistence.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed through direct `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- Current version section: `0.1.H Fire System`
+- Items remaining in `0.1.H`: `1`
+- Immediate next roadmap item: `Connect rain/weather to fire behavior`.
