@@ -4921,3 +4921,34 @@ Roadmap state:
 
 - Current version section: `0.1.J Injury And Basic Survival Consequences`
 - Immediate next roadmap item: `Add replicated death feedback`.
+
+## Agrarian 0.1.J Replicated Death Feedback - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `dce4f77 Add replicated death feedback`
+
+Completed roadmap item:
+
+- `Add replicated death feedback`
+  - Survival now exposes Blueprint-assignable `OnDeathStateChanged` with
+    replicated alive/dead state and death reason.
+  - `BroadcastSurvivalChanged` now emits death-state feedback when replicated
+    death state or death reason changes.
+  - Debug HUD shows replicated death reason while dead.
+  - Added `Scripts/verify_replicated_death_feedback.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_replicated_death_feedback.py` passed.
+- `python3 Scripts/verify_replicated_death_feedback.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- `0.1.J Injury And Basic Survival Consequences` items remaining: `0`
+- Next required action: build the Windows investor demo and stop.
