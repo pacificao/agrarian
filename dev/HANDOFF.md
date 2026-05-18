@@ -5016,3 +5016,37 @@ Roadmap state:
 - `0.1.J Injury And Basic Survival Consequences` is complete.
 - Windows investor demo has been rebuilt and is ready at the package path.
 - Stop here per user instruction.
+
+## Agrarian 0.1.K Wildlife Spawn Manager - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `494fe6f Add wildlife spawn manager`
+
+Completed roadmap item:
+
+- `Add spawn manager`
+  - Added `AAgrarianWildlifeSpawnManager`, a replicated,
+    server-authoritative spawn manager actor for MVP wildlife population seeding.
+  - Designers can configure wildlife class, initial spawn count, max active
+    population, spawn radius, respawn interval, spawn-on-begin-play, and
+    optional navigation projection.
+  - Spawned wildlife actors remain authoritative server spawns and are tracked
+    by the manager for active population limits.
+  - Updated roadmap and technical design documentation.
+  - Added `Scripts/verify_wildlife_spawn_manager.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_wildlife_spawn_manager.py` passed.
+- `python3 Scripts/verify_wildlife_spawn_manager.py` passed.
+- `git diff --check` passed.
+- Windows editor build passed via `Scripts\BuildEditor-Windows.bat`.
+
+Roadmap state:
+
+- Current version section: `0.1.K Wildlife Prototype`
+- Immediate next roadmap item: `Add performance limits`.
