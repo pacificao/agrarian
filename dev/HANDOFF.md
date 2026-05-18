@@ -4525,3 +4525,33 @@ Roadmap state:
 
 - Current version section: `0.1.I Shelter Building`
 - Immediate next roadmap item: `Add roof piece if needed`.
+
+## Agrarian 0.1.I Shelter Roof Piece - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `e57a77d Document MVP shelter roof piece`
+
+Completed roadmap item:
+
+- `Add roof piece if needed`
+  - Confirmed the MVP roof piece is the existing craftable
+    `primitive_roof_panel` inventory construction part consumed by the
+    primitive shelter recipe.
+  - Documented that separately placeable modular roof actors remain deferred to
+    `0.2.E Permanent Structures`.
+  - Added `Scripts/verify_shelter_roof_piece.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_shelter_roof_piece.py` passed.
+- `python3 Scripts/verify_shelter_roof_piece.py` passed.
+- `git diff --check` passed.
+
+Roadmap state:
+
+- Current version section: `0.1.I Shelter Building`
+- Immediate next roadmap item: `Add door/opening if needed`.
