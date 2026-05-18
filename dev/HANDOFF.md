@@ -5164,6 +5164,45 @@ Roadmap state:
 - Current version section: `0.1.L Basic Multiplayer`
 - Immediate next roadmap item: `Add disconnect/reconnect handling`.
 
+## Agrarian 0.1.L Disconnect/Reconnect Handling - 2026-05-18
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `0b9a8b7 Add MVP reconnect snapshots`
+
+Completed roadmap item:
+
+- `Add disconnect/reconnect handling`
+  - Added MVP player reconnect snapshots in `UAgrarianPersistenceSubsystem`.
+  - `SavePlayerSnapshot` updates the matching saved player record with
+    transform, survival, care history, and inventory.
+  - `RestorePlayerSnapshot` restores a matching saved player after spawn.
+  - `AAgrarianGameGameMode::Logout` saves the reconnect snapshot before logout
+    completes.
+  - `AAgrarianGameGameMode::RestartPlayer` restores the snapshot after normal
+    MVP spawn when a matching record exists.
+  - Updated multiplayer networking design and roadmap.
+  - Added `Scripts/verify_disconnect_reconnect_handling.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_disconnect_reconnect_handling.py`
+  passed.
+- `python3 Scripts/verify_disconnect_reconnect_handling.py` passed.
+- `git diff --check` passed.
+- C++ compile/package verification is blocked because Unraid libvirt/VM Manager
+  is still down.
+
+Roadmap state:
+
+- `0.1.L Basic Multiplayer` items remaining: `0`.
+- Next required action: update investor demo metadata to 0.1.L, build the
+  Windows investor demo, and stop, but this is blocked until Unraid libvirt/VM
+  Manager is repaired.
+
 ## Agrarian 0.1.K Wildlife Spawn Manager - 2026-05-18
 
 Current repo:
