@@ -5096,6 +5096,42 @@ Roadmap state:
 - Current version section: `0.1.L Basic Multiplayer`
 - Immediate next roadmap item: `Add network relevancy rules`.
 
+## Agrarian 0.1.L Network Relevancy Rules - 2026-05-18
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `d4ea10c Add MVP network relevancy rules`
+
+Completed roadmap item:
+
+- `Add network relevancy rules`
+  - Added explicit MVP `NetCullDistanceSquared` values for replicated gameplay
+    actors:
+    - item pickups: 30m
+    - resource nodes: 45m
+    - campfires, shelters, wildlife: 60m
+    - water sources and weather exposure zones: 65m
+    - wildlife spawn managers: 80m
+  - Updated multiplayer networking design with the Ground Zero relevancy
+    strategy.
+  - Added `Scripts/verify_network_relevancy_rules.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_network_relevancy_rules.py` passed.
+- `python3 Scripts/verify_network_relevancy_rules.py` passed.
+- `git diff --check` passed.
+- C++ compile/package verification is blocked because Unraid libvirt/VM Manager
+  is still down.
+
+Roadmap state:
+
+- Current version section: `0.1.L Basic Multiplayer`
+- Immediate next roadmap item: `Add basic latency testing`.
+
 ## Agrarian 0.1.K Wildlife Spawn Manager - 2026-05-18
 
 Current repo:
