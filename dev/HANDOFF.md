@@ -5061,6 +5061,41 @@ Roadmap state:
 - Windows/Linux build verification and any new VM startup are blocked until
   Unraid libvirt/VM Manager is repaired.
 
+## Agrarian 0.1.L Server Travel Flow - 2026-05-18
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `ebc7aa1 Add MVP server travel flow`
+
+Completed roadmap item:
+
+- `Add server travel flow`
+  - Added allowlisted `AgrarianServerTravel GroundZero` admin/dev console
+    command on `AAgrarianGamePlayerController`.
+  - Command routes through `ServerAgrarianServerTravel`, validates server
+    authority, resolves only the Ground Zero MVP map, and calls
+    `World->ServerTravel("/Game/Agrarian/Maps/L_GroundZeroTerrain_Test?listen")`.
+  - Updated multiplayer networking design and dedicated server runbook with the
+    MVP travel flow.
+  - Added `Scripts/verify_server_travel_flow.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_server_travel_flow.py` passed.
+- `python3 Scripts/verify_server_travel_flow.py` passed.
+- `git diff --check` passed.
+- C++ compile/package verification is blocked because Unraid libvirt/VM Manager
+  is still down; see previous handoff entry for the missing libvirt config
+  files.
+
+Roadmap state:
+
+- Current version section: `0.1.L Basic Multiplayer`
+- Immediate next roadmap item: `Add network relevancy rules`.
+
 ## Agrarian 0.1.K Wildlife Spawn Manager - 2026-05-18
 
 Current repo:
