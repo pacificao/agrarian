@@ -1,5 +1,28 @@
 # Agrarian Codex Handoff
 
+## Latest AgrarianGameBuild Update - 2026-05-17
+
+- Completed the final `0.1.H Fire System` roadmap item:
+  `Connect rain/weather to fire behavior`.
+- Latest pushed game commit:
+  `879a480 Connect campfires to weather`.
+- Campfires now read replicated `AAgrarianGameState::Weather`, burn fuel faster
+  in rain and storms, and deterministically extinguish when wet weather leaves
+  fuel below the low-fuel threshold.
+- Added `AAgrarianCampfire` Blueprint helpers:
+  `GetWeatherFuelDrainMultiplier()` and `IsWetWeatherActive()`.
+- Added static verifier:
+  `/mnt/projects/AgrarianGameBulid/Scripts/verify_fire_weather_behavior.py`.
+- Validation completed:
+  - `python3 -m py_compile Scripts/verify_fire_weather_behavior.py`
+  - `python3 Scripts/verify_fire_weather_behavior.py`
+  - `git diff --check`
+  - Windows editor build via `Scripts\BuildEditor-Windows.bat`
+- Roadmap state:
+  - `0.1.H Fire System` is complete.
+  - Next required action in the active workflow is building the Windows investor
+    demo and stopping.
+
 ## Project State
 
 Active repo:
