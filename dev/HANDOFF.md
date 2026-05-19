@@ -6093,3 +6093,45 @@ Roadmap state:
 - Next required action: build the Windows investor demo; deploy the multiplayer
   server package only if the build environment is available because 0.1.M
   included server-relevant persistence runtime changes.
+
+## Agrarian 0.1.M Milestone Complete / Build Blocked - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `63c6adc Update investor demo metadata to 0.1.M`
+
+Milestone status:
+
+- `0.1.M Persistence MVP` is complete in the roadmap.
+- Investor demo metadata was updated to
+  `Investor Demo v0.1.M - Build 2026.05.18`.
+- `ProjectVersion` was updated to `0.1.M-investor.20260518`.
+- Startup credits verification passed against the new metadata.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_startup_credits_sequence.py` passed.
+- `python3 Scripts/verify_startup_credits_sequence.py` passed.
+- `git diff --check` passed.
+- Game repo status was clean after the metadata commit.
+
+Build/deploy status:
+
+- Windows investor demo package was attempted with:
+  `/home/nathan/bin/winbuilder cmd 'set AGRARIAN_NO_PAUSE=1 && pushd \\DevBox\projects\AgrarianGameBulid && Scripts\PackageWindowsDevelopment.bat'`
+- Packaging is blocked because `UNRAID_PASSWORD` is not present in the shell
+  environment.
+- Multiplayer server deploy is also blocked until a current package can be
+  built. Server deploy is required for this milestone once build access is
+  restored because 0.1.M included persistence runtime/server behavior changes.
+
+Next required action:
+
+- Restore `UNRAID_PASSWORD` in the Codex shell environment or provide another
+  approved Windows-Builder access path.
+- Rerun the Windows investor demo package.
+- Build/deploy the server package to `play.agrariangame.com:7777` and verify it
+  if packaging succeeds.
