@@ -8044,3 +8044,49 @@ Roadmap state:
 - Current version section: `0.1.Q MVP QA Gates`
 - Items remaining in `0.1.Q`: `4`
 - Immediate next roadmap item: `Can restart server and retain placed shelter`.
+
+## Agrarian 0.1.Q Server Restart Shelter Persistence Gate - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `d82d6bc Add server restart shelter persistence QA gate`
+
+Completed roadmap item:
+
+- `Can restart server and retain placed shelter`
+  - Added a repeatable MVP QA gate proving primitive shelters are persistent
+    world actors, not runtime-only placements.
+  - Tied the gate to `primitive_shelter` actor type registration,
+    `SaveCurrentWorld`, `LoadCurrentWorld`, load-on-server-start behavior, and
+    restored shelter weather protection.
+  - Added a release smoke requirement to place a shelter, save, restart the
+    server, and confirm the shelter remains at the same transform.
+
+Verification:
+
+- `python3 Scripts/verify_server_restart_shelter_persistence_qa_gate.py` passed.
+- `python3 Scripts/verify_load_on_server_start.py` passed.
+- `python3 Scripts/verify_shelter_weather_protection.py` passed.
+- `python3 Scripts/verify_craft_shelter_qa_gate.py` passed.
+- `python3 -m py_compile Scripts/verify_server_restart_shelter_persistence_qa_gate.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Server-relevant QA gate`.
+- Recheck after final 0.1.Q package/deploy if server code or package contents
+  changed.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local
+  project mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.Q MVP QA Gates`
+- Items remaining in `0.1.Q`: `3`
+- Immediate next roadmap item: `No critical log spam during 30-minute test`.
