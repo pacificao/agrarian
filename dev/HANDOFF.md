@@ -6488,3 +6488,43 @@ Roadmap state:
 - Current version section: `0.1.N MVP UI And UX`
 - Items remaining in `0.1.N`: `4`
 - Immediate next roadmap item: `Add death/respawn UI`.
+## Agrarian 0.1.N Death Respawn UI - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `7c98bb7 Add MVP death respawn UI`
+
+Completed roadmap item:
+
+- `Add death/respawn UI`
+  - Added `bShowDeathRespawnUI` and a dedicated dead-state panel in `AAgrarianDebugHUD`.
+  - The panel appears when replicated survival state is dead, shows the last
+    death reason, and explains the Ground Zero respawn context.
+  - Added `AgrarianToggleDeathRespawnUI`.
+  - Existing server-authoritative `AgrarianRespawn` behavior remains unchanged.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_death_respawn_ui.py` passed.
+- `python3 Scripts/verify_mvp_death_respawn_ui.py` passed.
+- `git diff --check` passed.
+- No full Windows package was run for this item; final milestone packaging is still required.
+
+Deployment classification:
+
+- `Client UI only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through `pacificao-mail`
+  using local Dovecot delivery, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.N MVP UI And UX`
+- Items remaining in `0.1.N`: `3`
+- Immediate next roadmap item: `Add debug/dev menu`.
