@@ -7901,3 +7901,50 @@ Roadmap state:
 - Current version section: `0.1.N MVP UI And UX`
 - Items remaining in `0.1.N`: `1`
 - Immediate next roadmap item: `Ensure UI scales on common resolutions`.
+
+## Agrarian 0.1.Q Full Day/Night Survival Gate - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `4370924 Add full day night survival QA gate`
+
+Completed roadmap item:
+
+- `Can survive one full day/night cycle`
+  - Added a repeatable MVP QA gate for surviving one compressed Agrarian day.
+  - Anchored the pass condition to `4 real hours = 1 in-game day`, replicated
+    world time/solar phase, authoritative hunger/thirst/stamina/body
+    temperature/health pressure, fire and shelter mitigation, critical survival
+    HUD visibility, and save/load persistence coverage.
+  - Refreshed the stat save/load verifier to match the current
+    `RestoreSavedItems` inventory restore path.
+
+Verification:
+
+- `python3 Scripts/verify_full_day_night_survival_qa_gate.py` passed.
+- `python3 Scripts/verify_agrarian_calendar_helpers.py` passed.
+- `python3 Scripts/verify_world_time_persistence.py` passed.
+- `python3 Scripts/verify_stat_save_load_support.py` passed.
+- `python3 Scripts/verify_shelter_weather_protection.py` passed.
+- `python3 -m py_compile Scripts/verify_full_day_night_survival_qa_gate.py Scripts/verify_stat_save_load_support.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Gameplay/server-relevant QA gate`.
+- No immediate multiplayer server deploy for this item alone; include it in the
+  final 0.1.Q package/deploy decision.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local
+  project mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.Q MVP QA Gates`
+- Items remaining in `0.1.Q`: `6`
+- Immediate next roadmap item: `Can die from survival pressure`.
