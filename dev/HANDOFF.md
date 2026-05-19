@@ -5941,3 +5941,42 @@ Roadmap state:
 - Current version section: `0.1.M Persistence MVP`
 - Items remaining in `0.1.M`: `4`
 - Immediate next roadmap item: `Add initial tile registry persistence for Ground Zero`.
+
+## Agrarian 0.1.M Ground Zero Tile Registry Persistence - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `65599b9 Persist Ground Zero tile registry baseline`
+
+Completed roadmap item:
+
+- `Add initial tile registry persistence for Ground Zero`
+  - Added `FAgrarianSavedTileRegistryState` to the save schema.
+  - Save metadata now records active tile
+    `gz_us_ca_pacifica_utm10n_e544_n4160`, registry path
+    `Data/Tiles/ground_zero_tiles.json`, schema version, generation version,
+    and package version.
+  - The external JSON registry remains authoritative.
+  - Added `Scripts/verify_ground_zero_tile_registry_persistence.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_ground_zero_tile_registry_persistence.py` passed.
+- `python3 Scripts/verify_ground_zero_tile_registry_persistence.py` passed.
+- `git diff --check` passed.
+- Windows editor compile gate was attempted but blocked because
+  `UNRAID_PASSWORD` was not present in the shell environment.
+
+Deployment classification:
+
+- `Server deploy required` at milestone packaging time because this changes the
+  shared save-game schema used by server-side persistence.
+
+Roadmap state:
+
+- Current version section: `0.1.M Persistence MVP`
+- Items remaining in `0.1.M`: `3`
+- Immediate next roadmap item: `Add backup-before-save option`.
