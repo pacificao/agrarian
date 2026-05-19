@@ -1,5 +1,31 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.Q Server Launch Gate - 2026-05-19
+
+- Completed the second `0.1.Q MVP QA Gates` item:
+  `Can launch server.`
+- Latest pushed game commit:
+  `388ae36 Add server launch QA gate`.
+- Changes:
+  - extended `Docs/QA/MvpQaGates.md` with the server launch gate.
+  - documented true dedicated-server build path and current Linux game-server
+    fallback path.
+  - required deployed `/opt/agrarian/server/AgrarianGameServer.sh`,
+    `agrarian-game-server.service`, UDP `7777`, and Ground Zero browse
+    evidence.
+  - added `Scripts/verify_server_launch_gate.py`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_server_launch_gate.py`
+  - `python3 -m py_compile Scripts/verify_server_launch_gate.py`
+  - `git diff --check`
+  - live play-server check: service active, `AgrarianGame` listening on
+    `0.0.0.0:7777/udp`, journal shows Ground Zero map browse started.
+- Deployment classification:
+  server QA/docs/script plus live server verification. No new deployment was
+  required for this item because the 0.1.P Linux fallback package was already
+  deployed and verified.
+
 ## Agrarian 0.1.Q Packaged Client Launch Gate - 2026-05-19
 
 - Completed the first `0.1.Q MVP QA Gates` item:
