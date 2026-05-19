@@ -6135,3 +6135,37 @@ Next required action:
 - Rerun the Windows investor demo package.
 - Build/deploy the server package to `play.agrariangame.com:7777` and verify it
   if packaging succeeds.
+## Agrarian 0.1.N Main Menu Placeholder - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `4aec203 Add MVP main menu placeholder`
+
+Completed roadmap item:
+
+- `Add main menu placeholder`
+  - Added native `UAgrarianMvpFrontendWidget` and `EAgrarianMvpFrontendScreen`.
+  - Added a scalable painted main menu placeholder with title, subtitle, primary action, and MVP flow note.
+  - Wired `AAgrarianGamePlayerController` to create the MVP frontend widget for local player controllers.
+  - Marked the roadmap item complete.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_main_menu_placeholder.py` passed.
+- `python3 Scripts/verify_mvp_main_menu_placeholder.py` passed.
+- `git diff --check` passed.
+- No full Windows package was run for this item because this is a focused client UI placeholder; final milestone packaging is still required.
+
+Deployment classification:
+
+- `Client UI only`.
+- No multiplayer server deploy required for this item.
+
+Roadmap state:
+
+- Current version section: `0.1.N MVP UI And UX`
+- Items remaining in `0.1.N`: `12`
+- Immediate next roadmap item: `After splash/startup screens, land on an MVP character selection landing page`.
