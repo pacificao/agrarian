@@ -5747,3 +5747,40 @@ Roadmap state:
 - Current version section: `0.1.M Persistence MVP`
 - Items remaining in `0.1.M`: `9`
 - Immediate next roadmap item: `Save world time`.
+
+## Agrarian 0.1.M World Time Persistence - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `fdc919c Document world time persistence`
+
+Completed roadmap item:
+
+- `Save world time`
+  - Confirmed world saves persist `UAgrarianSaveGame::WorldHours`.
+  - The persistence subsystem captures from `AAgrarianGameState::WorldHours`.
+  - Restore applies world time only on server authority during world load.
+  - Added `Scripts/verify_world_time_persistence.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_world_time_persistence.py` passed.
+- `python3 Scripts/verify_world_time_persistence.py` passed.
+- `git diff --check` passed.
+- No Windows editor compile was run for this item because it only documented
+  and verified an existing C++ persistence path.
+
+Deployment classification:
+
+- `Docs/email only` for this item.
+- Milestone still has `Server deploy required` pending because earlier 0.1.M
+  persistence runtime changes affect the multiplayer host.
+
+Roadmap state:
+
+- Current version section: `0.1.M Persistence MVP`
+- Items remaining in `0.1.M`: `8`
+- Immediate next roadmap item: `Save weather seed/state`.
