@@ -1,5 +1,50 @@
 # Agrarian Codex Handoff
 
+## Agrarian Linux Server Build Block Cleared With MVP Fallback - 2026-05-19
+
+- Latest pushed game commit:
+  `67006ff Add Linux game server fallback packaging`.
+- Windows-Builder repair:
+  - confirmed the UE 5.7 Linux cross-toolchain exists at
+    `C:\UnrealToolchains\v26_clang-20.1.8-rockylinux8`.
+  - restored Linux build visibility by setting `LINUX_MULTIARCH_ROOT` for the
+    build process.
+  - persisted the machine variable with `setx /M`, but the guest-agent shell
+    still did not read it reliably, so the build scripts now self-heal from the
+    known toolchain path.
+- True dedicated server status:
+  - `Scripts\BuildLinuxDedicatedServer-Windows.bat` now gets past the previous
+    `Platform Linux is not a valid platform to build` failure.
+  - the remaining true dedicated-server blocker is Epic binary-engine support:
+    `Server targets are not currently supported from this engine distribution.`
+  - this still requires a future source-built/server-capable Unreal engine if
+    we want the real `AgrarianGameServer` target.
+- MVP fallback added:
+  - added `Scripts\PackageLinuxGameServerFallback-Windows.bat`.
+  - updated `Docs/Ops/DedicatedServerBuildRunbook.md` with the fallback path.
+  - fallback output is `Builds\LinuxGameDevelopment`.
+- Verification completed:
+  - manual Windows-Builder Linux fallback package succeeded through UAT
+    `BuildCookRun`.
+  - package output:
+    `/mnt/projects/AgrarianGameBuild_0_1_P_Package/Builds/LinuxGameDevelopment`
+  - package size:
+    `1.1G`
+  - `git diff --check` passed before commit.
+- Multiplayer deployment:
+  - deployed the 0.1.P Linux fallback package to
+    `nathan@192.168.5.15:/opt/agrarian/server`.
+  - previous server directory was preserved as
+    `/opt/agrarian/server_backup_20260519_202543`.
+  - recreated `/opt/agrarian/server/AgrarianGameServer.sh` as the headless
+    launch wrapper.
+  - restarted `agrarian-game-server.service`.
+- Server verification:
+  - `systemctl is-active agrarian-game-server.service` reports `active`.
+  - `ss -lunp` shows `AgrarianGame` listening on `0.0.0.0:7777/udp`.
+  - journal shows the Ground Zero map browse started for
+    `/Game/Agrarian/Maps/L_GroundZeroTerrain_Test?Name=Player?listen`.
+
 ## Agrarian 0.1.P Completion And Investor Demo Build - 2026-05-19
 
 - Completed all `0.1.P MVP Audio And Atmosphere` roadmap items.
