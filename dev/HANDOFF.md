@@ -8726,3 +8726,41 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `3`
 - Immediate next roadmap item: `Add design notes for avoiding exploit farming and rote memorization`.
+
+## Agrarian 0.1.R Learning Exploit Guardrails - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- Latest pushed game commit: `66c6052 Add learning exploit guardrails`
+
+Completed roadmap item:
+
+- `Add design notes for avoiding exploit farming and rote memorization`
+  - Added exploit-farming and rote-memorization guardrails to
+    `Docs/KnowledgeAndSkillFoundation.md`.
+  - Covered diminishing returns, meaningful action context, prompt/question
+    exposure tracking, corrective recovery credit, learned-concept separation,
+    and varied wording.
+  - Defined the rule that rewards should come from meaningful decisions,
+    varied practice, and useful recovery rather than low-cost repetition.
+
+Verification:
+
+- `python3 Scripts/verify_learning_exploit_guardrails.py` passed.
+- `python3 -m py_compile Scripts/verify_learning_exploit_guardrails.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com`.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `2`
+- Immediate next roadmap item: `Add persistence requirements for knowledge, skill experience, learned concepts, failed attempts, and tutorial state`.
