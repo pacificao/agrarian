@@ -6210,3 +6210,43 @@ Roadmap state:
 - Current version section: `0.1.N MVP UI And UX`
 - Items remaining in `0.1.N`: `11`
 - Immediate next roadmap item: `Let players choose a realistic young adult male or female character with average proportions for the MVP`.
+## Agrarian 0.1.N Character Archetype Choice - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `c855924 Add MVP character archetype choice`
+
+Completed roadmap item:
+
+- `Let players choose a realistic young adult male or female character with average proportions for the MVP`
+  - Added `EAgrarianMvpCharacterArchetype` with young adult male/female MVP choices.
+  - Added selected-state rendering to the native character-selection cards.
+  - Added keyboard selection with Left/Right or A/D while on the character-selection screen.
+  - Added `AgrarianSelectCharacter male|female` dev command for headless/manual verification.
+  - Kept both choices on the same MVP survival baseline until real character art and stats differentiation arrive.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_character_archetype_choice.py` passed.
+- `python3 Scripts/verify_mvp_character_archetype_choice.py` passed.
+- `git diff --check` passed.
+- No full Windows package was run for this item; final milestone packaging is still required.
+
+Deployment classification:
+
+- `Client UI only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through `pacificao-mail`
+  using local Dovecot delivery, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.N MVP UI And UX`
+- Items remaining in `0.1.N`: `10`
+- Immediate next roadmap item: `Add join server screen`.
