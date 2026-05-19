@@ -1,5 +1,26 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Audio Mix Settings - 2026-05-19
+
+- Completed the sixteenth `0.1.P MVP Audio And Atmosphere` item:
+  `Add mix settings.`
+- Latest pushed game commit:
+  `d36481e Add MVP audio mix settings`.
+- Changes:
+  - added `Config/AgrarianAudioMixSettings.ini`.
+  - defined master, ambient, weather, foley, fire, wildlife, and UI buses.
+  - added conservative investor-build default levels.
+  - added `Docs/Audio/MixSettings.md`.
+  - marked the roadmap item complete.
+  - added `Scripts/verify_audio_mix_settings.py`.
+- Verification completed:
+  - `python3 Scripts/verify_audio_mix_settings.py`
+  - `python3 -m py_compile Scripts/verify_audio_mix_settings.py`
+  - `git diff --check`
+- Deployment classification:
+  client config/docs/verification only. No multiplayer server deployment is
+  required for this item.
+
 ## Agrarian 0.1.P UI Sounds - 2026-05-19
 
 - Completed the fifteenth `0.1.P MVP Audio And Atmosphere` item:
