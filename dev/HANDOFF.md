@@ -7997,3 +7997,50 @@ Roadmap state:
 - Current version section: `0.1.Q MVP QA Gates`
 - Items remaining in `0.1.Q`: `5`
 - Immediate next roadmap item: `Can reconnect and retain state`.
+
+## Agrarian 0.1.Q Reconnect State Retention Gate - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `74c670a Add reconnect state retention QA gate`
+
+Completed roadmap item:
+
+- `Can reconnect and retain state`
+  - Added a repeatable MVP QA gate for disconnect/reconnect state retention.
+  - Tied the gate to `AAgrarianGameGameMode::Logout`,
+    `AAgrarianGameGameMode::RestartPlayer`, `SavePlayerSnapshot`,
+    `RestorePlayerSnapshot`, safe identity, transform, survival, care history,
+    inventory restore, and normal MVP spawn fallback.
+  - Connected the gate to the two-client manual reconnect evidence path.
+
+Verification:
+
+- `python3 Scripts/verify_reconnect_state_retention_qa_gate.py` passed.
+- `python3 Scripts/verify_disconnect_reconnect_handling.py` passed.
+- `python3 Scripts/verify_player_identity_persistence.py` passed.
+- `python3 Scripts/verify_player_stats_persistence.py` passed.
+- `python3 Scripts/verify_inventory_persistence.py` passed.
+- `python3 Scripts/verify_two_client_connection_gate.py` passed.
+- `python3 -m py_compile Scripts/verify_reconnect_state_retention_qa_gate.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Server-relevant QA gate`.
+- No immediate multiplayer server deploy for this item alone; recheck after the
+  final 0.1.Q package/deploy.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local
+  project mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.Q MVP QA Gates`
+- Items remaining in `0.1.Q`: `4`
+- Immediate next roadmap item: `Can restart server and retain placed shelter`.
