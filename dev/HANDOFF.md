@@ -1,5 +1,27 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Active Fire Persistence - 2026-05-19
+
+- Completed the eleventh `0.1.P MVP Audio And Atmosphere` item:
+  `Persist active grass, forest, and structure fires across save/load without
+  corrupting world state.`
+- Latest pushed game commit:
+  `dbb9110 Persist active fire spread state`.
+- Changes:
+  - verified campfire persistence captures and restores vegetation, forest, and
+    structure ignition risks and flags.
+  - verified active grass, forest, and structure fire intensities persist.
+  - added persistence for active fire spread radius and suppression pressure.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_fire_persistence_state.py`.
+- Verification completed:
+  - `python3 Scripts/verify_fire_persistence_state.py`
+  - `python3 -m py_compile Scripts/verify_fire_persistence_state.py`
+  - `git diff --check`
+- Deployment classification:
+  persistence/gameplay change. Multiplayer server deployment can wait for the
+  milestone package unless live save/load fire testing is needed now.
+
 ## Agrarian 0.1.P Fire Suppression Hooks - 2026-05-19
 
 - Completed the tenth `0.1.P MVP Audio And Atmosphere` item:
