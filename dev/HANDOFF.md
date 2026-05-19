@@ -1,5 +1,45 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O Completion And Windows Investor Demo Build - 2026-05-19
+
+- Completed the `0.1.O Investor Visual MVP And Menu Polish` milestone.
+- Latest pushed game commit:
+  `c37d8d9 Fix Windows visual QA helper checks`.
+- Built the Windows Development investor demo from a fresh clean shared clone:
+  `/mnt/projects/AgrarianGameBuild_0_1_O_Package`.
+- Demo output:
+  - Linux path:
+    `/mnt/projects/AgrarianGameBuild_0_1_O_Package/Builds/WindowsDevelopment`
+  - Windows path:
+    `P:\AgrarianGameBuild_0_1_O_Package\Builds\WindowsDevelopment`
+  - Executable:
+    `AgrarianGame.exe`
+  - Artifact size:
+    `1.1G`
+- Build verification completed:
+  - Windows editor compile succeeded with
+    `Scripts\BuildEditor-Windows.bat`.
+  - Windows package build succeeded with
+    `Scripts\PackageWindowsDevelopment.bat`.
+  - Package artifact check found
+    `/mnt/projects/AgrarianGameBuild_0_1_O_Package/Builds/WindowsDevelopment/AgrarianGame.exe`.
+  - `Scripts\RunWindowsInvestorVisualQACheck.bat --check-tools` passed on
+    the Windows build VM: packaged demo exists and `SunshineService` is
+    running.
+- Build notes:
+  - The build VM reported `5 physical cores / 10 logical cores` and
+    approximately `32 GB` RAM during cook/package.
+  - Known `NetCullDistanceSquared` deprecation warnings remain and are tracked
+    for future cleanup.
+  - The package also emitted Unreal's staging warning that
+    `AgrarianRenderingPresets.ini` is staged but not explicitly allowed or
+    denied; the file was still included.
+  - The older shared checkout at `/mnt/projects/AgrarianGameBulid` was dirty
+    and stale, so it was not reset or reused for this package.
+- Deployment classification:
+  client/demo visual, menu, map, documentation, and QA tooling changes only.
+  No multiplayer server deployment was required or performed.
+
 ## Agrarian 0.1.O Investor Demo Acceptance Gate - 2026-05-19
 
 - Completed the fourteenth and final `0.1.O Investor Visual MVP And Menu
