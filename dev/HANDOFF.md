@@ -8654,3 +8654,39 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `5`
 - Immediate next roadmap item: `Add a small MVP question bank for elementary survival knowledge`.
+
+## Agrarian 0.1.R Elementary Survival Question Bank - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- Latest pushed game commit: `b5416e0 Add elementary survival question bank`
+
+Completed roadmap item:
+
+- `Add a small MVP question bank for elementary survival knowledge`
+  - Added six elementary question records to
+    `Docs/KnowledgeAndSkillFoundation.md`.
+  - Covered fire clearance, potable water, cold exposure, shelter drainage,
+    bleeding care, and fiber identification.
+  - Each record includes answer options, correct answer, and practical feedback.
+
+Verification:
+
+- `python3 Scripts/verify_elementary_survival_question_bank.py` passed.
+- `python3 -m py_compile Scripts/verify_elementary_survival_question_bank.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com`.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `4`
+- Immediate next roadmap item: `Define when deeper questions should matter: quality improvements, safer work, complex crafting, teaching others, and advanced branches`.
