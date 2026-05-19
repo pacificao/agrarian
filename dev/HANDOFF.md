@@ -1,5 +1,43 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O MVP Character Proxy Selection - 2026-05-19
+
+- Completed the fifth `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Add first realistic playable character proxies for the selected young adult
+  male and female archetypes, replacing the default mannequin/dummy
+  presentation for investor builds.`
+- Latest pushed game commit:
+  `bc7617b Add MVP character proxy selection`.
+- Changes:
+  - added selected male/female MVP proxy application to
+    `AAgrarianGamePlayerController`.
+  - menu completion now issues `AgrarianSelectCharacter male|female` based on
+    the selected archetype before gameplay input resumes.
+  - male proxy uses `SKM_Manny_Simple`; female proxy uses `SKM_Quinn_Simple`.
+  - added earth-tone Agrarian workwear material assets for both proxies under
+    `Content/Agrarian/Characters/Materials`.
+  - added `Scripts/setup_mvp_character_proxies.py`.
+  - added `Docs/Characters/MvpCharacterProxies.md`.
+  - added `Scripts/verify_mvp_character_proxies.py`.
+  - always-cook coverage now includes `/Game/Agrarian/Characters`.
+  - updated the character-archetype verifier for the UMG click-handler path.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_mvp_character_proxies.py`
+  - `python3 Scripts/verify_mvp_character_archetype_choice.py`
+  - `python3 -m py_compile ...`
+  - `git diff --check`
+  - Windows Unreal Python:
+    `Scripts\setup_mvp_character_proxies.py`
+  - Windows editor compile via `Scripts\BuildEditor-Windows.bat`
+- Deployment classification:
+  client character/UI/C++/asset cook only. No multiplayer server deployment is
+  required for this item.
+- Caveat:
+  these are still MVP proxy humans based on the available mannequin meshes, not
+  final production character art. They replace the single default dummy
+  presentation and create the runtime selection path for final realistic assets.
+
 ## Agrarian 0.1.O GPU Startup Visual Test Gate - 2026-05-19
 
 - Completed the fourth `0.1.O Investor Visual MVP And Menu Polish` item:
