@@ -7948,3 +7948,52 @@ Roadmap state:
 - Current version section: `0.1.Q MVP QA Gates`
 - Items remaining in `0.1.Q`: `6`
 - Immediate next roadmap item: `Can die from survival pressure`.
+
+## Agrarian 0.1.Q Survival Pressure Death Gate - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `428918b Add survival pressure death QA gate`
+
+Completed roadmap item:
+
+- `Can die from survival pressure`
+  - Added a repeatable MVP QA gate requiring starvation, dehydration, cold
+    exposure, sickness, and bleeding to reduce health on server authority.
+  - Tied the gate to `UpdateDeathState`, replicated `bIsDead` and
+    `LastDeathReason`, the critical survival HUD, the MVP death/respawn panel,
+    server-side respawn, and player stat persistence.
+  - Refreshed stale sickness/exhaustion verifiers so they recognize the current
+    sprain-aware survival movement multiplier chain.
+
+Verification:
+
+- `python3 Scripts/verify_survival_pressure_death_qa_gate.py` passed.
+- `python3 Scripts/verify_death_state.py` passed.
+- `python3 Scripts/verify_replicated_death_feedback.py` passed.
+- `python3 Scripts/verify_mvp_death_respawn_ui.py` passed.
+- `python3 Scripts/verify_bleeding_placeholder.py` passed.
+- `python3 Scripts/verify_sickness_placeholder.py` passed.
+- `python3 Scripts/verify_exhaustion_stat.py` passed.
+- `python3 -m py_compile Scripts/verify_survival_pressure_death_qa_gate.py Scripts/verify_sickness_placeholder.py Scripts/verify_exhaustion_stat.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Gameplay/server-relevant QA gate`.
+- No immediate multiplayer server deploy for this item alone; include it in the
+  final 0.1.Q package/deploy decision.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local
+  project mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.Q MVP QA Gates`
+- Items remaining in `0.1.Q`: `5`
+- Immediate next roadmap item: `Can reconnect and retain state`.
