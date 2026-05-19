@@ -1,5 +1,55 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Completion And Investor Demo Build - 2026-05-19
+
+- Completed all `0.1.P MVP Audio And Atmosphere` roadmap items.
+- Latest pushed game commit:
+  `86a0fcb Fix UI sound verifier for volume playback`.
+- Final verification completed:
+  - all eighteen `0.1.P` local verification scripts passed.
+  - `git diff --check` passed.
+  - Windows editor compile passed.
+  - Windows Development investor package passed.
+  - Windows visual QA helper passed with packaged demo present and
+    `SunshineService` running.
+- Windows investor demo:
+  - package checkout:
+    `/mnt/projects/AgrarianGameBuild_0_1_P_Package`
+  - package output:
+    `/mnt/projects/AgrarianGameBuild_0_1_P_Package/Builds/WindowsDevelopment`
+  - launchers:
+    `Start Agrarian Demo.cmd`,
+    `Start Agrarian Demo - DX12.cmd`,
+    `Start Agrarian Demo - Compatibility DX11.cmd`
+  - executable:
+    `AgrarianGame.exe`
+  - package size:
+    `1.1G`
+- Windows-Builder status from build logs:
+  - UnrealBuildTool used 5 physical / 10 logical cores.
+  - Unreal cook saw approximately 32 GB RAM.
+  - known `NetCullDistanceSquared` deprecation warnings remain; they are
+    already tracked in the `0.1.Q` roadmap cleanup gate.
+- Deployment classification:
+  server deploy required at milestone packaging time because `0.1.P` includes
+  server-authoritative campfire risk, vegetation/structure ignition, fire
+  spread, suppression, and active-fire persistence changes.
+- Multiplayer deployment result:
+  blocked. `Scripts\BuildLinuxDedicatedServer-Windows.bat` was run from the
+  clean package checkout, but Windows-Builder reported:
+  `Platform Linux is not a valid platform to build. Check that the SDK is
+  installed properly and that you have the necessary platform support files
+  (DataDrivenPlatformInfo.ini, SDK.json, etc).`
+- Current server verification:
+  non-interactive SSH verification to `nathan@192.168.5.15` failed with
+  `Permission denied (publickey,password)`, so the current play-server process
+  was not verified from this session.
+- Required follow-up:
+  restore Linux platform support/toolchain visibility on Windows-Builder, rerun
+  `Scripts\BuildLinuxDedicatedServer-Windows.bat` or the MVP Linux game-server
+  fallback package, deploy to `play.agrariangame.com:7777`, then verify the
+  service listener and client connection.
+
 ## Agrarian 0.1.P Volume Sliders - 2026-05-19
 
 - Completed the seventeenth and final `0.1.P MVP Audio And Atmosphere` item:
