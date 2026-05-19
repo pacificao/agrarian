@@ -8841,3 +8841,73 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `0`
 - Immediate next roadmap item: `0.2.A Land And Claiming`.
+
+## Agrarian 0.1.R Complete And Windows Investor Demo Built - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- Latest pushed game commit: `64d0603 Define multiplayer learning rules`
+- Package workspace: `/mnt/projects/AgrarianGameBuild_0_1_P_Package`
+- Package workspace commit: `64d0603`
+
+Milestone result:
+
+- Completed all remaining `0.1.R Knowledge And Skill Foundation` items.
+- Added the knowledge/skill foundation document, MVP taxonomy, contextual
+  prompts, optional checks, failed-action feedback rules, accessibility rules,
+  subject content format, elementary question bank, deeper-question timing,
+  exploit guardrails, persistence requirements, and multiplayer learning rules.
+
+Verification:
+
+- Full `0.1.R` verifier chain passed:
+  - `verify_knowledge_skill_separation_model.py`
+  - `verify_skill_taxonomy.py`
+  - `verify_knowledge_action_effects.py`
+  - `verify_practical_experience_growth.py`
+  - `verify_contextual_learning_prompts.py`
+  - `verify_optional_knowledge_checks.py`
+  - `verify_failed_action_feedback_rules.py`
+  - `verify_learning_accessibility_rules.py`
+  - `verify_subject_content_format.py`
+  - `verify_elementary_survival_question_bank.py`
+  - `verify_deeper_question_timing.py`
+  - `verify_learning_exploit_guardrails.py`
+  - `verify_knowledge_persistence_requirements.py`
+  - `verify_multiplayer_learning_rules.py`
+- `python3 -m py_compile` passed for the full `0.1.R` verifier set.
+- `git diff --check` passed.
+- Main game repo and handoff repo were clean before final handoff update.
+
+Windows investor demo:
+
+- `Scripts\BuildEditor-Windows.bat` passed.
+- `Scripts\PackageWindowsDevelopment.bat` passed.
+- `Scripts\RunWindowsInvestorVisualQACheck.bat --check-tools` passed.
+- Package path:
+  `/mnt/projects/AgrarianGameBuild_0_1_P_Package/Builds/WindowsDevelopment`
+- Executables:
+  - `/mnt/projects/AgrarianGameBuild_0_1_P_Package/Builds/WindowsDevelopment/AgrarianGame.exe`
+  - `/mnt/projects/AgrarianGameBuild_0_1_P_Package/Builds/WindowsDevelopment/AgrarianGame/Binaries/Win64/AgrarianGame.exe`
+- Package size: `1.1G`
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+- Multiplayer server deploy was not required for `0.1.R` because no runtime or
+  server package code changed.
+- Health check verified existing multiplayer host:
+  - Host: `agrarian-playserver`
+  - Service: `agrarian-game-server.service` active
+  - UDP `7777` listening on `0.0.0.0:7777`
+
+Automation:
+
+- Per-item email summaries sent to `nathan@pacificao.com`.
+- Final milestone summary sent to `nathan@pacificao.com`.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation` complete.
+- Immediate next roadmap item: `0.2.A Land And Claiming`.
