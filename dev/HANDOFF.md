@@ -1,5 +1,29 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Weather Sounds - 2026-05-19
+
+- Completed the thirteenth `0.1.P MVP Audio And Atmosphere` item:
+  `Add weather sounds.`
+- Latest pushed game commit:
+  `6cad068 Document MVP weather sound hooks`.
+- Changes:
+  - added `Docs/Audio/WeatherSounds.md`.
+  - formalized the existing placed weather audio controller as the MVP
+    weather-sound path.
+  - documented rain, wind, storm, clear ambient, and biome loop slots.
+  - verified playback logic follows replicated weather state, provider wind
+    speed, and day/night state while remaining silent until assets are assigned.
+  - marked the roadmap item complete.
+  - added `Scripts/verify_weather_sounds.py`.
+- Verification completed:
+  - `python3 Scripts/verify_weather_sounds.py`
+  - `python3 Scripts/verify_weather_audio_controller.py`
+  - `python3 -m py_compile Scripts/verify_weather_sounds.py`
+  - `git diff --check`
+- Deployment classification:
+  client audio docs/verification only. No multiplayer server deployment is
+  required for this item.
+
 ## Agrarian 0.1.P Fire Risk QA Coverage - 2026-05-19
 
 - Completed the twelfth `0.1.P MVP Audio And Atmosphere` item:
