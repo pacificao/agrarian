@@ -5707,3 +5707,43 @@ Roadmap state:
 - Current version section: `0.1.M Persistence MVP`
 - Items remaining in `0.1.M`: `10`
 - Immediate next roadmap item: `Save resource depletion state if needed`.
+
+## Agrarian 0.1.M Resource Depletion Persistence - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `66f523b Document resource depletion persistence`
+
+Completed roadmap item:
+
+- `Save resource depletion state if needed`
+  - Confirmed active loaded resource nodes persist stable `ResourceNodeId`,
+    remaining harvest count, and MVP respawn flag through
+    `FAgrarianSavedResourceNode`.
+  - Restore applies depletion only to matching map-authored resource nodes,
+    leaving tile-authored placement owned by map/tile content.
+  - Updated persistence documentation, roadmap wording, and the resource-node
+    persistence verifier for the 0.1.M item.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_resource_node_persistence.py` passed.
+- `python3 Scripts/verify_resource_node_persistence.py` passed.
+- `git diff --check` passed.
+- No Windows editor compile was run for this item because it only documented
+  and verified an existing C++ persistence path.
+
+Deployment classification:
+
+- `Docs/email only` for this item.
+- Milestone still has `Server deploy required` pending because earlier 0.1.M
+  persistence runtime changes affect the multiplayer host.
+
+Roadmap state:
+
+- Current version section: `0.1.M Persistence MVP`
+- Items remaining in `0.1.M`: `9`
+- Immediate next roadmap item: `Save world time`.
