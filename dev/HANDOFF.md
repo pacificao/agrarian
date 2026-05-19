@@ -1,5 +1,47 @@
 # Agrarian Codex Handoff
 
+## Agrarian MVP Menu/Credits Fix - 2026-05-18
+
+- Fixed the MVP startup/menu issue reported in the investor demo.
+- Latest pushed game commit:
+  `15b40c5 Use supported MVP menu focus API`.
+- Main menu-flow commit:
+  `3aac902 Fix MVP menu startup and mouse flow`.
+- Changes:
+  - startup credits now play as their own full-screen segment before the MVP
+    character menu appears.
+  - MVP frontend waits for the credits window before spawning.
+  - mouse cursor/input is enabled for the MVP menu.
+  - painted menu now has explicit mouse hit regions for character cards,
+    continue, back, and enter-world actions.
+  - `Choose your first settler` was replaced with `Choose your first pioneer`.
+  - loading screen now has an `Enter Ground Zero` action that closes the MVP
+    menu and restores game input.
+- Verification completed:
+  - `python3 Scripts/verify_mvp_character_selection_landing.py`
+  - `python3 Scripts/verify_mvp_character_archetype_choice.py`
+  - `python3 Scripts/verify_mvp_join_server_screen.py`
+  - `python3 Scripts/verify_mvp_loading_screen.py`
+  - `python3 Scripts/verify_startup_credits_sequence.py`
+  - `git diff --check`
+  - Windows editor build via `Scripts\BuildEditor-Windows.bat`
+- Windows package status:
+  - C++ targets compiled successfully.
+  - cook/stage completed successfully.
+  - normal archive to `Builds\WindowsDevelopment` could not safely overwrite
+    because the existing demo files were locked over SMB, likely by an active
+    or recently tested demo process.
+  - copied the successful staged build to:
+    `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment-MenuFix-20260518`.
+  - installed investor demo launchers in that fresh folder.
+  - verified the fresh folder contains `AgrarianGame.exe`,
+    `Start Agrarian Demo.cmd`, and `README-Investor-Demo.txt`.
+  - verified packaged README still shows
+    `Investor Demo v0.1.N - Build 2026.05.18`.
+- Remaining known warning:
+  existing direct `NetCullDistanceSquared` deprecation warnings remain and are
+  already tracked in the roadmap under `0.1.P MVP QA Gates`.
+
 ## Agrarian 0.1.N Complete / Windows Investor Demo Built - 2026-05-18
 
 - Completed `0.1.N MVP UI And UX` and built the Windows investor demo.
