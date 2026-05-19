@@ -1,5 +1,30 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Vegetation Ignition Checks - 2026-05-19
+
+- Completed the sixth `0.1.P MVP Audio And Atmosphere` item:
+  `Add grass and forest ignition checks from irresponsible fire placement,
+  wind/weather, dry fuel, nearby vegetation, and burn duration.`
+- Latest pushed game commit:
+  `dca9d01 Add vegetation ignition risk checks`.
+- Changes:
+  - added foliage fuel counting around world locations for grass, shrubs, and
+    trees.
+  - added replicated campfire grass/brush and forest ignition risk scores.
+  - added grass/brush and forest ignition flags.
+  - tied ignition accumulation to campfire risk, nearby dry fuel, burn duration,
+    wind speed, weather, and cleared-area safety.
+  - persisted vegetation ignition risk state with campfire persistence.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_vegetation_ignition_checks.py`.
+- Verification completed:
+  - `python3 Scripts/verify_vegetation_ignition_checks.py`
+  - `python3 -m py_compile Scripts/verify_vegetation_ignition_checks.py`
+  - `git diff --check`
+- Deployment classification:
+  replicated gameplay/persistence change. Multiplayer server deployment can
+  wait for the milestone package unless live fire-risk testing is needed now.
+
 ## Agrarian 0.1.P Unattended Fire Risk - 2026-05-19
 
 - Completed the fifth `0.1.P MVP Audio And Atmosphere` item:
