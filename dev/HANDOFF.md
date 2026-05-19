@@ -1,5 +1,42 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O Segmented Startup/Pause Flow - 2026-05-19
+
+- Completed the third `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Make startup credits, character selection, server/join, loading, pause,
+  save, and quit feel like separate intentional segments, with no impression
+  that gameplay has started underneath the UI.`
+- Latest pushed game commit:
+  `de02b20 Segment MVP startup and pause flow`.
+- Changes:
+  - startup/menu control now uses UI-only input while credits and MVP menus are
+    active.
+  - added explicit segment labels for character selection, server join,
+    loading, pause, and saving.
+  - pause menu now states that gameplay is paused while the menu is active.
+  - Save & Quit now transitions through a dedicated `Saving World` screen
+    before issuing `AgrarianSaveWorld` and `quit`.
+  - added `SavingAndQuit` to the MVP frontend screen enum and debug screen
+    selection path.
+  - added `Scripts/verify_mvp_segmented_startup_pause_flow.py`.
+  - updated existing menu/startup verifiers for the UMG frontend and UI-only
+    input flow.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_mvp_segmented_startup_pause_flow.py`
+  - `python3 Scripts/verify_mvp_menu_input_and_quit_flow.py`
+  - `python3 Scripts/verify_startup_credits_sequence.py`
+  - `python3 Scripts/verify_mvp_frontend_umg_flow.py`
+  - `python3 -m py_compile ...`
+  - `git diff --check`
+  - Windows editor compile via `Scripts\BuildEditor-Windows.bat`
+- Deployment classification:
+  client UI/C++ only. No multiplayer server deployment is required for this
+  item.
+- Remaining known warning:
+  existing direct `NetCullDistanceSquared` deprecation warnings remain in
+  gameplay actors and are already tracked for future cleanup.
+
 ## Agrarian 0.1.O UMG Menu Flow - 2026-05-19
 
 - Completed the second `0.1.O Investor Visual MVP And Menu Polish` item:
