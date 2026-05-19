@@ -1,5 +1,29 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Fire Maintenance Gameplay - 2026-05-19
+
+- Completed the ninth `0.1.P MVP Audio And Atmosphere` item:
+  `Add fire maintenance gameplay so watched, cleared, contained, or
+  extinguished fires are safe, while neglected fires can become dangerous.`
+- Latest pushed game commit:
+  `b4e9cce Add campfire maintenance gameplay hooks`.
+- Changes:
+  - changed lit campfire prompt to `Maintain fire`.
+  - lit interaction adds fuel when wood is available, otherwise watches and
+    maintains the fire.
+  - added native `WatchFire`, `ClearAreaAroundFire`, and `ContainFire` hooks.
+  - maintenance reduces campfire, vegetation, forest, and structure ignition
+    risk while extinguishing resets active risk state.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_fire_maintenance_gameplay.py`.
+- Verification completed:
+  - `python3 Scripts/verify_fire_maintenance_gameplay.py`
+  - `python3 -m py_compile Scripts/verify_fire_maintenance_gameplay.py`
+  - `git diff --check`
+- Deployment classification:
+  replicated gameplay change. Multiplayer server deployment can wait for the
+  milestone package unless live fire-maintenance testing is needed now.
+
 ## Agrarian 0.1.P Server Fire Spread Rules - 2026-05-19
 
 - Completed the eighth `0.1.P MVP Audio And Atmosphere` item:
