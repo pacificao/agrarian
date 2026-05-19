@@ -8388,3 +8388,45 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `12`
 - Immediate next roadmap item: `Define how knowledge affects survival actions: fewer mistakes, safer attempts, better yields, lower injury risk, and more reliable outcomes`.
+
+## Agrarian 0.1.R Knowledge Action Effects - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `4e72a76 Define knowledge action effects`
+
+Completed roadmap item:
+
+- `Define how knowledge affects survival actions`
+  - Added the knowledge action-effects model to
+    `Docs/KnowledgeAndSkillFoundation.md`.
+  - Defined fewer mistakes, safer attempts, better yields, lower injury risk,
+    and more reliable outcomes as legible gameplay effects.
+  - Set the rule that knowledge adjusts warnings, probabilities, quality, waste,
+    and explanations without silently guaranteeing success or replacing
+    practical experience.
+
+Verification:
+
+- `python3 Scripts/verify_knowledge_action_effects.py` passed.
+- `python3 -m py_compile Scripts/verify_knowledge_action_effects.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local project
+  mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `11`
+- Immediate next roadmap item: `Define how practical experience grows through use, repetition, mistakes, and recovery from failure`.
