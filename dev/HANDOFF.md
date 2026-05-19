@@ -5861,3 +5861,43 @@ Roadmap state:
 - Current version section: `0.1.M Persistence MVP`
 - Items remaining in `0.1.M`: `6`
 - Immediate next roadmap item: `Add server-side save interval`.
+
+## Agrarian 0.1.M Server Autosave Interval - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `a7ca8d1 Add server autosave interval`
+
+Completed roadmap item:
+
+- `Add server-side save interval`
+  - Added `ServerAutoSaveIntervalSeconds` to `AAgrarianGameGameMode`, defaulting
+    to five minutes.
+  - On authority, `BeginPlay` starts a repeating timer that calls
+    `RunServerAutoSave`.
+  - Autosave uses `UAgrarianPersistenceSubsystem::SaveCurrentWorld`.
+  - Setting the interval to `0` disables the MVP autosave timer.
+  - Added `Scripts/verify_server_save_interval.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_server_save_interval.py` passed.
+- `python3 Scripts/verify_server_save_interval.py` passed.
+- `git diff --check` passed, with Git line-ending normalization warnings for
+  the touched Unreal template GameMode files.
+- Windows editor compile gate was attempted but blocked because
+  `UNRAID_PASSWORD` was not present in the shell environment.
+
+Deployment classification:
+
+- `Server deploy required` at milestone packaging time because this changes
+  authoritative server autosave behavior.
+
+Roadmap state:
+
+- Current version section: `0.1.M Persistence MVP`
+- Items remaining in `0.1.M`: `5`
+- Immediate next roadmap item: `Add load-on-server-start`.
