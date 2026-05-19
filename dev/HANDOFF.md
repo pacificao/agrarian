@@ -1,5 +1,27 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Wildlife Sounds - 2026-05-19
+
+- Completed the fourteenth `0.1.P MVP Audio And Atmosphere` item:
+  `Add wildlife sounds.`
+- Latest pushed game commit:
+  `f6e126a Add MVP wildlife audio hooks`.
+- Changes:
+  - added a spatialized `WildlifeAudioComponent` to
+    `AAgrarianWildlifeBase`.
+  - added assignable idle, flee/chase, death, and harvest sound slots.
+  - added server-triggered multicast playback for wildlife state changes and
+    harvest events.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_wildlife_sounds.py`.
+- Verification completed:
+  - `python3 Scripts/verify_wildlife_sounds.py`
+  - `python3 -m py_compile Scripts/verify_wildlife_sounds.py`
+  - `git diff --check`
+- Deployment classification:
+  replicated gameplay/audio hook. Multiplayer server deployment can wait for
+  the milestone package unless live wildlife-audio testing is needed now.
+
 ## Agrarian 0.1.P Weather Sounds - 2026-05-19
 
 - Completed the thirteenth `0.1.P MVP Audio And Atmosphere` item:
