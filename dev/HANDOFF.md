@@ -8512,3 +8512,39 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `9`
 - Immediate next roadmap item: `Design optional knowledge checks that appear when relevant to the action instead of interrupting basic play`.
+
+## Agrarian 0.1.R Optional Knowledge Checks - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- Latest pushed game commit: `51eb9d1 Design optional knowledge checks`
+
+Completed roadmap item:
+
+- `Design optional knowledge checks that appear when relevant to the action instead of interrupting basic play`
+  - Added optional knowledge-check rules to
+    `Docs/KnowledgeAndSkillFoundation.md`.
+  - Defined inline/skippable presentation, action-relevant timing, calm review
+    moments, non-punitive wrong answers, and no hard gate on the first survival
+    loop.
+
+Verification:
+
+- `python3 Scripts/verify_optional_knowledge_checks.py` passed.
+- `python3 -m py_compile Scripts/verify_optional_knowledge_checks.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com`.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `8`
+- Immediate next roadmap item: `Add player-facing feedback that explains why an action failed or produced poor results`.
