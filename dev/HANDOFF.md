@@ -1,5 +1,30 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Server Fire Spread Rules - 2026-05-19
+
+- Completed the eighth `0.1.P MVP Audio And Atmosphere` item:
+  `Add server-authoritative fire spread rules for grass, brush, trees,
+  shelters, and other burnable actors, including fuel, distance, wind, weather,
+  and suppression hooks.`
+- Latest pushed game commit:
+  `dde42bf Add server authoritative fire spread state`.
+- Changes:
+  - added replicated grass, forest, and structure fire intensities.
+  - added replicated active fire spread radius.
+  - server-side spread grows from nearby fuel, ignition state, wind/weather, and
+    current suppression pressure.
+  - persisted active fire intensities and spread radius with campfire
+    persistence.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_fire_spread_rules.py`.
+- Verification completed:
+  - `python3 Scripts/verify_fire_spread_rules.py`
+  - `python3 -m py_compile Scripts/verify_fire_spread_rules.py`
+  - `git diff --check`
+- Deployment classification:
+  replicated gameplay/persistence change. Multiplayer server deployment can
+  wait for the milestone package unless live fire-spread testing is needed now.
+
 ## Agrarian 0.1.P Structure Ignition Risk - 2026-05-19
 
 - Completed the seventh `0.1.P MVP Audio And Atmosphere` item:
