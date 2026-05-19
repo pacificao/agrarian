@@ -5980,3 +5980,42 @@ Roadmap state:
 - Current version section: `0.1.M Persistence MVP`
 - Items remaining in `0.1.M`: `3`
 - Immediate next roadmap item: `Add backup-before-save option`.
+
+## Agrarian 0.1.M Backup Before Save - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `dfad880 Back up save before overwrite`
+
+Completed roadmap item:
+
+- `Add backup-before-save option`
+  - Added `bBackupBeforeSave` to `UAgrarianPersistenceSubsystem`, enabled by
+    default.
+  - Before overwriting an existing save slot, `WriteSave` copies the current
+    `.sav` file from `Saved/SaveGames` into `Saved/SaveGames/Backups`.
+  - Backups use UTC timestamped filenames.
+  - Missing first-save files skip backup creation.
+  - Added `Scripts/verify_backup_before_save.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_backup_before_save.py` passed.
+- `python3 Scripts/verify_backup_before_save.py` passed.
+- `git diff --check` passed.
+- Windows editor compile gate was attempted but blocked because
+  `UNRAID_PASSWORD` was not present in the shell environment.
+
+Deployment classification:
+
+- `Server deploy required` at milestone packaging time because this changes
+  persistence runtime behavior.
+
+Roadmap state:
+
+- Current version section: `0.1.M Persistence MVP`
+- Items remaining in `0.1.M`: `2`
+- Immediate next roadmap item: `Add recovery plan for corrupted save`.
