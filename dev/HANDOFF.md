@@ -5543,3 +5543,44 @@ Roadmap state:
 - `0.1.K Wildlife Prototype` is complete.
 - Windows investor demo has been rebuilt and is ready at the package path.
 - Stop here per user instruction.
+
+## Agrarian 0.1.M Player Identity Persistence - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `1e0d326 Save MVP player identity metadata`
+
+Completed roadmap item:
+
+- `Save player identity`
+  - Added `FAgrarianSavedPlayerIdentity` to player save records.
+  - Kept the existing backwards-compatible `PlayerId` string.
+  - Player persistence now prefers a valid `APlayerState` network unique ID,
+    then falls back to player name, then pawn name for local prototype sessions.
+  - The save record keeps safe identity metadata: stable ID, player name,
+    network ID, whether the network ID was used, and last known pawn name.
+  - Persistence documentation now explicitly states that saved player identity
+    does not store credentials, emails, passwords, or tokens.
+  - Added `Scripts/verify_player_identity_persistence.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_player_identity_persistence.py` passed.
+- `python3 Scripts/verify_player_identity_persistence.py` passed.
+- `git diff --check` passed.
+- Windows editor compile gate was attempted but blocked because
+  `UNRAID_PASSWORD` was not present in the shell environment.
+
+Deployment classification:
+
+- `Server deploy required` at milestone packaging time because this changes
+  server-authoritative persistence/save code shared by the multiplayer host.
+
+Roadmap state:
+
+- Current version section: `0.1.M Persistence MVP`
+- Items remaining in `0.1.M`: `13`
+- Immediate next roadmap item: `Save player stats`.
