@@ -6566,3 +6566,42 @@ Roadmap state:
 - Current version section: `0.1.N MVP UI And UX`
 - Items remaining in `0.1.N`: `2`
 - Immediate next roadmap item: `Add accessibility basics`.
+## Agrarian 0.1.N Accessibility Basics - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `2adc683 Add MVP accessibility basics`
+
+Completed roadmap item:
+
+- `Add accessibility basics`
+  - Added runtime MVP UI scale control with `AgrarianSetUiScale 0.75-1.5`.
+  - Scale applies to the native MVP frontend and HUD text surfaces.
+  - Added frontend high-contrast mode with `AgrarianToggleHighContrastUI`.
+  - Added the accessibility commands to the debug/dev menu.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_accessibility_basics.py` passed.
+- `python3 Scripts/verify_mvp_accessibility_basics.py` passed.
+- `git diff --check` passed.
+- No full Windows package was run for this item; final milestone packaging is still required.
+
+Deployment classification:
+
+- `Client UI only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through `pacificao-mail`
+  using local Dovecot delivery, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.N MVP UI And UX`
+- Items remaining in `0.1.N`: `1`
+- Immediate next roadmap item: `Ensure UI scales on common resolutions`.
