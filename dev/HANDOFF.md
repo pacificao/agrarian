@@ -1,5 +1,27 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Footstep Placeholders - 2026-05-19
+
+- Completed the second `0.1.P MVP Audio And Atmosphere` item:
+  `Add footstep placeholders.`
+- Latest pushed game commit:
+  `bb5ed38 Add MVP footstep audio placeholders`.
+- Changes:
+  - added a spatialized `FootstepAudioComponent` to
+    `AAgrarianGameCharacter`.
+  - added assignable walk, sprint, crouch, and prone placeholder sound slots.
+  - added movement-state footstep cadence that only plays when the character is
+    alive, grounded, and moving.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_footstep_placeholders.py`.
+- Verification completed:
+  - `python3 Scripts/verify_footstep_placeholders.py`
+  - `python3 -m py_compile Scripts/verify_footstep_placeholders.py`
+  - `git diff --check`
+- Deployment classification:
+  client character audio hook/docs/verification only. No multiplayer server
+  deployment is required for this item.
+
 ## Agrarian 0.1.P Ambient Biome Audio - 2026-05-19
 
 - Completed the first `0.1.P MVP Audio And Atmosphere` item:
