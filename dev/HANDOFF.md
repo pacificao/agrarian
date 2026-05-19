@@ -8230,3 +8230,79 @@ Roadmap state:
 - Immediate next step: run full 0.1.Q verifier set, build Windows investor demo,
   deploy the multiplayer server only if server-relevant changes require it, and
   send final summary.
+
+## Agrarian 0.1.Q Final Build And Deployment - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `4560a00 Allow benign Unreal crash help log lines`
+- Runtime package commit: `5de5c11 Add target player count stability QA gate`
+  - `4560a00` only narrows the QA log scanner allowlist for benign Unreal
+    startup help text containing the word `crash`.
+
+0.1.Q status:
+
+- All `0.1.Q MVP QA Gates` roadmap items are complete.
+- Full 0.1.Q verifier chain passed:
+  packaged client, server launch, two-client connection, resource gathering,
+  craft fire, craft shelter, full day/night survival, survival pressure death,
+  reconnect state retention, server restart shelter persistence, critical log
+  soak, net cull deprecation cleanup, and target player count stability.
+
+Windows investor demo:
+
+- Built from updated package workspace:
+  `/mnt/projects/AgrarianGameBuild_0_1_P_Package`
+- Windows package path:
+  `/mnt/projects/AgrarianGameBuild_0_1_P_Package/Builds/WindowsDevelopment`
+- Executables verified:
+  - `/mnt/projects/AgrarianGameBuild_0_1_P_Package/Builds/WindowsDevelopment/AgrarianGame.exe`
+  - `/mnt/projects/AgrarianGameBuild_0_1_P_Package/Builds/WindowsDevelopment/AgrarianGame/Binaries/Win64/AgrarianGame.exe`
+- Package size: about `1.1G`.
+- `Scripts\RunWindowsInvestorVisualQACheck.bat --check-tools` passed and
+  confirmed `SunshineService` is running.
+
+Build note:
+
+- A fresh `/mnt/projects/AgrarianGameBuild_0_1_Q_Package` clone stalled on the
+  SMB share and was killed before becoming a valid Git checkout.
+- The existing `0_1_P` package checkout was clean, fast-forwarded to 0.1.Q, and
+  used as the build workspace to avoid another full share copy.
+
+Multiplayer server deployment:
+
+- Deployment was required because 0.1.Q included shared client/server C++ cleanup
+  on replicated actor net cull settings.
+- Linux fallback package path:
+  `/mnt/projects/AgrarianGameBuild_0_1_P_Package/Builds/LinuxGameDevelopment`
+- Linux fallback package size: about `1.1G`.
+- Uploaded to play server release:
+  `/opt/agrarian/releases/0_1_Q_5de5c11`, then promoted to
+  `/opt/agrarian/server`.
+- Restored `AgrarianGameServer.sh` wrapper from the prior server backup because
+  the fallback package archives `AgrarianGame.sh` but the systemd unit expects
+  the wrapper.
+- Verified `agrarian-game-server.service` is `active`.
+- Verified `AgrarianGame` is listening on `0.0.0.0:7777/udp`.
+- Recent server journal contains Ground Zero browse startup evidence.
+- `scan_critical_log_spam.py` passed against recent server journal after
+  allowlisting benign Unreal command-line help lines.
+
+Operational notes:
+
+- The previous server directory is preserved as `/opt/agrarian/server.backup.`
+  on the play server. The timestamp suffix was empty because the remote shell
+  command passed through without the intended timestamp expansion.
+- The current deployed package is healthy despite that backup-name issue.
+
+Automation:
+
+- Final summary email sent to `nathan@pacificao.com` through the current local
+  project mail helper, not AWS SES.
+
+Next roadmap:
+
+- `0.1.R Knowledge And Skill Foundation` is the next version section.
