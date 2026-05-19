@@ -1,5 +1,30 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O Systems-First Investor Demo Classification - 2026-05-19
+
+- Completed the first `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Reclassify the current investor demo as systems-first, not investor visual
+  MVP, until the visual/menu quality gate below is complete.`
+- Latest pushed game commit:
+  `2a336ff Classify investor demo as systems first`.
+- Changes:
+  - added `Docs/Investor/InvestorDemoStatus.md` with the current
+    systems-first prototype classification and the visual MVP gate criteria.
+  - updated investor legal notices to explicitly say the build is not yet an
+    investor visual MVP.
+  - updated startup/demo notice text to
+    `Systems-first investor prototype - visual MVP gate pending`.
+  - updated packaged Windows demo README generation to include the same
+    classification and warning.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_investor_demo_systems_first_status.py`
+  - `python3 -m py_compile Scripts/verify_investor_demo_systems_first_status.py Scripts/verify_startup_credits_sequence.py`
+  - `git diff --check`
+- Deployment classification:
+  client presentation/docs/packaged README only. No multiplayer server
+  deployment is required for this item.
+
 ## Agrarian 0.1.D Ground Zero Backfill / Windows Investor Demo Built - 2026-05-19
 
 - Completed the remaining `0.1.D Single Biome MVP Map` items after the
