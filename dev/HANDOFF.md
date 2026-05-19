@@ -6331,3 +6331,43 @@ Roadmap state:
 - Current version section: `0.1.N MVP UI And UX`
 - Items remaining in `0.1.N`: `8`
 - Immediate next roadmap item: `Add HUD`.
+## Agrarian 0.1.N MVP HUD Frame - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `df8bc6c Complete MVP HUD frame`
+
+Completed roadmap item:
+
+- `Add HUD`
+  - Completed the partial HUD item by adding `bShowMvpHudFrame`.
+  - Added a top MVP status frame showing Ground Zero context, alive/dead state,
+    health, food, water, and body temperature.
+  - Kept the existing deeper developer overlay separately controlled by
+    `bShowDebugHUD`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_hud_frame.py` passed.
+- `python3 Scripts/verify_mvp_hud_frame.py` passed.
+- `git diff --check` passed.
+- No full Windows package was run for this item; final milestone packaging is still required.
+
+Deployment classification:
+
+- `Client UI only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through `pacificao-mail`
+  using local Dovecot delivery, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.N MVP UI And UX`
+- Items remaining in `0.1.N`: `7`
+- Immediate next roadmap item: `Add inventory UI`.
