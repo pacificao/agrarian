@@ -6291,3 +6291,43 @@ Roadmap state:
 - Current version section: `0.1.N MVP UI And UX`
 - Items remaining in `0.1.N`: `9`
 - Immediate next roadmap item: `Add loading screen`.
+## Agrarian 0.1.N Loading Screen - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `e8d46c8 Add MVP loading screen`
+
+Completed roadmap item:
+
+- `Add loading screen`
+  - Added a native `Loading` screen to `UAgrarianMvpFrontendWidget`.
+  - The screen shows Ground Zero preparation copy, selected character context,
+    server address context, and a deterministic placeholder progress bar.
+  - Enter/Space from the join-server screen advances to loading.
+  - `AgrarianShowMvpScreen main|character|join|loading` can display it directly.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_loading_screen.py` passed.
+- `python3 Scripts/verify_mvp_loading_screen.py` passed.
+- `git diff --check` passed.
+- No full Windows package was run for this item; final milestone packaging is still required.
+
+Deployment classification:
+
+- `Client UI only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through `pacificao-mail`
+  using local Dovecot delivery, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.N MVP UI And UX`
+- Items remaining in `0.1.N`: `8`
+- Immediate next roadmap item: `Add HUD`.
