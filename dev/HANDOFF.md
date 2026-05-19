@@ -8306,3 +8306,45 @@ Automation:
 Next roadmap:
 
 - `0.1.R Knowledge And Skill Foundation` is the next version section.
+
+## Agrarian 0.1.R Knowledge Skill Separation Model - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `26db07d Define knowledge skill separation model`
+
+Completed roadmap item:
+
+- `Define the MVP separation between knowledge, practical experience, physical stats, tools, and infrastructure`
+  - Added `Docs/KnowledgeAndSkillFoundation.md`.
+  - Defined knowledge, practical experience, physical stats, tools, and
+    infrastructure as separate MVP progress drivers.
+  - Set the MVP rule that basic survival remains possible with low knowledge and
+    poor tools, while outcomes become safer, faster, higher quality, or less
+    wasteful as understanding, practice, equipment, and infrastructure improve.
+
+Verification:
+
+- `python3 Scripts/verify_knowledge_skill_separation_model.py` passed.
+- `python3 -m py_compile Scripts/verify_knowledge_skill_separation_model.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+- No Windows investor demo rebuild or multiplayer server deploy required for
+  this item by itself.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local project
+  mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `13`
+- Immediate next roadmap item: `Add a first-pass skill taxonomy for survival, gathering, tool use, crafting, fire, shelter, navigation, first aid, food safety, and weather awareness`.
