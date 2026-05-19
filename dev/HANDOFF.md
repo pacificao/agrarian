@@ -1,5 +1,27 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Fire Risk QA Coverage - 2026-05-19
+
+- Completed the twelfth `0.1.P MVP Audio And Atmosphere` item:
+  `Add QA coverage for safe campfires, unsafe campfires, vegetation spread,
+  shelter ignition, suppression, and save/load recovery.`
+- Latest pushed game commit:
+  `61548d1 Add fire risk QA coverage gate`.
+- Changes:
+  - added `Docs/QA/FireRiskQACoverage.md`.
+  - documented safe campfire, unsafe campfire, vegetation spread, shelter
+    ignition, suppression, and save/load recovery scenarios.
+  - tied the manual scenarios to the fire-risk verifier scripts.
+  - marked the roadmap item complete.
+  - added `Scripts/verify_fire_risk_qa_coverage.py`.
+- Verification completed:
+  - `python3 Scripts/verify_fire_risk_qa_coverage.py`
+  - `python3 -m py_compile Scripts/verify_fire_risk_qa_coverage.py`
+  - `git diff --check`
+- Deployment classification:
+  docs/QA/verification only. No multiplayer server deployment is required for
+  this item.
+
 ## Agrarian 0.1.P Active Fire Persistence - 2026-05-19
 
 - Completed the eleventh `0.1.P MVP Audio And Atmosphere` item:
