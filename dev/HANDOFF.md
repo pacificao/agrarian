@@ -1,5 +1,38 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O Density And Sightline Tuning - 2026-05-19
+
+- Completed the ninth `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Add density and sightline tuning so grasses, shrubs, trees, and resource
+  clusters are visible enough to sell the world without hiding
+  gameplay-critical objects.`
+- Latest pushed game commit:
+  `b2e315a Tune Ground Zero foliage sightlines`.
+- Changes:
+  - added protected foliage clearances around the player start, demo survival
+    targets, freshwater source, and Ground Zero biome resource nodes.
+  - added sampled first-look sightline corridors from the player start to wood,
+    fiber, campfire, shelter, wildlife, and freshwater.
+  - kept investor-facing foliage density at 64 trees, 148 shrubs, and 260 grass
+    clumps while preventing the generated dressing from covering early
+    gameplay reads.
+  - added `Docs/Terrain/GroundZeroDensitySightlineTuning.md`.
+  - added `Scripts/verify_ground_zero_density_sightlines.py`.
+  - regenerated `Content/Agrarian/Maps/L_GroundZeroTerrain_Test.umap`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 -m py_compile Scripts/setup_ground_zero_demo_map.py Scripts/verify_ground_zero_density_sightlines.py`
+  - `git diff --check`
+  - Windows Unreal Python:
+    `Scripts\setup_ground_zero_demo_map.py`
+  - Windows Unreal Python:
+    `Scripts\verify_ground_zero_density_sightlines.py`
+    - passed with 21 protected labels, 6 sightline corridors, 64 trees,
+      148 shrubs, and 260 grass clumps.
+- Deployment classification:
+  client map/visual/script/docs only. No multiplayer server deployment is
+  required for this item.
+
 ## Agrarian 0.1.O Water Source Visual Pass - 2026-05-19
 
 - Completed the eighth `0.1.O Investor Visual MVP And Menu Polish` item:
