@@ -8179,3 +8179,54 @@ Roadmap state:
 - Current version section: `0.1.Q MVP QA Gates`
 - Items remaining in `0.1.Q`: `1`
 - Immediate next roadmap item: `Server remains stable with target test player count`.
+
+## Agrarian 0.1.Q Target Player Count Stability Gate - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `5de5c11 Add target player count stability QA gate`
+
+Completed roadmap item:
+
+- `Server remains stable with target test player count`
+  - Added a target player count server-stability QA gate using the MVP audience
+    definition: 2-player minimum proof, 4-player closed-test smoke target, and
+    8-player stretch test only after the server path is stable.
+  - Tied the gate to server launch, two-client connection, reconnect retention,
+    critical log scanning, active service state, and UDP `7777` listener checks.
+  - Confirmed the current live multiplayer host is active and listening on UDP
+    `7777`.
+
+Verification:
+
+- `python3 Scripts/verify_server_stability_player_count_qa_gate.py` passed.
+- `python3 Scripts/verify_server_launch_gate.py` passed.
+- `python3 Scripts/verify_two_client_connection_gate.py` passed.
+- `python3 Scripts/verify_reconnect_state_retention_qa_gate.py` passed.
+- `python3 Scripts/verify_critical_log_spam_qa_gate.py` passed.
+- `python3 -m py_compile Scripts/verify_server_stability_player_count_qa_gate.py` passed.
+- `git diff --check` passed.
+- Live host check passed: `agrarian-game-server.service` active and
+  `AgrarianGame` listening on `0.0.0.0:7777/udp`.
+
+Deployment classification:
+
+- `Server QA gate`.
+- Re-run after every server package deployment that changes gameplay,
+  persistence, networking, map content, or server startup behavior.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local
+  project mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.Q MVP QA Gates`
+- Items remaining in `0.1.Q`: `0`
+- Immediate next step: run full 0.1.Q verifier set, build Windows investor demo,
+  deploy the multiplayer server only if server-relevant changes require it, and
+  send final summary.
