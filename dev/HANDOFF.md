@@ -1,5 +1,39 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O UMG Menu Flow - 2026-05-19
+
+- Completed the second `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Replace the native painted MVP frontend with a proper UMG menu flow using
+  real button widgets, hover/pressed states, keyboard/controller focus, mouse
+  click targets, and predictable back/escape behavior.`
+- Latest pushed game commit:
+  `af1edb5 Replace MVP frontend with UMG menu flow`.
+- Changes:
+  - converted `UAgrarianMvpFrontendWidget` away from native Slate paint and
+    manual hit-box mouse handling.
+  - rebuilt the MVP frontend with runtime UMG `WidgetTree` controls:
+    `UButton`, `UTextBlock`, `UVerticalBox`, `UHorizontalBox`, `UBorder`, and
+    `USizeBox`.
+  - added real click handlers for primary action, back, save/quit, and male/
+    female pioneer selection.
+  - added hover/pressed button styling and keyboard focus handoff to the
+    primary action button.
+  - preserved the existing player-controller API for screen switching,
+    character selection, high-contrast mode, confirm/back, and save/quit.
+  - added `Scripts/verify_mvp_frontend_umg_flow.py`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_mvp_frontend_umg_flow.py`
+  - `python3 -m py_compile Scripts/verify_mvp_frontend_umg_flow.py`
+  - `git diff --check`
+  - Windows editor compile via `Scripts\BuildEditor-Windows.bat`
+- Deployment classification:
+  client UI/C++ only. No multiplayer server deployment is required for this
+  item.
+- Remaining known warning:
+  existing direct `NetCullDistanceSquared` deprecation warnings remain in
+  gameplay actors and are already tracked for future cleanup.
+
 ## Agrarian 0.1.O Systems-First Investor Demo Classification - 2026-05-19
 
 - Completed the first `0.1.O Investor Visual MVP And Menu Polish` item:
