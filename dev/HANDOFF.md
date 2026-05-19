@@ -1,5 +1,32 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.Q Craft Fire Gate - 2026-05-19
+
+- Completed the fifth `0.1.Q MVP QA Gates` item:
+  `Can craft a fire.`
+- Latest pushed game commit:
+  `3d8ce85 Add craft fire QA gate`.
+- Changes:
+  - extended `Docs/QA/MvpQaGates.md` with the craft-fire gate.
+  - tied the gate to `DA_Recipe_Campfire`, player recipe setup,
+    `BP_Campfire`, replicated lit/fuel state, fire interaction prompts,
+    campfire persistence, and fire-risk QA.
+  - added `Scripts/verify_craft_fire_qa_gate.py`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_craft_fire_qa_gate.py`
+  - `python3 -m py_compile Scripts/verify_craft_fire_qa_gate.py`
+  - `python3 Scripts/verify_fire_persistence.py`
+  - `python3 Scripts/verify_fire_risk_qa_coverage.py`
+  - `python3 Scripts/verify_fire_maintenance_gameplay.py`
+  - `git diff --check`
+- Note:
+  `Scripts/verify_recipe_definitions.py` is an Unreal Python script and must run
+  through an Unreal editor command context, not system Python.
+- Deployment classification:
+  gameplay/server-relevant QA coverage. No immediate deployment was performed;
+  include this in the next milestone server package.
+
 ## Agrarian 0.1.Q Resource Gathering Gate - 2026-05-19
 
 - Completed the fourth `0.1.Q MVP QA Gates` item:
