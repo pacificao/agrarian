@@ -1,5 +1,40 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O Readable Survival Object Proxies - 2026-05-19
+
+- Completed the sixth `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Replace box/sphere/cylinder survival objects with readable MVP meshes for
+  campfires, primitive shelter pieces, resource pickups, water sources,
+  wildlife, and gathered items.`
+- Latest pushed game commit:
+  `63f48bc Add readable MVP survival object proxies`.
+- Changes:
+  - added composed native child mesh proxies for campfires: stone/ash base,
+    stacked logs, and ember proxy.
+  - added composed primitive-shelter proxies: floor, rear wall, sloped roof
+    panels, and frame posts.
+  - added pickup/resource-node bundle and marker proxies so gathered items and
+    harvestable nodes no longer read as single debug primitives.
+  - added water-source proxies: stone bank, water surface, and collect marker.
+  - added wildlife body/head/ear/tail proxies suitable for the MVP rabbit/
+    small-wildlife pass.
+  - kept the existing root components as the gameplay collision/interaction/
+    save/replication contract; all added child visuals use no collision.
+  - added `Docs/CharactersAndObjects/MvpReadableSurvivalObjectProxies.md`.
+  - added `Scripts/verify_mvp_readable_survival_object_proxies.py`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_mvp_readable_survival_object_proxies.py`
+  - `python3 -m py_compile Scripts/verify_mvp_readable_survival_object_proxies.py`
+  - `git diff --check`
+  - Windows editor compile via `Scripts\BuildEditor-Windows.bat`
+- Deployment classification:
+  client visual/game-code only. No multiplayer server deployment is required
+  for this item.
+- Remaining known warning:
+  existing direct `NetCullDistanceSquared` deprecation warnings remain in
+  gameplay actors and are already tracked for future cleanup.
+
 ## Agrarian 0.1.O MVP Character Proxy Selection - 2026-05-19
 
 - Completed the fifth `0.1.O Investor Visual MVP And Menu Polish` item:
