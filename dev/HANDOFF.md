@@ -8134,3 +8134,48 @@ Roadmap state:
 - Current version section: `0.1.Q MVP QA Gates`
 - Items remaining in `0.1.Q`: `2`
 - Immediate next roadmap item: `Clean up Unreal API deprecation warnings from packaged builds`.
+
+## Agrarian 0.1.Q Net Cull Deprecation Cleanup - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `5364f4d Clean up net cull deprecation warnings`
+
+Completed roadmap item:
+
+- `Clean up Unreal API deprecation warnings from packaged builds`
+  - Replaced direct `NetCullDistanceSquared = FMath::Square(...)` assignments
+    with `SetNetCullDistanceSquared(FMath::Square(...))` on item pickups,
+    resource nodes, campfires, shelters, wildlife, water sources, weather
+    exposure zones, and wildlife spawn managers.
+  - Updated network relevancy verification to expect the setter path.
+  - Added `verify_net_cull_deprecation_cleanup.py` to prevent deprecated direct
+    assignment from returning.
+
+Verification:
+
+- `python3 Scripts/verify_net_cull_deprecation_cleanup.py` passed.
+- `python3 Scripts/verify_network_relevancy_rules.py` passed.
+- `python3 -m py_compile Scripts/verify_net_cull_deprecation_cleanup.py Scripts/verify_network_relevancy_rules.py` passed.
+- `rg -n "NetCullDistanceSquared\\s*=" Source/AgrarianGame Scripts` found no
+  runtime source assignments; only the guard text in the verifier remains.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Shared client/server C++ cleanup`.
+- Include in final 0.1.Q Windows package and server deploy decision.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local
+  project mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.Q MVP QA Gates`
+- Items remaining in `0.1.Q`: `1`
+- Immediate next roadmap item: `Server remains stable with target test player count`.
