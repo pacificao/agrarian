@@ -1,5 +1,31 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Structure Ignition Risk - 2026-05-19
+
+- Completed the seventh `0.1.P MVP Audio And Atmosphere` item:
+  `Add shelter/structure ignition risk when fires are placed too close to
+  primitive shelters, wood piles, flammable crafting stations, or settlement
+  objects.`
+- Latest pushed game commit:
+  `168cd0e Add structure ignition risk checks`.
+- Changes:
+  - added replicated structure ignition risk and ignition flag to campfires.
+  - checks nearby primitive shelters and flammable wood/fiber resource nodes as
+    MVP stand-ins for wood piles, flammable crafting stations, and settlement
+    objects.
+  - skips the structure check for contained fires.
+  - scales risk with burn duration, weather/wind, and current fire-risk ratio.
+  - persists structure ignition risk state with campfire persistence.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_structure_ignition_risk.py`.
+- Verification completed:
+  - `python3 Scripts/verify_structure_ignition_risk.py`
+  - `python3 -m py_compile Scripts/verify_structure_ignition_risk.py`
+  - `git diff --check`
+- Deployment classification:
+  replicated gameplay/persistence change. Multiplayer server deployment can
+  wait for the milestone package unless live fire-risk testing is needed now.
+
 ## Agrarian 0.1.P Vegetation Ignition Checks - 2026-05-19
 
 - Completed the sixth `0.1.P MVP Audio And Atmosphere` item:
