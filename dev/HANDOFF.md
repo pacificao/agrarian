@@ -1,5 +1,27 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.Q Craft Shelter Gate - 2026-05-19
+
+- Completed the sixth `0.1.Q MVP QA Gates` item:
+  `Can craft a shelter.`
+- Latest pushed game commit:
+  `0a40d2a Add craft shelter QA gate`.
+- Changes:
+  - extended `Docs/QA/MvpQaGates.md` with the craft-shelter gate.
+  - tied the gate to primitive frame/wall/roof/shelter recipes, native build
+    placement, `BP_PrimitiveShelter`, shelter persistence/protection hooks, and
+    the natural shelter playable-loop smoke test.
+  - added `Scripts/verify_craft_shelter_qa_gate.py`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_craft_shelter_qa_gate.py`
+  - `python3 -m py_compile Scripts/verify_craft_shelter_qa_gate.py`
+  - `python3 Scripts/verify_shelter_weather_protection.py`
+  - `git diff --check`
+- Deployment classification:
+  gameplay/server-relevant QA coverage. No immediate deployment was performed;
+  include this in the next milestone server package.
+
 ## Agrarian 0.1.Q Craft Fire Gate - 2026-05-19
 
 - Completed the fifth `0.1.Q MVP QA Gates` item:
