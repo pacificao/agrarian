@@ -1,5 +1,29 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Gathering Sounds - 2026-05-19
+
+- Completed the third `0.1.P MVP Audio And Atmosphere` item:
+  `Add gathering sounds.`
+- Latest pushed game commit:
+  `47cd7a5 Add MVP gathering audio hooks`.
+- Changes:
+  - added a spatialized `GatheringAudioComponent` to
+    `AAgrarianResourceNode`.
+  - added assignable `GatheringSound` and `DepletedGatheringSound` slots.
+  - added an unreliable multicast cue after successful server-authoritative
+    harvests so nearby clients can hear gathering without trusting client
+    gather requests.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_gathering_sounds.py`.
+- Verification completed:
+  - `python3 Scripts/verify_gathering_sounds.py`
+  - `python3 -m py_compile Scripts/verify_gathering_sounds.py`
+  - `git diff --check`
+- Deployment classification:
+  replicated gameplay/audio hook and docs/verification. No multiplayer server
+  deployment is required until the next server package because this only adds a
+  sound hook and does not change required server deployment state.
+
 ## Agrarian 0.1.P Footstep Placeholders - 2026-05-19
 
 - Completed the second `0.1.P MVP Audio And Atmosphere` item:
