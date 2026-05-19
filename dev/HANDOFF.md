@@ -1,5 +1,62 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.D Ground Zero Backfill / Windows Investor Demo Built - 2026-05-19
+
+- Completed the remaining `0.1.D Single Biome MVP Map` items after the
+  investor-polish rule change:
+  - `Create playable test map`
+  - `Add resource nodes`
+- Latest pushed game commit:
+  `25e20c8 Finish Ground Zero playable map resources`.
+- Changes:
+  - updated the Ground Zero playable-map verifier to validate the current
+    real-terrain demo map instead of deprecated flat-test labels.
+  - verifier now checks safe player start, nearby wood/fiber/water/fire/
+    shelter/wildlife loop actors, map boundary, sky/weather controllers, and
+    absence of legacy flat-test actors.
+  - updated the playable loop smoke test to use the current Ground Zero demo
+    actor labels.
+  - extended resource verification across wood, fiber, edible plants, and
+    stone to require stable persistence IDs, yield item IDs, remaining
+    harvests, and readable first-pass material assignments.
+  - added the edible-plant material to natural-environment verification/docs.
+  - marked both remaining `0.1.D` roadmap items complete.
+- Verification completed:
+  - `python3 -m py_compile Scripts/verify_test_map_placements.py Scripts/verify_ground_zero_resources.py Scripts/verify_ground_zero_natural_environment_pass.py Scripts/verify_playable_loop_smoke.py`
+  - `git diff --check`
+  - Windows Unreal: `Scripts\verify_test_map_placements.py`
+    - passed with 11 critical actors checked.
+    - map check reported 0 errors and 0 warnings.
+  - Windows Unreal: `Scripts\verify_ground_zero_resources.py`
+    - passed with 4 wood, 5 fiber, 3 edible plant, and 4 stone nodes.
+  - Windows Unreal: `Scripts\verify_ground_zero_natural_environment_pass.py`
+    - passed with 9 materials, 1 landscape, 17 dressed resource/water actors,
+      and 11 variation actors.
+  - Windows Unreal: `Scripts\verify_playable_loop_smoke.py`
+    - passed natural gather/craft/place/save/restore loop.
+- Windows package status:
+  - package completed with `BUILD SUCCESSFUL`.
+  - output path:
+    `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment`.
+  - verified `AgrarianGame.exe`, `Start Agrarian Demo.cmd`,
+    `Start Agrarian Demo - DX12.cmd`,
+    `Start Agrarian Demo - Compatibility DX11.cmd`,
+    `Install Prerequisites.cmd`, and `README-Investor-Demo.txt`.
+  - output folder size checked at approximately `1.1G`.
+  - packaged README still shows
+    `Investor Demo v0.1.N - Build 2026.05.18`; this was left unchanged because
+    the work was a 0.1.D roadmap backfill on top of the current investor build
+    line, not a version downgrade.
+- Deployment classification:
+  client/map/docs/verification only. No multiplayer server deployment was
+  required or performed.
+- Remaining known warning:
+  existing direct `NetCullDistanceSquared` deprecation warnings remain and are
+  already tracked in the roadmap under `0.1.P MVP QA Gates`.
+- Automation note:
+  item and final workflow summary emails delivered through `pacificao-mail`
+  local delivery tooling; AWS SES is not used for Agrarian workflow emails.
+
 ## Agrarian MVP Menu Input / Save-Quit Rebuild - 2026-05-18
 
 - Fixed the follow-up investor-demo menu issue where the character selection
