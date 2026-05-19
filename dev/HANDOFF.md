@@ -6019,3 +6019,38 @@ Roadmap state:
 - Current version section: `0.1.M Persistence MVP`
 - Items remaining in `0.1.M`: `2`
 - Immediate next roadmap item: `Add recovery plan for corrupted save`.
+
+## Agrarian 0.1.M Corrupted Save Recovery Plan - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `31e781d Document save recovery plan`
+
+Completed roadmap item:
+
+- `Add recovery plan for corrupted save`
+  - Added `Docs/Ops/PersistenceSaveRecoveryPlan.md`.
+  - Documented suspect-save symptoms, immediate response, restoring the newest
+    timestamped backup, fallback when all backups fail, and MVP limitations.
+  - Linked the plan from the persistence design document.
+  - Added `Scripts/verify_save_recovery_plan.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_save_recovery_plan.py` passed.
+- `python3 Scripts/verify_save_recovery_plan.py` passed.
+- `git diff --check` passed.
+- No Windows editor compile was run because this is docs/verifier only.
+
+Deployment classification:
+
+- `Docs/email only`.
+
+Roadmap state:
+
+- Current version section: `0.1.M Persistence MVP`
+- Items remaining in `0.1.M`: `1`
+- Immediate next roadmap item: `Document persistence limitations`.
