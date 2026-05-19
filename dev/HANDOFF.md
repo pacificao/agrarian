@@ -1,5 +1,34 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O GPU Startup Visual Test Gate - 2026-05-19
+
+- Completed the fourth `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Add a visually verified packaged-client startup test using Sunshine/
+  Moonlight or another real GPU desktop capture path, because QEMU guest-agent
+  screenshots cannot validate the interactive rendered desktop.`
+- Latest pushed game commit:
+  `11a1304 Add GPU startup visual test gate`.
+- Changes:
+  - added `Docs/Ops/PackagedClientGpuStartupVisualTest.md` with the real-GPU
+    startup visual test process.
+  - added `Scripts/RunWindowsGpuStartupVisualCheck.bat` for Windows-side
+    packaged-demo and Sunshine service checks before a Moonlight capture
+    session.
+  - added `Scripts/verify_packaged_client_gpu_startup_visual_test.py`.
+  - linked the new packaged-client visual test from
+    `Docs/Ops/WindowsBuilderGpuRemoteAccess.md`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_packaged_client_gpu_startup_visual_test.py`
+  - `python3 -m py_compile Scripts/verify_packaged_client_gpu_startup_visual_test.py`
+  - `git diff --check`
+  - Windows helper check:
+    `Scripts\RunWindowsGpuStartupVisualCheck.bat --check-tools`
+    reported the packaged demo exists and `SunshineService` is running.
+- Deployment classification:
+  visual QA/docs/scripts only. No multiplayer server deployment is required
+  for this item.
+
 ## Agrarian 0.1.O Segmented Startup/Pause Flow - 2026-05-19
 
 - Completed the third `0.1.O Investor Visual MVP And Menu Polish` item:
