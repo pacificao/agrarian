@@ -1,5 +1,30 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O Packaged Demo Visual QA Evidence Gate - 2026-05-19
+
+- Completed the thirteenth `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Add packaged-demo visual QA screenshots or short clips for startup credits,
+  character selection, first spawn, terrain, vegetation, water, campfire,
+  shelter, pause menu, and save/quit before each investor build is called
+  ready.`
+- Latest pushed game commit:
+  `1ac7166 Add investor visual QA evidence gate`.
+- Changes:
+  - added `Docs/Ops/PackagedDemoVisualQAEvidence.md`.
+  - added `Scripts/RunWindowsInvestorVisualQACheck.bat`.
+  - added `Scripts/verify_packaged_demo_visual_qa_evidence.py`.
+  - expanded the existing startup GPU visual checklist/helper to include
+    terrain, vegetation, water, campfire, and shelter captures.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_packaged_demo_visual_qa_evidence.py`
+  - `python3 -m py_compile Scripts/verify_packaged_demo_visual_qa_evidence.py`
+  - `python3 Scripts/verify_packaged_client_gpu_startup_visual_test.py`
+  - `git diff --check`
+- Deployment classification:
+  docs/tooling/QA process only. No multiplayer server deployment is required
+  for this item.
+
 ## Agrarian 0.1.O Non-Ray-Traced Default Verification - 2026-05-19
 
 - Completed the twelfth `0.1.O Investor Visual MVP And Menu Polish` item:
