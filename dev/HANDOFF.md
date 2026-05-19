@@ -5367,6 +5367,51 @@ Required next step:
   `nathan@192.168.5.15:/opt/agrarian/server`.
 - Start `agrarian-game-server.service` and verify `ss -lunp` shows `7777/udp`.
 
+## Agrarian PlayServer Linux Package Deployment - 2026-05-18
+
+Windows-Builder Linux toolchain:
+
+- Installed official UE 5.7 Linux cross-toolchain:
+  `v26_clang-20.1.8-rockylinux8`.
+- Toolchain path:
+  `C:\UnrealToolchains\v26_clang-20.1.8-rockylinux8`.
+- Machine environment variable set:
+  `LINUX_MULTIARCH_ROOT=C:\UnrealToolchains\v26_clang-20.1.8-rockylinux8`.
+- Turnkey verifies Linux SDK as valid.
+
+Dedicated server target status:
+
+- `Scripts\BuildLinuxDedicatedServer-Windows.bat` still cannot produce the true
+  server target because Epic's installed binary engine reports:
+  `Server targets are not currently supported from this engine distribution.`
+- Production-quality follow-up: use a source-built/server-capable Unreal engine
+  distribution for the real `AgrarianGameServer` dedicated target.
+
+MVP fallback deployed:
+
+- Built Linux game package via UAT `BuildCookRun` for platform `Linux`.
+- Output path on build share:
+  `/mnt/projects/AgrarianGameBulid/Builds/LinuxGameDevelopment`.
+- First Linux cook took about 1h 16m and generated the initial Vulkan shader
+  cache.
+- Package size: `1.1G`.
+- Deployed to:
+  `nathan@192.168.5.15:/opt/agrarian/server`.
+- Created wrapper:
+  `/opt/agrarian/server/AgrarianGameServer.sh`.
+- Wrapper runs:
+  `/Game/Agrarian/Maps/L_GroundZeroTerrain_Test?listen -server -port=7777 -log
+  -unattended -NullRHI -nosound`.
+
+Verification:
+
+- `agrarian-game-server.service` is active after stability check.
+- `ss -lunp` shows `AgrarianGame` listening on `0.0.0.0:7777/udp`.
+- `nc -zvu -w 2 192.168.5.15 7777` succeeds from LAN.
+- Runtime log reports ProjectVersion `0.1.L-investor.20260518`.
+- Runtime log reports browse started for:
+  `/Game/Agrarian/Maps/L_GroundZeroTerrain_Test?Name=Player?listen`.
+
 ## Agrarian 0.1.K Wildlife Spawn Manager - 2026-05-18
 
 Current repo:
