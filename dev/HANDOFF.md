@@ -6054,3 +6054,42 @@ Roadmap state:
 - Current version section: `0.1.M Persistence MVP`
 - Items remaining in `0.1.M`: `1`
 - Immediate next roadmap item: `Document persistence limitations`.
+
+## Agrarian 0.1.M Persistence Limitations - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `5a381ad Document MVP persistence limitations`
+
+Completed roadmap item:
+
+- `Document persistence limitations`
+  - Added `## MVP Persistence Limitations` to
+    `Docs/PersistenceDesignDocument.md`.
+  - Documented current limits around file-based saves, missing database/account
+    binding, migration tooling, corrupted-save validation, placed-container
+    actor capture, offline/family simulation, cross-server persistence,
+    external backup replication, player-facing UI, and pre-MVP save
+    compatibility.
+  - Added `Scripts/verify_persistence_limitations.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_persistence_limitations.py` passed.
+- `python3 Scripts/verify_persistence_limitations.py` passed.
+- `git diff --check` passed.
+- No Windows editor compile was run because this is docs/verifier only.
+
+Deployment classification:
+
+- `Docs/email only`.
+
+Roadmap state:
+
+- `0.1.M Persistence MVP` roadmap items are complete.
+- Next required action: build the Windows investor demo; deploy the multiplayer
+  server package only if the build environment is available because 0.1.M
+  included server-relevant persistence runtime changes.
