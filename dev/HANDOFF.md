@@ -6450,3 +6450,41 @@ Roadmap state:
 - Current version section: `0.1.N MVP UI And UX`
 - Items remaining in `0.1.N`: `5`
 - Immediate next roadmap item: `Add interaction prompts`.
+## Agrarian 0.1.N Interaction Prompt Toggle - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `0be6e0b Add MVP interaction prompt toggle`
+
+Completed roadmap item:
+
+- `Add interaction prompts`
+  - Promoted the existing centered interaction prompt renderer into the 0.1.N UI pass.
+  - Added `AgrarianToggleInteractionPrompts` to show/hide prompts.
+  - Prompt text remains driven by the currently focused interactable actor.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_interaction_prompt_toggle.py` passed.
+- `python3 Scripts/verify_mvp_interaction_prompt_toggle.py` passed.
+- `git diff --check` passed.
+- No full Windows package was run for this item; final milestone packaging is still required.
+
+Deployment classification:
+
+- `Client UI only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through `pacificao-mail`
+  using local Dovecot delivery, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.N MVP UI And UX`
+- Items remaining in `0.1.N`: `4`
+- Immediate next roadmap item: `Add death/respawn UI`.
