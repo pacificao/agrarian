@@ -1,5 +1,28 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O Investor Rendering Presets - 2026-05-19
+
+- Completed the eleventh `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Define default, recommended, and cinematic investor rendering presets, with
+  ray tracing available only as an optional high-end/cinematic mode and never
+  required for baseline visual credibility.`
+- Latest pushed game commit:
+  `4894c9d Define investor rendering presets`.
+- Changes:
+  - added `Config/AgrarianRenderingPresets.ini`.
+  - added `Docs/Rendering/InvestorRenderingPresets.md`.
+  - added `Scripts/verify_investor_rendering_presets.py`.
+  - defined Default and Recommended as non-ray-traced presets.
+  - defined Cinematic as the optional high-end ray-tracing/capture preset.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_investor_rendering_presets.py`
+  - `python3 -m py_compile Scripts/verify_investor_rendering_presets.py`
+  - `git diff --check`
+- Deployment classification:
+  config/docs/verification only. No multiplayer server deployment is required
+  for this item.
+
 ## Agrarian 0.1.O MVP Realism Target Guardrails - 2026-05-19
 
 - Completed the tenth `0.1.O Investor Visual MVP And Menu Polish` item:
