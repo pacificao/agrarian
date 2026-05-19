@@ -1,5 +1,26 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.Q Packaged Client Launch Gate - 2026-05-19
+
+- Completed the first `0.1.Q MVP QA Gates` item:
+  `Can launch packaged client.`
+- Latest pushed game commit:
+  `80e6318 Add packaged client launch QA gate`.
+- Changes:
+  - added `Docs/QA/MvpQaGates.md`.
+  - documented the packaged-client launch evidence requirements.
+  - tied the gate to the Windows package script, packaged executable,
+    installed investor launchers, and real-GPU visual QA readiness helper.
+  - added `Scripts/verify_packaged_client_launch_gate.py`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_packaged_client_launch_gate.py`
+  - `python3 -m py_compile Scripts/verify_packaged_client_launch_gate.py`
+  - `git diff --check`
+- Deployment classification:
+  client QA/docs/script only. No multiplayer server deployment is required for
+  this item.
+
 ## Agrarian Linux Server Build Block Cleared With MVP Fallback - 2026-05-19
 
 - Latest pushed game commit:
