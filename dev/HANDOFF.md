@@ -1,5 +1,28 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Fire Sounds - 2026-05-19
+
+- Completed the fourth `0.1.P MVP Audio And Atmosphere` item:
+  `Add fire sounds.`
+- Latest pushed game commit:
+  `280fa76 Add MVP campfire audio hooks`.
+- Changes:
+  - added spatialized campfire loop and event audio components.
+  - added assignable `FireLoopSound`, `IgniteSound`, and `ExtinguishSound`
+    slots.
+  - tied loop playback to replicated lit-state updates.
+  - added server-triggered multicast ignition/extinguish event cues.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_fire_sounds.py`.
+- Verification completed:
+  - `python3 Scripts/verify_fire_sounds.py`
+  - `python3 -m py_compile Scripts/verify_fire_sounds.py`
+  - `git diff --check`
+- Deployment classification:
+  replicated gameplay/audio hook and docs/verification. No multiplayer server
+  deployment is required until the next server package because this only adds
+  optional audio hooks.
+
 ## Agrarian 0.1.P Gathering Sounds - 2026-05-19
 
 - Completed the third `0.1.P MVP Audio And Atmosphere` item:
