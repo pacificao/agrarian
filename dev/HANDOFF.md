@@ -1,5 +1,28 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Volume Sliders - 2026-05-19
+
+- Completed the seventeenth and final `0.1.P MVP Audio And Atmosphere` item:
+  `Add volume sliders.`
+- Latest pushed game commit:
+  `7c74d4f Add MVP audio volume sliders`.
+- Changes:
+  - added MVP frontend sliders for master, ambient, weather, effects, wildlife,
+    and UI volume levels.
+  - stores runtime slider values on the frontend widget.
+  - applies master/UI volume immediately to frontend feedback sounds.
+  - leaves final SoundClass/audio-subsystem bus binding for authored audio
+    assets.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_volume_sliders.py`.
+- Verification completed:
+  - `python3 Scripts/verify_volume_sliders.py`
+  - `python3 -m py_compile Scripts/verify_volume_sliders.py`
+  - `git diff --check`
+- Deployment classification:
+  client UI/audio hook. No multiplayer server deployment is required for this
+  item.
+
 ## Agrarian 0.1.P Audio Mix Settings - 2026-05-19
 
 - Completed the sixteenth `0.1.P MVP Audio And Atmosphere` item:
