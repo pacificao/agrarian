@@ -1,5 +1,26 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.Q Resource Gathering Gate - 2026-05-19
+
+- Completed the fourth `0.1.Q MVP QA Gates` item:
+  `Can gather resources.`
+- Latest pushed game commit:
+  `436a5b5 Add resource gathering QA gate`.
+- Changes:
+  - extended `Docs/QA/MvpQaGates.md` with the resource gathering gate.
+  - tied the gate to Ground Zero wood/fiber nodes, `AAgrarianResourceNode`,
+    replicated `RemainingHarvests`, inventory grants, resource persistence, and
+    the playable-loop smoke test.
+  - added `Scripts/verify_resource_gathering_qa_gate.py`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_resource_gathering_qa_gate.py`
+  - `python3 -m py_compile Scripts/verify_resource_gathering_qa_gate.py`
+  - `git diff --check`
+- Deployment classification:
+  gameplay/server-relevant QA coverage. No immediate deployment was performed;
+  include this in the next milestone server package.
+
 ## Agrarian 0.1.Q Two-Client Connection Gate - 2026-05-19
 
 - Completed the third `0.1.Q MVP QA Gates` item:
