@@ -8348,3 +8348,43 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `13`
 - Immediate next roadmap item: `Add a first-pass skill taxonomy for survival, gathering, tool use, crafting, fire, shelter, navigation, first aid, food safety, and weather awareness`.
+
+## Agrarian 0.1.R MVP Skill Taxonomy - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `0c48022 Add MVP skill taxonomy`
+
+Completed roadmap item:
+
+- `Add a first-pass skill taxonomy for survival, gathering, tool use, crafting, fire, shelter, navigation, first aid, food safety, and weather awareness`
+  - Added the first taxonomy to `Docs/KnowledgeAndSkillFoundation.md`.
+  - Covered survival, gathering, tool use, crafting, fire, shelter, navigation,
+    first aid, food safety, and weather awareness.
+  - Defined these as non-lockout skill domains that modify risk, quality, speed,
+    yield, readability, and confidence.
+
+Verification:
+
+- `python3 Scripts/verify_skill_taxonomy.py` passed.
+- `python3 -m py_compile Scripts/verify_skill_taxonomy.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local project
+  mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `12`
+- Immediate next roadmap item: `Define how knowledge affects survival actions: fewer mistakes, safer attempts, better yields, lower injury risk, and more reliable outcomes`.
