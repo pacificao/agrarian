@@ -1,5 +1,31 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Unattended Fire Risk - 2026-05-19
+
+- Completed the fifth `0.1.P MVP Audio And Atmosphere` item:
+  `Add unattended and poorly maintained fire risk for campfires and other
+  open-flame sources.`
+- Latest pushed game commit:
+  `14cd823 Add unattended campfire risk state`.
+- Changes:
+  - added replicated campfire risk state for lit duration, seconds since
+    maintenance, cleared area, containment, and `FireRiskScore`.
+  - added server-side risk growth for unattended fires and high-fuel fires.
+  - added mitigation from maintenance, cleared area, containment, and wet
+    weather.
+  - persisted the new campfire risk state through the existing persistent actor
+    component.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_unattended_fire_risk.py`.
+- Verification completed:
+  - `python3 Scripts/verify_unattended_fire_risk.py`
+  - `python3 -m py_compile Scripts/verify_unattended_fire_risk.py`
+  - `git diff --check`
+- Deployment classification:
+  replicated gameplay/persistence change. Multiplayer server deployment can
+  wait for the milestone package unless a live server test needs the fire-risk
+  state immediately.
+
 ## Agrarian 0.1.P Fire Sounds - 2026-05-19
 
 - Completed the fourth `0.1.P MVP Audio And Atmosphere` item:
