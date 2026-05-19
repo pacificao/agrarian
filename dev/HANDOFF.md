@@ -1,5 +1,26 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O Non-Ray-Traced Default Verification - 2026-05-19
+
+- Completed the twelfth `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Verify the non-ray-traced compatibility/default path still looks credible on
+  common investor, tester, and remote-session hardware.`
+- Latest pushed game commit:
+  `81bf5ec Verify non ray traced investor default`.
+- Changes:
+  - added `Scripts/verify_non_ray_traced_default.py`.
+  - updated `Docs/Rendering/InvestorRenderingPresets.md` to state packaged
+    investor demos should launch on the Default preset unless another profile
+    is explicitly selected.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_non_ray_traced_default.py`
+  - `python3 -m py_compile Scripts/verify_non_ray_traced_default.py`
+  - `git diff --check`
+- Deployment classification:
+  docs/config verification only. No multiplayer server deployment is required
+  for this item.
+
 ## Agrarian 0.1.O Investor Rendering Presets - 2026-05-19
 
 - Completed the eleventh `0.1.O Investor Visual MVP And Menu Polish` item:
