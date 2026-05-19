@@ -6371,3 +6371,43 @@ Roadmap state:
 - Current version section: `0.1.N MVP UI And UX`
 - Items remaining in `0.1.N`: `7`
 - Immediate next roadmap item: `Add inventory UI`.
+## Agrarian 0.1.N Inventory UI Toggle - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `0fb7f1e Add MVP inventory UI toggle`
+
+Completed roadmap item:
+
+- `Add inventory UI`
+  - Promoted the existing compact replicated-inventory HUD panel into the
+    0.1.N UI pass.
+  - Added `AgrarianToggleInventoryUI` to show/hide the MVP inventory panel.
+  - Kept the MVP inventory surface lightweight; full drag/drop inventory remains
+    later work.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_inventory_ui_toggle.py` passed.
+- `python3 Scripts/verify_mvp_inventory_ui_toggle.py` passed.
+- `git diff --check` passed.
+- No full Windows package was run for this item; final milestone packaging is still required.
+
+Deployment classification:
+
+- `Client UI only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through `pacificao-mail`
+  using local Dovecot delivery, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.N MVP UI And UX`
+- Items remaining in `0.1.N`: `6`
+- Immediate next roadmap item: `Add crafting UI`.
