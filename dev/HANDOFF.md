@@ -8618,3 +8618,39 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `6`
 - Immediate next roadmap item: `Define the first subject content format: topic, concepts, difficulty tier, prerequisite concepts, in-game effect, practice action, and source note`.
+
+## Agrarian 0.1.R Subject Content Format - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- Latest pushed game commit: `7b1f9b8 Define subject content format`
+
+Completed roadmap item:
+
+- `Define the first subject content format`
+  - Added a compact content schema to `Docs/KnowledgeAndSkillFoundation.md`.
+  - Fields: `topic`, `concepts`, `difficulty_tier`,
+    `prerequisite_concepts`, `in_game_effect`, `practice_action`, and
+    `source_note`.
+  - Added a fire-clearance example suitable for later data assets.
+
+Verification:
+
+- `python3 Scripts/verify_subject_content_format.py` passed.
+- `python3 -m py_compile Scripts/verify_subject_content_format.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com`.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `5`
+- Immediate next roadmap item: `Add a small MVP question bank for elementary survival knowledge`.
