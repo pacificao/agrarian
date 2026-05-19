@@ -1,5 +1,29 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Fire Suppression Hooks - 2026-05-19
+
+- Completed the tenth `0.1.P MVP Audio And Atmosphere` item:
+  `Add fire suppression hooks for rain, water carrying, dirt/sand, cleared
+  firebreaks, and future firefighting tools.`
+- Latest pushed game commit:
+  `6b43a23 Add fire suppression hooks`.
+- Changes:
+  - added shared server-side `ApplyFireSuppression`.
+  - added water, dirt/sand, firebreak, and tool suppression wrappers.
+  - suppression raises pressure, reduces ignition risk, reduces active fire
+    intensity, and shrinks spread radius.
+  - water/rain also drains fuel; wet weather contributes passive suppression
+    pressure.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_fire_suppression_hooks.py`.
+- Verification completed:
+  - `python3 Scripts/verify_fire_suppression_hooks.py`
+  - `python3 -m py_compile Scripts/verify_fire_suppression_hooks.py`
+  - `git diff --check`
+- Deployment classification:
+  replicated gameplay change. Multiplayer server deployment can wait for the
+  milestone package unless live suppression testing is needed now.
+
 ## Agrarian 0.1.P Fire Maintenance Gameplay - 2026-05-19
 
 - Completed the ninth `0.1.P MVP Audio And Atmosphere` item:
