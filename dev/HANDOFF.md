@@ -8583,3 +8583,38 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `7`
 - Immediate next roadmap item: `Define accessibility rules for the learning system: hints, retries, readable wording, no hard lockout from basic survival, and non-punitive practice paths`.
+
+## Agrarian 0.1.R Learning Accessibility Rules - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- Latest pushed game commit: `8e33068 Define learning accessibility rules`
+
+Completed roadmap item:
+
+- `Define accessibility rules for the learning system`
+  - Added learning accessibility rules to `Docs/KnowledgeAndSkillFoundation.md`.
+  - Covered reusable hints, retries, readable wording, non-color-only warnings,
+    no hard lockout from basic survival, safer practice paths, and diminishing
+    returns to prevent exploit loops.
+
+Verification:
+
+- `python3 Scripts/verify_learning_accessibility_rules.py` passed.
+- `python3 -m py_compile Scripts/verify_learning_accessibility_rules.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com`.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `6`
+- Immediate next roadmap item: `Define the first subject content format: topic, concepts, difficulty tier, prerequisite concepts, in-game effect, practice action, and source note`.
