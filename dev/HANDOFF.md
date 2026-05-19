@@ -1,5 +1,44 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.N Complete / Windows Investor Demo Built - 2026-05-18
+
+- Completed `0.1.N MVP UI And UX` and built the Windows investor demo.
+- Latest pushed game commit:
+  `a2cf951 Fix persistence subsystem forward declaration`.
+- Final 0.1.N UI commit before build:
+  `485dd61 Verify MVP UI resolution scaling`.
+- Demo metadata commit:
+  `43cece4 Update investor demo metadata to 0.1.N`.
+- Build output:
+  `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment`.
+- Investor demo version verified from the packaged README:
+  `Investor Demo v0.1.N - Build 2026.05.18`.
+- Primary launchers/output:
+  - `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment/Start Agrarian Demo.cmd`
+  - `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment/Start Agrarian Demo - DX12.cmd`
+  - `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment/Start Agrarian Demo - Compatibility DX11.cmd`
+  - `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment/AgrarianGame.exe`
+- Build verification completed:
+  - synced Windows build share to `a2cf951`
+  - ran `Scripts\PackageWindowsDevelopment.bat` through the Windows build VM
+  - Unreal editor target compiled successfully
+  - packaged game target compiled successfully
+  - cook/stage/archive completed with `BUILD SUCCESSFUL`
+  - output folder size checked at approximately `1.1G`
+- Build notes:
+  - the first package attempt exposed a missing forward declaration for
+    `UAgrarianPersistenceSubsystem` in `AgrarianGameGameMode.h`; fixed and
+    pushed before the successful build.
+  - Unreal still reports non-blocking deprecation warnings for direct
+    `NetCullDistanceSquared` access. Track as future cleanup before Unreal API
+    upgrades.
+- Deployment classification:
+  client UI/build only for 0.1.N. No multiplayer server deployment was required
+  or performed.
+- Automation note:
+  final workflow summary email delivered through `pacificao-mail` local
+  delivery tooling; AWS SES is not used for Agrarian workflow emails.
+
 ## Agrarian 0.1.N UI Common Resolution Scaling - 2026-05-18
 
 - Completed the final `0.1.N MVP UI And UX` roadmap item:
