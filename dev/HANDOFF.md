@@ -8911,3 +8911,50 @@ Roadmap state:
 
 - Current version section: `0.1.R Knowledge And Skill Foundation` complete.
 - Immediate next roadmap item: `0.2.A Land And Claiming`.
+
+## Agrarian 0.1 Completion Audit And 0.2 Roadmap Prep - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- Latest pushed game commit: `c742a17 Prepare roadmap for 0.2 homesteading`
+
+Completed request:
+
+- Verified every checkbox inside `0.1.A` through `0.1.R` is complete.
+- Confirmed unchecked roadmap items before `Version 0.2` are North Star /
+  philosophy statements, not unfinished `0.1` implementation tasks.
+- Reviewed source, scripts, config, and roadmap for obvious patch-over-patch
+  risks before starting 0.2.
+- Added `Docs/CodebaseReadinessReview.md` with current strengths, cleanup
+  findings, and 0.2 engineering priorities.
+- Removed duplicate `SavingAndQuit` branch logic in
+  `AgrarianMvpFrontendWidget.cpp`.
+- Expanded `Version 0.2 - Persistent Homesteading` with concrete schema,
+  authority, persistence, verifier, technical debt, and visual realism items.
+- Added `Scripts/verify_0_1_completion_and_0_2_readiness.py`.
+
+Verification:
+
+- `python3 Scripts/verify_0_1_completion_and_0_2_readiness.py` passed.
+- `python3 -m py_compile Scripts/verify_0_1_completion_and_0_2_readiness.py`
+  passed.
+- `git diff --check` passed.
+- Windows compile passed:
+  `Scripts\BuildEditor-Windows.bat` in
+  `P:\AgrarianGameBuild_0_1_P_Package`.
+
+Deployment classification:
+
+- Roadmap/documentation plus one low-risk frontend C++ cleanup.
+- Windows investor package rebuild was not required; editor compile verified the
+  source change.
+- Multiplayer server deploy was not required.
+
+Roadmap state:
+
+- `0.1` implementation roadmap is complete through `0.1.R`.
+- Next implementation section: `0.2.A Land And Claiming`.
+- New preparation sections added under 0.2:
+  - `0.2.I 0.1 Hardening And Technical Debt`
+  - `0.2.J Homesteading Visual And Biome Realism Pass`
