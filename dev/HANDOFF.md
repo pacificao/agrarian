@@ -8090,3 +8090,47 @@ Roadmap state:
 - Current version section: `0.1.Q MVP QA Gates`
 - Items remaining in `0.1.Q`: `3`
 - Immediate next roadmap item: `No critical log spam during 30-minute test`.
+
+## Agrarian 0.1.Q Critical Log Soak Gate - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `19d2d32 Add critical log soak QA gate`
+
+Completed roadmap item:
+
+- `No critical log spam during 30-minute test`
+  - Added a repeatable 30-minute critical log soak QA gate.
+  - Added `Scripts/scan_critical_log_spam.py` to scan client/server/release
+    logs for fatal, crash, assertion, ensure, access-violation, callstack, and
+    critical-error patterns.
+  - Documented the expected 30-minute exercise path: join, gather, craft/use
+    fire, craft/place shelter, wait through time/weather pressure, disconnect,
+    and reconnect where possible.
+
+Verification:
+
+- `python3 Scripts/verify_critical_log_spam_qa_gate.py` passed.
+- `python3 Scripts/scan_critical_log_spam.py /tmp/agrarian-log-scan-smoke` passed.
+- `python3 -m py_compile Scripts/verify_critical_log_spam_qa_gate.py Scripts/scan_critical_log_spam.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Client and server QA gate`.
+- Must be run against final milestone client/server logs before sending an
+  investor demo as stable.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local
+  project mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.Q MVP QA Gates`
+- Items remaining in `0.1.Q`: `2`
+- Immediate next roadmap item: `Clean up Unreal API deprecation warnings from packaged builds`.
