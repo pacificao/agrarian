@@ -5666,3 +5666,44 @@ Roadmap state:
 - Current version section: `0.1.M Persistence MVP`
 - Items remaining in `0.1.M`: `11`
 - Immediate next roadmap item: `Save player inventory`.
+
+## Agrarian 0.1.M Player Inventory Persistence - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `188ef7b Document player inventory persistence`
+
+Completed roadmap item:
+
+- `Save player inventory`
+  - Confirmed player inventory already persists through
+    `FAgrarianSavedPlayer::Inventory`.
+  - Inventory is copied from `UAgrarianInventoryComponent::Items` and restored
+    through `UAgrarianInventoryComponent::RestoreSavedItems`.
+  - Restore recomputes derived values and broadcasts inventory changes so HUD
+    and debug listeners see loaded item state.
+  - Updated persistence documentation, roadmap wording, and the existing
+    inventory persistence verifier for the 0.1.M item.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_inventory_persistence.py` passed.
+- `python3 Scripts/verify_inventory_persistence.py` passed.
+- `git diff --check` passed.
+- No Windows editor compile was run for this item because it only documented
+  and verified an existing C++ persistence path.
+
+Deployment classification:
+
+- `Docs/email only` for this item.
+- Milestone still has `Server deploy required` pending because earlier 0.1.M
+  persistence runtime changes affect the multiplayer host.
+
+Roadmap state:
+
+- Current version section: `0.1.M Persistence MVP`
+- Items remaining in `0.1.M`: `10`
+- Immediate next roadmap item: `Save resource depletion state if needed`.
