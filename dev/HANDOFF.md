@@ -1,5 +1,29 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.Q Two-Client Connection Gate - 2026-05-19
+
+- Completed the third `0.1.Q MVP QA Gates` item:
+  `Can connect two clients.`
+- Latest pushed game commit:
+  `57dd034 Add two client connection QA gate`.
+- Changes:
+  - extended `Docs/QA/MvpQaGates.md` with the two-client connection gate.
+  - added `Scripts/RunTwoClientConnectionSmoke-Windows.bat`.
+  - helper checks packaged client availability and can launch two client
+    instances against `play.agrariangame.com:7777` or a LAN endpoint.
+  - tied manual observation to `Docs/Ops/MultiplayerLatencyTestPlan.md`.
+  - added `Scripts/verify_two_client_connection_gate.py`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_two_client_connection_gate.py`
+  - `python3 -m py_compile Scripts/verify_two_client_connection_gate.py`
+  - `git diff --check`
+  - live play-server check: service active and `AgrarianGame` listening on
+    `0.0.0.0:7777/udp`.
+- Deployment classification:
+  client/server QA helper and docs. No new deployment was required for this
+  item; the helper will be included in the next packaged investor/demo checkout.
+
 ## Agrarian 0.1.Q Server Launch Gate - 2026-05-19
 
 - Completed the second `0.1.Q MVP QA Gates` item:
