@@ -1,5 +1,48 @@
 # Agrarian Codex Handoff
 
+## Agrarian MVP Menu Input / Save-Quit Rebuild - 2026-05-18
+
+- Fixed the follow-up investor-demo menu issue where the character selection
+  screen could still feel like it arrived after gameplay had begun and input
+  could fail to advance reliably.
+- Latest pushed game commit:
+  `b9efcdf Harden MVP menu input and quit flow`.
+- Changes:
+  - player movement/look input is now suppressed during the startup credits
+    delay and restored only after the MVP menu flow is completed.
+  - keyboard fallback input now handles Enter/Space, Backspace, and Escape at
+    the player-controller level when the MVP widget is visible.
+  - mouse clicks remain owned by the widget hit regions so character card
+    selection and button clicks do not accidentally skip screens.
+  - Escape now opens an MVP game menu after the frontend flow closes.
+  - the MVP game menu includes Resume and Save & Quit.
+  - Save & Quit runs `AgrarianSaveWorld` before issuing `quit`.
+  - the frontend backdrop is nearly opaque while active so the selection flow
+    reads as its own segment after the credits.
+- Verification completed:
+  - `python3 -m py_compile Scripts/verify_mvp_character_selection_landing.py Scripts/verify_mvp_character_archetype_choice.py Scripts/verify_mvp_join_server_screen.py Scripts/verify_mvp_loading_screen.py Scripts/verify_startup_credits_sequence.py Scripts/verify_mvp_menu_input_and_quit_flow.py`
+  - `python3 Scripts/verify_mvp_character_selection_landing.py`
+  - `python3 Scripts/verify_mvp_character_archetype_choice.py`
+  - `python3 Scripts/verify_mvp_join_server_screen.py`
+  - `python3 Scripts/verify_mvp_loading_screen.py`
+  - `python3 Scripts/verify_startup_credits_sequence.py`
+  - `python3 Scripts/verify_mvp_menu_input_and_quit_flow.py`
+  - `git diff --check`
+  - Windows editor compile via `Scripts\BuildEditor-Windows.bat`
+  - Windows investor package via `Scripts\PackageWindowsDevelopment.bat`
+- Windows package status:
+  - package completed with `BUILD SUCCESSFUL`.
+  - output path:
+    `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment`.
+  - verified `AgrarianGame.exe`, `Start Agrarian Demo.cmd`, and
+    `README-Investor-Demo.txt`.
+  - output folder size checked at approximately `1.1G`.
+  - packaged README still shows
+    `Investor Demo v0.1.N - Build 2026.05.18`.
+- Remaining known warning:
+  existing direct `NetCullDistanceSquared` deprecation warnings remain and are
+  already tracked in the roadmap under `0.1.P MVP QA Gates`.
+
 ## Agrarian MVP Menu/Credits Fix - 2026-05-18
 
 - Fixed the MVP startup/menu issue reported in the investor demo.
