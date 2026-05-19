@@ -1,5 +1,29 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O Investor Demo Acceptance Gate - 2026-05-19
+
+- Completed the fourteenth and final `0.1.O Investor Visual MVP And Menu
+  Polish` item:
+  `Add an investor-demo acceptance gate: no current build should be described
+  as investor visual MVP if menus are confusing, character art is mannequin-only,
+  terrain is flat/tan, foliage is absent or unreadable, or core objects still
+  read as primitive debug shapes.`
+- Latest pushed game commit:
+  `f27f2f9 Add investor demo acceptance gate`.
+- Changes:
+  - added `Docs/Investor/InvestorDemoAcceptanceGate.md`.
+  - updated `Docs/Investor/InvestorDemoStatus.md`.
+  - added `Scripts/verify_investor_demo_acceptance_gate.py`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_investor_demo_acceptance_gate.py`
+  - `python3 -m py_compile Scripts/verify_investor_demo_acceptance_gate.py`
+  - `python3 Scripts/verify_investor_demo_systems_first_status.py`
+  - `git diff --check`
+- Deployment classification:
+  docs/acceptance/QA policy only. No multiplayer server deployment is required
+  for this item.
+
 ## Agrarian 0.1.O Packaged Demo Visual QA Evidence Gate - 2026-05-19
 
 - Completed the thirteenth `0.1.O Investor Visual MVP And Menu Polish` item:
