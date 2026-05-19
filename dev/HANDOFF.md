@@ -1,5 +1,31 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.N UI Common Resolution Scaling - 2026-05-18
+
+- Completed the final `0.1.N MVP UI And UX` roadmap item:
+  `Ensure UI scales on common resolutions`.
+- Latest pushed game commit:
+  `485dd61 Verify MVP UI resolution scaling`.
+- Tightened the native MVP frontend panel layout around explicit margins,
+  preferred panel dimensions, minimum panel bounds, and the existing supported
+  UI scale range.
+- Added static/resolution verifier:
+  `/home/nathan/AgrarianGameBuild/Scripts/verify_mvp_ui_common_resolution_scaling.py`.
+- Verification completed:
+  - `python3 -m py_compile Scripts/verify_mvp_ui_common_resolution_scaling.py`
+  - `python3 Scripts/verify_mvp_ui_common_resolution_scaling.py`
+  - `git diff --check`
+- Deployment classification:
+  client UI only. No multiplayer server deployment is required for this item.
+- Automation note:
+  item summary email delivered through `pacificao-mail` local delivery tooling;
+  AWS SES is not used for Agrarian workflow emails.
+- Roadmap state:
+  `0.1.N MVP UI And UX` is complete. Next required action is updating investor
+  demo metadata, building the Windows investor demo, verifying the output, and
+  stopping. Multiplayer deployment is only needed if final build review finds a
+  server-relevant change.
+
 ## Latest AgrarianGameBuild Update - 2026-05-17
 
 - Added native cinematic startup credits to the investor-demo notice sequence.
