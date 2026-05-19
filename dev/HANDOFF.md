@@ -8471,3 +8471,44 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `10`
 - Immediate next roadmap item: `Add first contextual learning prompts for fire safety, potable water, exposure, shelter placement, injury care, and resource identification`.
+
+## Agrarian 0.1.R Contextual Learning Prompts - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `f92e34c Add contextual learning prompt specs`
+
+Completed roadmap item:
+
+- `Add first contextual learning prompts for fire safety, potable water, exposure, shelter placement, injury care, and resource identification`
+  - Added prompt specs to `Docs/KnowledgeAndSkillFoundation.md`.
+  - Covered fire safety, potable water, exposure, shelter placement, injury care,
+    and resource identification.
+  - Included trigger examples, prompt intent, sample wording, and the rule that
+    prompts explain immediate risk or opportunity without pausing the game or
+    forcing a quiz.
+
+Verification:
+
+- `python3 Scripts/verify_contextual_learning_prompts.py` passed.
+- `python3 -m py_compile Scripts/verify_contextual_learning_prompts.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local project
+  mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `9`
+- Immediate next roadmap item: `Design optional knowledge checks that appear when relevant to the action instead of interrupting basic play`.
