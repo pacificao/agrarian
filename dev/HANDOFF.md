@@ -6169,3 +6169,44 @@ Roadmap state:
 - Current version section: `0.1.N MVP UI And UX`
 - Items remaining in `0.1.N`: `12`
 - Immediate next roadmap item: `After splash/startup screens, land on an MVP character selection landing page`.
+## Agrarian 0.1.N Character Selection Landing - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `5efd81c Add MVP character selection landing`
+
+Completed roadmap item:
+
+- `After splash/startup screens, land on an MVP character selection landing page`
+  - Extended `UAgrarianMvpFrontendWidget` with a `CharacterSelection` screen.
+  - Added a scalable native character-selection landing page with two MVP
+    placeholder character cards.
+  - Updated `AAgrarianGamePlayerController` so local player controllers open
+    the MVP frontend directly on `CharacterSelection` after startup.
+  - Marked the roadmap item complete.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_character_selection_landing.py` passed.
+- `python3 Scripts/verify_mvp_character_selection_landing.py` passed.
+- `git diff --check` passed.
+- No full Windows package was run for this item; final milestone packaging is still required.
+
+Deployment classification:
+
+- `Client UI only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through `pacificao-mail`
+  using local Dovecot delivery, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.N MVP UI And UX`
+- Items remaining in `0.1.N`: `11`
+- Immediate next roadmap item: `Let players choose a realistic young adult male or female character with average proportions for the MVP`.
