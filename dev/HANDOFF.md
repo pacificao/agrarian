@@ -5584,3 +5584,45 @@ Roadmap state:
 - Current version section: `0.1.M Persistence MVP`
 - Items remaining in `0.1.M`: `13`
 - Immediate next roadmap item: `Save player stats`.
+
+## Agrarian 0.1.M Player Stats Persistence - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `82f60f4 Document player stats persistence`
+
+Completed roadmap item:
+
+- `Save player stats`
+  - Confirmed player stats already persist through
+    `FAgrarianSavedPlayer::Survival`.
+  - The saved survival snapshot covers health, stamina, exhaustion, hunger,
+    thirst, body temperature, injury, bleeding, sprain, sickness, death state,
+    and death reason.
+  - Restore continues through `UAgrarianSurvivalComponent::ApplySavedState`.
+  - Updated persistence documentation and roadmap wording to make the save
+    contract explicit.
+  - Added `Scripts/verify_player_stats_persistence.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_player_stats_persistence.py` passed.
+- `python3 Scripts/verify_player_stats_persistence.py` passed.
+- `git diff --check` passed.
+- No Windows editor compile was run for this item because it only documented
+  and verified an existing C++ persistence path.
+
+Deployment classification:
+
+- `Docs/email only` for this item.
+- Milestone still has `Server deploy required` pending because earlier 0.1.M
+  persistence runtime changes affect the multiplayer host.
+
+Roadmap state:
+
+- Current version section: `0.1.M Persistence MVP`
+- Items remaining in `0.1.M`: `12`
+- Immediate next roadmap item: `Save long-term character care history placeholders without applying aging gameplay yet`.
