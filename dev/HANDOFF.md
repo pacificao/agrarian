@@ -8430,3 +8430,44 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `11`
 - Immediate next roadmap item: `Define how practical experience grows through use, repetition, mistakes, and recovery from failure`.
+
+## Agrarian 0.1.R Practical Experience Growth - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `cfb02a6 Define practical experience growth`
+
+Completed roadmap item:
+
+- `Define how practical experience grows through use, repetition, mistakes, and recovery from failure`
+  - Added practical experience growth rules to
+    `Docs/KnowledgeAndSkillFoundation.md`.
+  - Defined meaningful use, repetition with diminishing returns, readable
+    mistakes, and recovery from failure as the main experience sources.
+  - Set the gain rule: award experience for meaningful action plus context,
+    reduce rote farming, and credit good recovery after mistakes.
+
+Verification:
+
+- `python3 Scripts/verify_practical_experience_growth.py` passed.
+- `python3 -m py_compile Scripts/verify_practical_experience_growth.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through the current local project
+  mail helper, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `10`
+- Immediate next roadmap item: `Add first contextual learning prompts for fire safety, potable water, exposure, shelter placement, injury care, and resource identification`.
