@@ -6250,3 +6250,44 @@ Roadmap state:
 - Current version section: `0.1.N MVP UI And UX`
 - Items remaining in `0.1.N`: `10`
 - Immediate next roadmap item: `Add join server screen`.
+## Agrarian 0.1.N Join Server Screen - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `2009295 Add MVP join server screen`
+
+Completed roadmap item:
+
+- `Add join server screen`
+  - Added a native `JoinServer` screen to `UAgrarianMvpFrontendWidget`.
+  - The screen shows the selected MVP character archetype and the target
+    `play.agrariangame.com:7777` address.
+  - Enter/Space from character selection advances to the join screen.
+  - Backspace/Escape returns to character selection.
+  - Added `AgrarianShowMvpScreen main|character|join` for direct manual/headless verification.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_join_server_screen.py` passed.
+- `python3 Scripts/verify_mvp_join_server_screen.py` passed.
+- `git diff --check` passed.
+- No full Windows package was run for this item; final milestone packaging is still required.
+
+Deployment classification:
+
+- `Client UI only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through `pacificao-mail`
+  using local Dovecot delivery, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.N MVP UI And UX`
+- Items remaining in `0.1.N`: `9`
+- Immediate next roadmap item: `Add loading screen`.
