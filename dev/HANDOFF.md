@@ -8690,3 +8690,39 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `4`
 - Immediate next roadmap item: `Define when deeper questions should matter: quality improvements, safer work, complex crafting, teaching others, and advanced branches`.
+
+## Agrarian 0.1.R Deeper Question Timing - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- Latest pushed game commit: `766ceac Define deeper question timing`
+
+Completed roadmap item:
+
+- `Define when deeper questions should matter`
+  - Added deeper-question timing rules to
+    `Docs/KnowledgeAndSkillFoundation.md`.
+  - Kept deeper checks out of the first survival loop.
+  - Tied deeper questions to quality improvements, safer work, complex crafting,
+    teaching others, and advanced branches.
+
+Verification:
+
+- `python3 Scripts/verify_deeper_question_timing.py` passed.
+- `python3 -m py_compile Scripts/verify_deeper_question_timing.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com`.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `3`
+- Immediate next roadmap item: `Add design notes for avoiding exploit farming and rote memorization`.
