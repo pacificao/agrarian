@@ -5822,3 +5822,42 @@ Roadmap state:
 - Current version section: `0.1.M Persistence MVP`
 - Items remaining in `0.1.M`: `7`
 - Immediate next roadmap item: `Save containers`.
+
+## Agrarian 0.1.M Container Persistence Schema - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `06666b1 Reserve container persistence schema`
+
+Completed roadmap item:
+
+- `Save containers`
+  - Added `FAgrarianSavedContainer` to the save schema.
+  - Reserved stable container ID, container type ID, transform, item stacks,
+    and owner player ID.
+  - Documented that 0.1.M does not yet have a placed container actor to
+    capture; the current craftable `simple_container` remains an inventory item
+    covered by player inventory persistence.
+  - Added `Scripts/verify_container_persistence_schema.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_container_persistence_schema.py` passed.
+- `python3 Scripts/verify_container_persistence_schema.py` passed.
+- `git diff --check` passed.
+- Windows editor compile gate was attempted but blocked because
+  `UNRAID_PASSWORD` was not present in the shell environment.
+
+Deployment classification:
+
+- `Server deploy required` at milestone packaging time because this changes the
+  shared save-game schema used by server-side persistence.
+
+Roadmap state:
+
+- Current version section: `0.1.M Persistence MVP`
+- Items remaining in `0.1.M`: `6`
+- Immediate next roadmap item: `Add server-side save interval`.
