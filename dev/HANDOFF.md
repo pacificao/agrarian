@@ -1,5 +1,34 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O Water Source Visual Pass - 2026-05-19
+
+- Completed the eighth `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Add a real water-source visual pass with surface material, edge treatment,
+  scale, and placement that reads as collectable freshwater instead of a
+  placeholder plane.`
+- Latest pushed game commit:
+  `d0c1e22 Add Ground Zero water source visual gate`.
+- Changes:
+  - added `Docs/Terrain/GroundZeroWaterSourceVisualPass.md`.
+  - added `Scripts/verify_ground_zero_water_source_visual_pass.py`.
+  - updated `Scripts/setup_ground_zero_demo_map.py` so the Ground Zero
+    freshwater source keeps sandstone material on its root/bank proxies while
+    applying freshwater material only to the water surface and collect marker.
+  - regenerated `Content/Agrarian/Maps/L_GroundZeroTerrain_Test.umap`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 -m py_compile Scripts/setup_ground_zero_demo_map.py Scripts/verify_ground_zero_water_source_visual_pass.py`
+  - `git diff --check`
+  - Windows Unreal Python:
+    `Scripts\setup_ground_zero_demo_map.py`
+  - Windows Unreal Python:
+    `Scripts\verify_ground_zero_water_source_visual_pass.py`
+    - passed with one labeled freshwater source, 4 native visual components,
+      and 4 nearby water-bank/reed dressing actors.
+- Deployment classification:
+  client map/visual/script/docs only. No multiplayer server deployment is
+  required for this item.
+
 ## Agrarian 0.1.O Ground Zero Investor Biome Dressing - 2026-05-19
 
 - Completed the seventh `0.1.O Investor Visual MVP And Menu Polish` item:
