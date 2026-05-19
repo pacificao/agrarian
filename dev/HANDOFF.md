@@ -8764,3 +8764,41 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `2`
 - Immediate next roadmap item: `Add persistence requirements for knowledge, skill experience, learned concepts, failed attempts, and tutorial state`.
+
+## Agrarian 0.1.R Knowledge Persistence Requirements - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- Latest pushed game commit: `0aa1802 Define knowledge persistence requirements`
+
+Completed roadmap item:
+
+- `Add persistence requirements for knowledge, skill experience, learned concepts, failed attempts, and tutorial state`
+  - Added knowledge persistence requirements to
+    `Docs/KnowledgeAndSkillFoundation.md`.
+  - Defined saved profile IDs, learned concepts, practical skill experience,
+    mastery tiers, failed-attempt feedback history, tutorial/prompt state,
+    question cooldowns, teaching/observation events, and schema versioning.
+  - Documented server-authoritative multiplayer writes, stable concept IDs, and
+    reset-farming prevention rules.
+
+Verification:
+
+- `python3 Scripts/verify_knowledge_persistence_requirements.py` passed.
+- `python3 -m py_compile Scripts/verify_knowledge_persistence_requirements.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com`.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `1`
+- Immediate next roadmap item: `Add multiplayer rules for teaching, observation, shared work, and group skill benefits`.
