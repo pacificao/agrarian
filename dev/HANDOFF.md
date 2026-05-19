@@ -5901,3 +5901,43 @@ Roadmap state:
 - Current version section: `0.1.M Persistence MVP`
 - Items remaining in `0.1.M`: `5`
 - Immediate next roadmap item: `Add load-on-server-start`.
+
+## Agrarian 0.1.M Load On Server Start - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `9aa2f8b Load world state on server start`
+
+Completed roadmap item:
+
+- `Add load-on-server-start`
+  - Added `bLoadWorldOnServerStart` to `AAgrarianGameGameMode`, enabled by
+    default.
+  - On authoritative `BeginPlay`, GameMode registers the MVP persistent actor
+    classes and loads the current world if a save exists.
+  - Startup load uses `LoadCurrentWorld` without clearing existing map actors,
+    so map-authored resources and startup content remain map-owned.
+  - Added `Scripts/verify_load_on_server_start.py`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_load_on_server_start.py` passed.
+- `python3 Scripts/verify_load_on_server_start.py` passed.
+- `git diff --check` passed, with Git line-ending normalization warnings for
+  the touched Unreal template GameMode files.
+- Windows editor compile gate was attempted but blocked because
+  `UNRAID_PASSWORD` was not present in the shell environment.
+
+Deployment classification:
+
+- `Server deploy required` at milestone packaging time because this changes
+  authoritative server startup load behavior.
+
+Roadmap state:
+
+- Current version section: `0.1.M Persistence MVP`
+- Items remaining in `0.1.M`: `4`
+- Immediate next roadmap item: `Add initial tile registry persistence for Ground Zero`.
