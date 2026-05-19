@@ -1,5 +1,44 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O Ground Zero Investor Biome Dressing - 2026-05-19
+
+- Completed the seventh `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Replace the placeholder Ground Zero environment presentation with
+  investor-facing biome dressing: believable terrain material, grass, brush,
+  shrubs, bushes, trees, rocks, water visuals, and local coastal-scrub color
+  variation.`
+- Latest pushed game commit:
+  `be64862 Upgrade Ground Zero investor biome dressing`.
+- Changes:
+  - increased repeatable Ground Zero foliage counts to 64 trees, 148 shrubs,
+    and 260 grass clumps.
+  - expanded the labeled environment variation layer from 11 to 23 actors.
+  - added additional tree canopy/trunk, coyote-brush clusters, grass mats,
+    rock slabs, water-bank pieces, reeds, and freshwater surface variation.
+  - changed `Scripts/setup_ground_zero_demo_map.py` to derive its project root
+    from Unreal project context instead of the stale hardcoded `Z:` path.
+  - regenerated `Content/Agrarian/Maps/L_GroundZeroTerrain_Test.umap`.
+  - updated `Docs/Terrain/GroundZeroNaturalEnvironmentPass.md`.
+  - updated `Scripts/verify_ground_zero_natural_environment_pass.py` for the
+    richer investor-facing gate.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 -m py_compile Scripts/setup_ground_zero_demo_map.py Scripts/verify_ground_zero_natural_environment_pass.py`
+  - `git diff --check`
+  - Windows Unreal Python:
+    `Scripts\setup_ground_zero_demo_map.py`
+  - Windows Unreal Python:
+    `Scripts\verify_ground_zero_natural_environment_pass.py`
+    - passed with 9 materials, 1 landscape, 17 dressed resource/water actors,
+      and 23 variation actors.
+- Deployment classification:
+  client map/visual/script/docs only. No multiplayer server deployment is
+  required for this item.
+- Operational note:
+  the setup script no longer assumes `Z:\AgrarianGameBulid`; it now works from
+  the mounted project path Unreal reports, which matched the restored Windows
+  `P:\AgrarianGameBulid` setup.
+
 ## Agrarian 0.1.O Readable Survival Object Proxies - 2026-05-19
 
 - Completed the sixth `0.1.O Investor Visual MVP And Menu Polish` item:
