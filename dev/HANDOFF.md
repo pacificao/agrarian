@@ -1,5 +1,28 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.O MVP Realism Target Guardrails - 2026-05-19
+
+- Completed the tenth `0.1.O Investor Visual MVP And Menu Polish` item:
+  `Preserve realism as the target: use assets, materials, lighting, and
+  environmental dressing that can survive toward MVP production rather than
+  cosmetic throwaways where practical.`
+- Latest pushed game commit:
+  `c429648 Document MVP realism target guardrails`.
+- Changes:
+  - added `MVP Realism Target Rules` to
+    `Docs/ArtUxCodeAndAssetStandards.md`.
+  - defined production-directed proxy expectations for current 0.1.O character,
+    survival-object, foliage, water, and Ground Zero material passes.
+  - added `Scripts/verify_mvp_realism_target.py`.
+  - marked the roadmap item complete.
+- Verification completed:
+  - `python3 Scripts/verify_mvp_realism_target.py`
+  - `python3 -m py_compile Scripts/verify_mvp_realism_target.py`
+  - `git diff --check`
+- Deployment classification:
+  docs/standards/verification only. No multiplayer server deployment is
+  required for this item.
+
 ## Agrarian 0.1.O Density And Sightline Tuning - 2026-05-19
 
 - Completed the ninth `0.1.O Investor Visual MVP And Menu Polish` item:
