@@ -6528,3 +6528,41 @@ Roadmap state:
 - Current version section: `0.1.N MVP UI And UX`
 - Items remaining in `0.1.N`: `3`
 - Immediate next roadmap item: `Add debug/dev menu`.
+## Agrarian 0.1.N Debug Dev Menu - 2026-05-18
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- GitHub remote: `pacificao/AgrarianGameBuild`
+- Current branch: `main`
+- Latest pushed game commit: `1cc91b5 Add MVP debug dev menu`
+
+Completed roadmap item:
+
+- `Add debug/dev menu`
+  - Added `bShowDebugDevMenu` and a compact HUD panel listing core MVP
+    frontend, UI, persistence, and recovery commands.
+  - Added `AgrarianToggleDebugDevMenu`.
+
+Verification:
+
+- `python3 -m py_compile Scripts/verify_mvp_debug_dev_menu.py` passed.
+- `python3 Scripts/verify_mvp_debug_dev_menu.py` passed.
+- `git diff --check` passed.
+- No full Windows package was run for this item; final milestone packaging is still required.
+
+Deployment classification:
+
+- `Client UI only`.
+- No multiplayer server deploy required for this item.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com` through `pacificao-mail`
+  using local Dovecot delivery, not AWS SES.
+
+Roadmap state:
+
+- Current version section: `0.1.N MVP UI And UX`
+- Items remaining in `0.1.N`: `2`
+- Immediate next roadmap item: `Add accessibility basics`.
