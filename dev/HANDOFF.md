@@ -8548,3 +8548,38 @@ Roadmap state:
 - Current version section: `0.1.R Knowledge And Skill Foundation`
 - Items remaining in `0.1.R`: `8`
 - Immediate next roadmap item: `Add player-facing feedback that explains why an action failed or produced poor results`.
+
+## Agrarian 0.1.R Failed Action Feedback - 2026-05-19
+
+Current repo:
+
+- `/home/nathan/AgrarianGameBuild`
+- Latest pushed game commit: `bab49f8 Add failed action feedback rules`
+
+Completed roadmap item:
+
+- `Add player-facing feedback that explains why an action failed or produced poor results`
+  - Added failed-action and poor-result feedback rules to
+    `Docs/KnowledgeAndSkillFoundation.md`.
+  - Required short messages that say what happened, name one likely cause, offer
+    one useful next step, avoid blame, and avoid exposing hidden formulas.
+
+Verification:
+
+- `python3 Scripts/verify_failed_action_feedback_rules.py` passed.
+- `python3 -m py_compile Scripts/verify_failed_action_feedback_rules.py` passed.
+- `git diff --check` passed.
+
+Deployment classification:
+
+- `Design/documentation and verifier only`.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com`.
+
+Roadmap state:
+
+- Current version section: `0.1.R Knowledge And Skill Foundation`
+- Items remaining in `0.1.R`: `7`
+- Immediate next roadmap item: `Define accessibility rules for the learning system: hints, retries, readable wording, no hard lockout from basic survival, and non-punitive practice paths`.
