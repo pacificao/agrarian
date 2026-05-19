@@ -1,5 +1,26 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P UI Sounds - 2026-05-19
+
+- Completed the fifteenth `0.1.P MVP Audio And Atmosphere` item:
+  `Add UI sounds.`
+- Latest pushed game commit:
+  `d0ad644 Add MVP frontend audio hooks`.
+- Changes:
+  - added optional 2D confirm, back, selection, and save/quit sound slots to
+    `UAgrarianMvpFrontendWidget`.
+  - keyboard and mouse actions now share the same UI feedback path.
+  - widget remains silent until UI audio assets are assigned.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_ui_sounds.py`.
+- Verification completed:
+  - `python3 Scripts/verify_ui_sounds.py`
+  - `python3 -m py_compile Scripts/verify_ui_sounds.py`
+  - `git diff --check`
+- Deployment classification:
+  client UI/audio hook. No multiplayer server deployment is required for this
+  item.
+
 ## Agrarian 0.1.P Wildlife Sounds - 2026-05-19
 
 - Completed the fourteenth `0.1.P MVP Audio And Atmosphere` item:
