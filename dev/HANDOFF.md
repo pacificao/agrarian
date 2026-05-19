@@ -1,5 +1,29 @@
 # Agrarian Codex Handoff
 
+## Agrarian 0.1.P Ambient Biome Audio - 2026-05-19
+
+- Completed the first `0.1.P MVP Audio And Atmosphere` item:
+  `Add ambient biome audio.`
+- Latest pushed game commit:
+  `fb658ba Add MVP ambient biome audio hook`.
+- Changes:
+  - extended `AAgrarianWeatherAudioController` with an explicit
+    `BiomeAmbientLoopSound` slot.
+  - added separate day/night biome ambient volume targets.
+  - kept the placed Ground Zero audio controller as the owner of the ambient
+    coastal-scrub bed so final or placeholder audio assets can be assigned
+    without changing gameplay code.
+  - updated technical design notes and marked the roadmap item complete.
+  - added `Scripts/verify_ambient_biome_audio.py`.
+- Verification completed:
+  - `python3 Scripts/verify_ambient_biome_audio.py`
+  - `python3 Scripts/verify_weather_audio_controller.py`
+  - `python3 -m py_compile Scripts/verify_ambient_biome_audio.py`
+  - `git diff --check`
+- Deployment classification:
+  client audio hook/docs/verification only. No multiplayer server deployment is
+  required for this item.
+
 ## Agrarian 0.1.O Completion And Windows Investor Demo Build - 2026-05-19
 
 - Completed the `0.1.O Investor Visual MVP And Menu Polish` milestone.
