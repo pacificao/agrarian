@@ -9135,3 +9135,49 @@ Next operator guidance:
 - If Unreal shows the compile warning again, run the local
   `Scripts\BuildEditor-Windows.bat` first and inspect
   `Saved\BuildLogs\BuildEditor-Windows.log`.
+
+## Agrarian UE 5.7.4 Forced Rebuild Check - 2026-05-19
+
+Issue reported:
+
+- User confirmed the installed engine is Unreal Engine `5.7.4`.
+- The editor still warned that the project needed to be rebuilt with the new
+  version before opening, then the editor-side rebuild failed.
+
+Findings:
+
+- Installed engine build:
+  - Version: `5.7.4`
+  - Changelist: `51494982`
+  - Compatible changelist: `47537391`
+  - Install path: `C:\Program Files\Epic Games\UE_5.7`
+- The `.uproject` `EngineAssociation` value of `"5.7"` is not by itself wrong
+  for the installed `5.7.4` launcher engine.
+- The project module metadata still showed build id `47537391`, which matches
+  the engine compatible changelist but can still cause confusing rebuild prompts
+  after engine/package/workspace moves.
+
+Recovery performed:
+
+- Ran a forced local rebuild using Epic's `Rebuild.bat`, not the normal
+  up-to-date check:
+  `Rebuild.bat AgrarianGameEditor Win64 Development -Project="C:\Users\nathan\Documents\Unreal Projects\AgrarianGame\AgrarianGame.uproject" -WaitMutex -architecture=x64 -NoUBA`
+- Result:
+  - Cleaned `AgrarianGameEditor` binaries.
+  - Rebuilt 11 actions.
+  - Linked `UnrealEditor-AgrarianGame.dll`.
+  - Wrote `AgrarianGameEditor.target`.
+  - `Result: Succeeded`.
+- Verified the local project can load under UE `5.7.4` with a commandlet:
+  `UnrealEditor-Cmd.exe ... -run=ResavePackages -Package=/Game/Agrarian/Maps/L_GroundZeroTerrain_Test -NullRHI`
+- Commandlet result:
+  - Loaded and resaved `L_GroundZeroTerrain_Test.umap`.
+  - `Success - 0 error(s), 0 warning(s)`.
+
+Conclusion:
+
+- The project is not considered lost or fundamentally corrupted based on the
+  forced UE `5.7.4` rebuild and map-load smoke check.
+- If the GUI still reports a rebuild failure, inspect the newest GUI-side
+  `Saved\Logs\AgrarianGame.log` and the user-profile UnrealBuildTool log, but
+  treat it as an environment/stale-binary issue first.
