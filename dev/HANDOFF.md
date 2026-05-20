@@ -9181,3 +9181,82 @@ Conclusion:
 - If the GUI still reports a rebuild failure, inspect the newest GUI-side
   `Saved\Logs\AgrarianGame.log` and the user-profile UnrealBuildTool log, but
   treat it as an environment/stale-binary issue first.
+
+## Agrarian Fab Character Asset Integration Pass - 2026-05-20
+
+Active project:
+
+- `C:\Users\nathan\Documents\Unreal Projects\AgrarianGame`
+
+User action:
+
+- Nathan added Fab character assets into the local Windows project.
+
+Assets found:
+
+- New character pack under `Content\Man`.
+- Full-body skeletal meshes:
+  - `/Game/Man/Mesh/Full/SK_Man_Full_01`
+  - `/Game/Man/Mesh/Full/SK_Man_Full_02`
+  - `/Game/Man/Mesh/Full/SK_Man_Full_03`
+  - `/Game/Man/Mesh/Full/SK_Man_Full_04`
+- Modular character/clothing parts also exist under `Content\Man\Mesh\Parts`.
+- Demo animations exist under `Content\Man\Demo\Animations`.
+
+Implementation performed:
+
+- Updated `Source/AgrarianGame/AgrarianGamePlayerController.cpp` in the local
+  Windows project so the MVP character selection no longer loads Manny/Quinn
+  mannequin meshes.
+- Current mapping:
+  - `female` archetype -> `/Game/Man/Mesh/Full/SK_Man_Full_02`
+  - `male` archetype -> `/Game/Man/Mesh/Full/SK_Man_Full_04`
+- Disabled the old proxy material override by returning `nullptr` from
+  `GetMvpCharacterProxyMaterialPath`, so the imported Fab mesh materials remain
+  intact instead of being replaced with flat placeholder workwear materials.
+- Added `Scripts/verify_investor_character_assets.py` to verify the expected
+  imported skeletal meshes load in Unreal.
+- Added `/Game/Man` to `+DirectoriesToAlwaysCook` in `Config/DefaultGame.ini`
+  after the first package smoke showed dynamically loaded meshes were not being
+  cooked.
+- Updated the `AgrarianSmoke` Windows scheduled task to point at the local
+  project smoke launcher:
+  `C:\Users\nathan\Documents\Unreal Projects\AgrarianGame\Scripts\RunPackagedInvestorSmoke.cmd`
+  instead of the legacy `P:\AgrarianGameBulid` path.
+
+Verification:
+
+- `Scripts\BuildEditor-Windows.bat` passed after the C++ character swap.
+- Unreal Python asset verifier passed with:
+  `OK: investor character skeletal meshes are present and loadable.`
+- Windows Development package passed from the local project.
+- Initial packaged smoke exposed missing `SK_Man` assets because dynamic
+  `LoadObject` references were not cooked.
+- After adding `/Game/Man` to always-cook directories:
+  - Windows Development package passed again.
+  - `AgrarianSmoke` scheduled task completed with `Last Result: 0`.
+  - Fresh screenshot generated:
+    `C:\Users\nathan\Documents\Unreal Projects\AgrarianGame\Builds\WindowsDevelopment\AgrarianGame\Saved\Screenshots\Windows\HighresScreenshot00002.png`
+  - Fresh packaged log had no `Fatal error`, `Unhandled Exception`,
+    `Ensure condition failed`, `Error:`, `Failed to find object`, or
+    `SkipPackage` entries for `SK_Man`.
+
+Important source-control note:
+
+- Windows has Git available only through the Visual Studio 2026 Team Explorer
+  bundled path, not normal `PATH`.
+- `git-lfs` is not installed on the Windows builder. Normal `git status`
+  failed with `git-lfs filter-process: line 1: git-lfs: command not found`.
+- Git status with LFS filters disabled showed many modified binary assets from
+  the local migration/import plus untracked `Content\Man`.
+- Do not commit from the Windows project until Git LFS is installed and the
+  working tree is audited. Otherwise there is a risk of committing Unreal
+  binary assets incorrectly or mixing intentional Fab content with migration
+  noise.
+
+Current risk:
+
+- Character visuals are now wired to real imported full-body meshes and packaged
+  successfully, but the meshes may still need animation/retarget polish because
+  the imported pack appears to use its own UE4-style skeleton/demo animations
+  while the current character blueprint was originally based on the UE template.
