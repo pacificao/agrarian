@@ -9059,3 +9059,44 @@ Residual risk:
   it is still not final investor visual quality. Realistic terrain layers,
   vegetation assets, water presentation, and production character art remain
   the next critical investor-confidence work.
+
+## Agrarian Development Workspace Change - 2026-05-19
+
+New active Windows Unreal workspace:
+
+- `C:\Users\nathan\Documents\Unreal Projects\AgrarianGame`
+
+Process change:
+
+- Going forward, game editing and file creation should happen in the local
+  Windows builder project folder instead of a mapped network drive.
+- Rationale: Unreal Engine is sensitive to mapped/network project paths, and
+  the previous `P:`-drive workflow may have contributed to project instability,
+  slow builds, stale artifacts, path confusion, and mixed-folder development.
+- The old `/mnt/projects/AgrarianGameBulid` network-share project should be
+  treated as legacy/reference until the upcoming full audit reconciles the new
+  local Windows project against git, build scripts, packaged demo output, and
+  handoff automation.
+
+Pending user action:
+
+- Nathan is adding Fab library assets and modules directly into the new local
+  Windows project folder.
+
+Next required Codex action:
+
+- Stand by until the user says the assets/modules are in place.
+- Then run a serious audit from the new Windows-local project:
+  - verify git/root/source-of-truth layout,
+  - identify untracked or non-versioned Fab content,
+  - update build/package scripts to target the local Windows project,
+  - verify Unreal opens/builds from the local path,
+  - reconcile any useful files from the previous network workflow,
+  - document the corrected development workflow before resuming roadmap work.
+
+Investor-demo note:
+
+- The project is behind the intended investor visual bar. The upcoming audit
+  should prioritize getting real terrain, foliage, water, character, and menu
+  presentation assets into the playable packaged demo without destabilizing the
+  core survival systems.
