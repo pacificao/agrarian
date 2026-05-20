@@ -8727,6 +8727,52 @@ Roadmap state:
 - Items remaining in `0.1.R`: `3`
 - Immediate next roadmap item: `Add design notes for avoiding exploit farming and rote memorization`.
 
+## Agrarian Investor Visual Smoke Stabilization - 2026-05-19
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- Latest pushed game commit: `4e17ced Stabilize investor visual smoke build`
+
+Completed work:
+
+- Added `AgrarianInvestorSmokeTest` and `Scripts/RunPackagedInvestorSmoke.cmd`
+  so the packaged demo can enter Ground Zero, capture evidence, and quit.
+- Removed the broken blockout character accessory geometry that created the
+  vertical pole/box silhouette in investor screenshots.
+- Added sky-atmosphere support to `AAgrarianSkyLightingController`.
+- Hid the map-boundary volume in game.
+- Regenerated Ground Zero with updated material colors and less pole-like
+  foliage proxy meshes.
+- Rebuilt the Windows investor package at
+  `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment`.
+
+Verification:
+
+- `python3 Scripts/verify_mvp_frontend_umg_flow.py` passed.
+- `python3 Scripts/verify_investor_demo_acceptance_gate.py` passed.
+- Windows package build completed successfully.
+- Packaged smoke run created:
+  `Builds/WindowsDevelopment/AgrarianGame/Saved/Screenshots/Windows/HighresScreenshot00000.png`.
+- Packaged log showed no `Fatal error`, `Unhandled Exception`,
+  `Ensure condition failed`, or `Error:` matches.
+
+Deployment classification:
+
+- `Client visual/runtime packaging only`.
+- No multiplayer server deployment required.
+
+Important residual risk:
+
+- The demo is more stable and cleaner, but it is still not visually stunning.
+  It still relies on mannequin/simple proxy art and needs real character,
+  vegetation, terrain surface, and water assets before it should be described
+  as an investor visual MVP.
+
+Automation:
+
+- Email summary sent to `nathan@pacificao.com`.
+
 ## Agrarian 0.1.R Learning Exploit Guardrails - 2026-05-19
 
 Current repo:
@@ -8958,3 +9004,58 @@ Roadmap state:
 - New preparation sections added under 0.2:
   - `0.2.I 0.1 Hardening And Technical Debt`
   - `0.2.J Homesteading Visual And Biome Realism Pass`
+
+## Agrarian Investor Readiness Stabilization - 2026-05-19
+
+Current repo:
+
+- `/mnt/projects/AgrarianGameBulid`
+- Latest pushed game commit: `4e17ced Stabilize investor visual smoke build`
+
+Completed request:
+
+- Stabilized the packaged investor smoke path so the frontend can auto-select
+  an archetype, complete the intro flow, capture a screenshot, and exit.
+- Added `Scripts/RunPackagedInvestorSmoke.cmd` for repeatable packaged demo
+  smoke testing.
+- Suppressed debug HUD panels during the smoke capture.
+- Removed the MVP blockout character accessory geometry that produced the large
+  pole/box silhouette in screenshots.
+- Added sky atmosphere lighting so the packaged world no longer renders with a
+  black sky.
+- Hid the Ground Zero map boundary wire in game.
+- Regenerated the Ground Zero demo map and materials with a darker/greener
+  terrain and foliage color pass plus less severe primitive foliage shapes.
+- Updated the roadmap investor-demo acceptance gate checkbox.
+
+Verification:
+
+- `python3 Scripts/verify_mvp_frontend_umg_flow.py` passed.
+- `python3 Scripts/verify_investor_demo_acceptance_gate.py` passed.
+- `Scripts\RunUnrealPython-Windows.bat Scripts\setup_ground_zero_demo_map.py`
+  completed and saved the map.
+- `Scripts\PackageWindowsDevelopment.bat` completed successfully.
+- `schtasks /Run /TN AgrarianSmoke` generated the packaged smoke screenshot and
+  log.
+- No fatal, unhandled exception, ensure, or error markers were found in the
+  smoke log after the final packaged run.
+
+Current investor demo:
+
+- Package executable:
+  `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment/AgrarianGame/Binaries/Win64/AgrarianGame.exe`
+- Latest smoke screenshot:
+  `/mnt/projects/AgrarianGameBulid/Builds/WindowsDevelopment/AgrarianGame/Saved/Screenshots/Windows/HighresScreenshot00000.png`
+
+Deployment classification:
+
+- Client packaged demo only.
+- Multiplayer server deploy was not required because the changes were visual,
+  frontend smoke, and local client packaging related.
+
+Residual risk:
+
+- This pass makes the demo materially more stable and less visually broken, but
+  it is still not final investor visual quality. Realistic terrain layers,
+  vegetation assets, water presentation, and production character art remain
+  the next critical investor-confidence work.
