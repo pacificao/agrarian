@@ -9100,3 +9100,38 @@ Investor-demo note:
   should prioritize getting real terrain, foliage, water, character, and menu
   presentation assets into the playable packaged demo without destabilizing the
   core survival systems.
+
+## Agrarian Local Project Compile Check - 2026-05-19
+
+Issue reported:
+
+- Unreal showed the local project needed to be rebuilt, then failed with the
+  generic message that it could not be compiled and should be rebuilt manually.
+
+Findings:
+
+- The local Windows project exists at:
+  `C:\Users\nathan\Documents\Unreal Projects\AgrarianGame`
+- The latest editor log showed the project opened, saved
+  `/Game/Agrarian/Maps/L_GroundZeroTerrain_Test`, and shut down cleanly.
+- Manual local editor build succeeded from:
+  `C:\Users\nathan\Documents\Unreal Projects\AgrarianGame\Scripts\BuildEditor-Windows.bat`
+- Build result:
+  `AgrarianGameEditor Win64 Development` was up to date and succeeded.
+- The project is not currently considered lost or fundamentally corrupted based
+  on this compile check.
+
+Cleanup performed:
+
+- Removed the stale Unreal recent-project entry for:
+  `P:/AgrarianGame.uproject`
+- The remaining Unreal recent-project entry points to the new local project:
+  `C:/Users/nathan/Documents/Unreal Projects/AgrarianGame/AgrarianGame.uproject`
+
+Next operator guidance:
+
+- Open the project from the exact local `.uproject` path above, not from any
+  old recent project entry or network/mapped path.
+- If Unreal shows the compile warning again, run the local
+  `Scripts\BuildEditor-Windows.bat` first and inspect
+  `Saved\BuildLogs\BuildEditor-Windows.log`.
