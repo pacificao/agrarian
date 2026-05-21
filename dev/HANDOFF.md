@@ -32,6 +32,21 @@
   - TCP `192.168.5.21:22` is closed.
   - Docker reports `RestartCount=0`, `Status=running`, and
     `Restarting=false` after the SSH listener fix.
+- Repository seed:
+  - seeded `nathan/agrarian-game` from the latest GitHub game repo state,
+    `pacificao/AgrarianGameBuild` `origin/main`.
+  - Gitea `main` now points to
+    `4e17cede2d3a4458ffd007875bd73e2e2b5feb73`
+    (`Stabilize investor visual smoke build`).
+  - uploaded Git LFS content to Gitea: 846 objects plus 10 explicit objects
+    referenced only by GitHub `origin/main`.
+  - verification clone succeeded from
+    `http://192.168.5.21:3000/nathan/agrarian-game.git`; `git lfs fsck`
+    passed and `Content/Agrarian/Maps/L_GroundZeroTerrain_Test.umap`
+    checked out as a 7,603,168 byte real asset.
+  - local older uncommitted game changes were not mixed into Gitea `main`;
+    they were preserved as
+    `/home/nathan/gitea-migration/AgrarianGameBuild-local-uncommitted-20260520.patch`.
 
 ## Agrarian 0.1.Q Craft Shelter Gate - 2026-05-19
 
