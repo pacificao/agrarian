@@ -9568,3 +9568,29 @@ Unreal Engine install status:
     corridors, 96 trees, 220 shrubs, and 420 grass clumps.
   - native placeholder mesh verifier passed for Agrarian mesh assets,
     Blueprint meshes, foliage meshes, and environment variation meshes.
+
+## Gameplay Input Recovery - 2026-05-21
+
+- Pulled latest game repo changes from Gitea before work:
+  `40f7b7e` included a character proxy material update from another device.
+- Investigated broken gameplay controls after the MVP frontend/character
+  selection flow. Blueprint defaults still had the expected Enhanced Input
+  contexts and action references assigned:
+  `/Game/Input/IMC_Default`, `/Game/Input/IMC_MouseLook`, and the move, look,
+  jump, interact, sprint, crouch, prone, and camera-toggle input actions.
+- Root cause: the frontend presentation path stacked multiple
+  `SetIgnoreMoveInput(true)` / `SetIgnoreLookInput(true)` calls during startup
+  and menu display, then only partially unwound them when entering gameplay.
+  That could leave movement, look, sprint, crouch, prone, and other controls
+  ignored after the menu disappeared.
+- Updated `AAgrarianGamePlayerController` so frontend activation only pushes
+  ignore input once per active frontend session, and frontend completion uses
+  `ResetIgnoreMoveInput()` / `ResetIgnoreLookInput()` before returning to
+  `FInputModeGameOnly`.
+- Added `ApplyDefaultInputMappingContexts()` and call it during controller
+  setup and frontend completion so gameplay reasserts the default Enhanced
+  Input mapping contexts after the UI flow closes.
+- Verification:
+  - inspected Blueprint defaults through Unreal Python in headless editor.
+  - Linux editor build passed:
+    `AgrarianGameEditor Linux Development`.
