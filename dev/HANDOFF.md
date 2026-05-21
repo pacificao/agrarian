@@ -9420,16 +9420,21 @@ Unreal Engine install status:
 - Source/build workspace prepared:
   `/opt/src`
 - Both paths are owned by `nathan:nathan`.
-- Epic source install is currently blocked because the available GitHub access
-  does not have entitlement to `EpicGames/UnrealEngine`:
-  - unauthenticated VM request to `https://github.com/EpicGames/UnrealEngine`
-    returns `404`.
-  - local authenticated `gh repo view EpicGames/UnrealEngine` using the
-    `pacificao` GitHub login also returns repository-not-found.
-- Next step once entitlement is available:
-  - clone Epic source into `/opt/src/UnrealEngine-5.7`.
-  - checkout the required UE `5.7.x` tag or release branch.
-  - run `Setup.sh`, `GenerateProjectFiles.sh`, and the Linux build.
+- Epic GitHub entitlement was accepted after initial setup; `pacificao` can now
+  access `EpicGames/UnrealEngine`.
+- Cloned Epic source tag `5.7.4-release` into `/opt/UnrealEngine-5.7`.
+  - `git describe --tags --exact-match`: `5.7.4-release`
+  - short commit: `260bb2e1c`
+- `Setup.sh` is running in a persistent VM-side tmux session:
+  - session: `ue57-setup`
+  - log: `/home/nathan/logs/ue57-setup.log`
+  - command:
+    `cd /opt/UnrealEngine-5.7 && ./Setup.sh 2>&1 | tee -a ~/logs/ue57-setup.log`
+- The first `Setup.sh` run was interrupted only to move it into tmux; the
+  resumed run reuses cached dependency progress.
+- Next step after `Setup.sh` exits successfully:
+  - run `./GenerateProjectFiles.sh`.
+  - build Unreal Editor on Linux.
   - verify `/opt/UnrealEngine-5.7/Engine/Binaries/Linux/UnrealEditor` and
     commandlets headlessly against
     `/home/nathan/UnrealProjects/AgrarianGame/AgrarianGame.uproject`.
