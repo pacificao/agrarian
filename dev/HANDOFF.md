@@ -9354,6 +9354,18 @@ Installed base packages:
 - `curl`
 - `unzip`
 - `ca-certificates`
+- `mono-complete`
+- `dotnet-sdk-8.0`
+
+Stability repair:
+
+- On 2026-05-20, the VM kernel-panicked during package installation because the
+  libvirt XML assigned `32 GiB` max memory but only about `1 GiB`
+  `currentMemory`, with virtio ballooning enabled.
+- Fixed the VM definition by setting `currentMemory` to `33554432 KiB` and
+  disabling the virtio memory balloon (`<memballoon model='none'/>`).
+- Backed up the pre-fix libvirt XML at:
+  `/mnt/user/domains/unreal-engine/unreal-engine.before-fixed-memory.xml`
 
 Verification:
 
@@ -9363,6 +9375,13 @@ Verification:
 - Memory: about `31 GiB`
 - Root filesystem: about `484 GiB` available after resize.
 - `git lfs version` succeeded.
+- `gcc`: `13.3.0`
+- `clang`: `18.1.3`
+- `cmake`: `3.28.3`
+- `ninja`: `1.11.1`
+- `python3`: `3.12.3`
+- `mono`: `6.8.0.105`
+- `.NET SDK`: `8.0.126`
 - `ssh` service active.
 - `qemu-guest-agent` service active.
 - `virsh domifaddr unreal-engine --source agent` reports `192.168.5.20/22`.
