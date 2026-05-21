@@ -9526,3 +9526,45 @@ Unreal Engine install status:
     resource/water actors, and 31 variation actors.
   - Linux editor target build passed:
     `AgrarianGameEditor Linux Development` was up to date and succeeded.
+
+## Ground Zero Vegetation Visual Pass - 2026-05-21
+
+- Completed the second `0.2.0 Investor Visual Credibility Baseline` roadmap
+  item: replace or upgrade grasses, shrubs, and trees with believable
+  coastal-scrub vegetation, density, color variation, scale variation, and
+  LOD/performance limits.
+- Active game repo:
+  `/home/nathan/UnrealProjects/AgrarianGame` on `unreal-engine`
+  (`192.168.5.20`).
+- Added native generated vegetation mesh assets under
+  `/Game/Agrarian/Environment/Vegetation`:
+  `SM_AGR_GZ_CoastalOak_Proxy`, `SM_AGR_GZ_CoyoteBrush_Proxy`, and
+  `SM_AGR_GZ_DryGrassClump_Proxy`.
+- Updated `Scripts/setup_ground_zero_demo_map.py` so the Ground Zero foliage
+  pass no longer assigns `/Engine/BasicShapes` or level-prototyping geometry
+  to trees, shrubs, or grass.
+- Updated foliage materials for per-instance color variation, with two-sided
+  shrub and grass materials for better card-based vegetation.
+- Updated `AAgrarianFoliagePatch` HISM settings:
+  trees keep shadows and cull at `65000/95000`; shrubs keep shadows and cull
+  at `28000/52000`; grass disables shadows and culls at `9000/22000`.
+- Updated environment variation actors so dressed canopy and bush variation
+  also uses the new native vegetation meshes.
+- Updated verifiers and documentation:
+  - `Scripts/verify_ground_zero_natural_environment_pass.py`
+  - `Scripts/verify_ground_zero_density_sightlines.py`
+  - `Scripts/verify_native_placeholder_meshes.py`
+  - `Docs/Terrain/GroundZeroNaturalEnvironmentPass.md`
+  - `AGRARIAN_DEVELOPMENT_ROADMAP.md`
+- Verification:
+  - Python compile passed for changed scripts.
+  - Linux editor target build passed after the C++ foliage cull/shadow change.
+  - setup script completed in Unreal 5.7.4 headless `NullRHI` mode and placed
+    96 trees, 220 shrubs, and 420 grass clumps.
+  - natural environment verifier passed: map check reported 0 errors and
+    0 warnings; verifier reported 9 materials, 1 landscape, 17 dressed
+    resource/water actors, and 31 variation actors.
+  - density/sightline verifier passed for 21 critical labels, 6 sightline
+    corridors, 96 trees, 220 shrubs, and 420 grass clumps.
+  - native placeholder mesh verifier passed for Agrarian mesh assets,
+    Blueprint meshes, foliage meshes, and environment variation meshes.
