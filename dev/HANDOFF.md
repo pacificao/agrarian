@@ -9425,16 +9425,31 @@ Unreal Engine install status:
 - Cloned Epic source tag `5.7.4-release` into `/opt/UnrealEngine-5.7`.
   - `git describe --tags --exact-match`: `5.7.4-release`
   - short commit: `260bb2e1c`
-- `Setup.sh` is running in a persistent VM-side tmux session:
-  - session: `ue57-setup`
+- `Setup.sh` completed successfully.
   - log: `/home/nathan/logs/ue57-setup.log`
+- `GenerateProjectFiles.sh` completed successfully.
+  - log: `/home/nathan/logs/ue57-generate-project-files.log`
+- Full Linux `UnrealEditor` source build completed successfully.
   - command:
-    `cd /opt/UnrealEngine-5.7 && ./Setup.sh 2>&1 | tee -a ~/logs/ue57-setup.log`
-- The first `Setup.sh` run was interrupted only to move it into tmux; the
-  resumed run reuses cached dependency progress.
-- Next step after `Setup.sh` exits successfully:
-  - run `./GenerateProjectFiles.sh`.
-  - build Unreal Editor on Linux.
-  - verify `/opt/UnrealEngine-5.7/Engine/Binaries/Linux/UnrealEditor` and
-    commandlets headlessly against
-    `/home/nathan/UnrealProjects/AgrarianGame/AgrarianGame.uproject`.
+    `./Engine/Build/BatchFiles/Linux/Build.sh UnrealEditor Linux Development`
+  - log: `/home/nathan/logs/ue57-build-editor.log`
+  - output binary:
+    `/opt/UnrealEngine-5.7/Engine/Binaries/Linux/UnrealEditor`
+- Installed the missing Linux runtime libraries needed for headless editor
+  commandlets, including GTK/ATK/NSS/XCB/GBM/X11 audio/display support
+  packages.
+- Built the Agrarian project editor module on Linux successfully.
+  - command:
+    `./Engine/Build/BatchFiles/Linux/Build.sh AgrarianGameEditor Linux Development -Project=/home/nathan/UnrealProjects/AgrarianGame/AgrarianGame.uproject`
+  - log: `/home/nathan/logs/agrarian-linux-editor-build.log`
+  - output target:
+    `/home/nathan/UnrealProjects/AgrarianGame/Binaries/Linux/AgrarianGameEditor.target`
+- Verified the project can load through the Linux source-built editor in
+  unattended `NullRHI` mode.
+  - command:
+    `./Engine/Binaries/Linux/UnrealEditor /home/nathan/UnrealProjects/AgrarianGame/AgrarianGame.uproject -run=ResavePackages -help -unattended -nop4 -nosplash -NoSound -NullRHI`
+  - result:
+    `Success - 0 error(s), 7613 warning(s)`
+  - warning note:
+    the warnings are engine/plugin package resave skips caused by the source
+    build reporting editor changelist `0`; they did not block the headless load.
