@@ -9686,3 +9686,37 @@ Unreal Engine install status:
   - `Scripts/verify_asset_pipeline_policy.py` passed.
   - `Scripts/verify_asset_license_free_only.py` passed.
   - `git diff --check` passed.
+
+## Ground Zero Asset Queue And Biome Resource Plan - 2026-05-21
+
+- Nathan asked to start pulling assets for Ground Zero so the investor demo can
+  sell the game on look and feel, and to plan automatic biome selection plus
+  persistent/removable natural resources.
+- Added `Docs/Art/GroundZeroAssetAcquisitionQueue.md` with free-only Fab
+  candidates:
+  - Free Shrubs Pack (Ultra Realistic Wind)
+  - Mediterranean Vegetation: Plant Pack I
+  - temperate Vegetation: optimized Grass Library
+  - Soul: Cave
+  - Modular Rural House & Pine Forest Environment
+- Candidate notes:
+  - some Project Nature assets appeared free but region-unavailable from
+    unauthenticated browsing, so verify through the Epic/Fab account before
+    relying on them.
+  - do not import paid assets or uncertain entitlements.
+- Added `Docs/World/BiomeAndNaturalResourceGenerationPlan.md`.
+  It defines tile biome inputs, weighted biome blends, asset-set selection,
+  persistent world-resource records, durable player removal, and realistic
+  regrowth/reseeding timing.
+- Updated roadmap sequencing:
+  - `0.2.0` now includes the completed Ground Zero asset acquisition queue.
+  - new next milestone is `0.2.A Tile Biome And Natural Resource Foundation`.
+  - land claiming moves after biome/resource foundation because claims will
+    depend on durable tile state.
+- Added `Scripts/verify_ground_zero_asset_queue.py`.
+- Verification:
+  - Python compile passed for asset/biome policy verifiers.
+  - `Scripts/verify_asset_pipeline_policy.py` passed.
+  - `Scripts/verify_asset_license_free_only.py` passed.
+  - `Scripts/verify_ground_zero_asset_queue.py` passed.
+  - `git diff --check` passed.
