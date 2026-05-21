@@ -9483,3 +9483,19 @@ Unreal Engine install status:
     and the Ubuntu Unreal source-build baseline.
 - Next coding instruction should start with exactly `0.2.A Land And Claiming`,
   one item at a time.
+
+## Agrarian Visual Credibility Priority - 2026-05-21
+
+- User clarified that investor confidence now depends on visual credibility
+  before deeper 0.2 homesteading work.
+- Updated the game roadmap on the Ubuntu Unreal VM to add active milestone
+  `0.2.0 Investor Visual Credibility Baseline`.
+- `0.2.0` now comes before `0.2.A Land And Claiming`.
+- Required visual upgrade order:
+  terrain material, grasses/shrubs/trees, water, character bodies/clothing,
+  resource objects, fire/smoke, shelter pieces, wildlife.
+- The roadmap now explicitly says not to start `0.2.A Land And Claiming` until
+  the visual baseline is good enough to show without explaining that the world
+  is still placeholder-heavy.
+- Game repo commit:
+  `13e931e Prioritize investor visual credibility`.
