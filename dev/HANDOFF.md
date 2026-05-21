@@ -20,13 +20,18 @@
   - restored the official `gitea/gitea` entrypoint.
   - kept `br0` static IP `192.168.5.21`.
   - set `SSH_LISTEN_PORT=2221` plus matching Gitea server config.
+  - after first install, removed the restart loop caused by both container
+    OpenSSH and Gitea's built-in SSH server trying to bind `:2221`; container
+    OpenSSH now owns Git SSH on `2221`, and `START_SSH_SERVER=false`.
   - updated Unraid template
     `/boot/config/plugins/dockerMan/templates-user/my-Gitea.xml` so Tailscale
-    stays disabled on future GUI recreates.
+    stays disabled and Gitea's built-in SSH stays off on future GUI recreates.
 - Verification:
-  - `curl http://192.168.5.21:3000/` returns the Gitea installation page.
+  - `curl http://192.168.5.21:3000/user/login` returns the Gitea sign-in page.
   - TCP `192.168.5.21:2221` is open.
   - TCP `192.168.5.21:22` is closed.
+  - Docker reports `RestartCount=0`, `Status=running`, and
+    `Restarting=false` after the SSH listener fix.
 
 ## Agrarian 0.1.Q Craft Shelter Gate - 2026-05-19
 
