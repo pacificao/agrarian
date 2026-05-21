@@ -9453,3 +9453,33 @@ Unreal Engine install status:
   - warning note:
     the warnings are engine/plugin package resave skips caused by the source
     build reporting editor changelist `0`; they did not block the headless load.
+
+## Agrarian Game Repo Restart Audit - 2026-05-21
+
+- Active game repo is now the Gitea checkout on the Ubuntu Unreal VM:
+  `/home/nathan/UnrealProjects/AgrarianGame`.
+- Active remote:
+  `http://192.168.5.21:3000/nathan/agrarian-game.git`.
+- Working tree was clean before the audit.
+- Repository inventory:
+  - 723 tracked files.
+  - 300 Git LFS assets.
+  - `git lfs fsck` passed.
+- Ignored local Unreal-generated folders are present from verification builds:
+  `Binaries/`, `Intermediate/`, `Saved/`, and `DerivedDataCache`.
+  They remain ignored and are not part of the committed repo state.
+- Incremental Linux editor build check passed:
+  - command:
+    `./Engine/Build/BatchFiles/Linux/Build.sh AgrarianGameEditor Linux Development -Project=/home/nathan/UnrealProjects/AgrarianGame/AgrarianGame.uproject`
+  - result:
+    `Target is up to date` and `Result: Succeeded`.
+- Roadmap reset:
+  - `AGRARIAN_DEVELOPMENT_ROADMAP.md` now treats the active milestone as
+    `0.2.A Land And Claiming`.
+  - Old GitHub/network-share workflow references are now historical/secondary.
+  - Ubuntu Unreal VM plus Gitea are the canonical development path.
+- Readiness review updated:
+  - `Docs/CodebaseReadinessReview.md` now reflects completion through `0.1.S`
+    and the Ubuntu Unreal source-build baseline.
+- Next coding instruction should start with exactly `0.2.A Land And Claiming`,
+  one item at a time.
