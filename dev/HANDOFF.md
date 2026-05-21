@@ -9752,3 +9752,37 @@ Unreal Engine install status:
     `AgrarianGameEditor Linux Development`.
   - Unreal Blueprint verifier passed:
     `Scripts/verify_agrarian_player_blueprints.py`.
+
+## Startup Story Sequence And Menu Order Fix - 2026-05-21
+
+- Nathan reported the copyright/studio/startup notice was appearing at the
+  start of the game screen after character selection instead of first boot.
+- Root cause: the old `AAgrarianDemoNoticeActor` was map-driven, so it could
+  overlap or appear out of order relative to controller-owned frontend/menu
+  state. It also kept startup presentation separate from the input control
+  repair flow.
+- Moved startup presentation ownership into `AAgrarianGamePlayerController`:
+  - splash/copyright/studio screen plays first at boot.
+  - a 60-second story sequence plays next.
+  - cinematic credits play after story.
+  - character selection appears only after splash/story/credits complete or
+    are skipped.
+- Added skip behavior:
+  - any key or mouse click advances splash to story.
+  - any key or mouse click advances story to credits.
+  - any key or mouse click advances credits to character selection.
+- `AAgrarianDemoNoticeActor` now has `bAutoShowNotice = false` by default so
+  the legacy map actor does not create a second out-of-order startup overlay.
+- `UAgrarianDemoNoticeWidget` now supports presentation segments:
+  `Splash`, `Story`, `Credits`, and legacy `DemoNotice`.
+- Story direction implemented in text/cinematic motion:
+  post-collapse recovery, knowledge as inheritance, realistic time pressure,
+  and Ground Zero as the beginning of a new history.
+- Verification:
+  - Python compile passed for `Scripts/verify_startup_credits_sequence.py`.
+  - `Scripts/verify_startup_credits_sequence.py` passed.
+  - `Scripts/verify_mvp_menu_input_and_quit_flow.py` passed.
+  - Linux editor target build passed:
+    `AgrarianGameEditor Linux Development`.
+- Note: previous-game skip/loading behavior is still design-only; no saved-game
+  selector exists yet. This startup flow is for the new-game/demo path.
