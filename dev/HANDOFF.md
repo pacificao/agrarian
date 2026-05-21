@@ -9260,3 +9260,70 @@ Current risk:
   successfully, but the meshes may still need animation/retarget polish because
   the imported pack appears to use its own UE4-style skeleton/demo animations
   while the current character blueprint was originally based on the UE template.
+
+## Agrarian Ubuntu Unreal VM Created - 2026-05-20
+
+Unraid host:
+
+- `192.168.5.8`
+
+VM created:
+
+- Name: `unreal-engine`
+- Static IP: `192.168.5.20/22`
+- Gateway: `192.168.4.1`
+- Bridge: `br0`
+- User: `nathan`
+- SSH: enabled
+- Sudo: passwordless sudo enabled for `nathan`
+- Autostart: enabled in libvirt/Unraid
+
+VM resources:
+
+- vCPU: `8`
+- RAM: `32 GiB`
+- Disk: standalone qcow2, `500 GiB` virtual
+- Disk path:
+  `/mnt/user/domains/unreal-engine/vdisk1.qcow2`
+- VM XML:
+  `/mnt/user/domains/unreal-engine/unreal-engine.xml`
+
+Installed base packages:
+
+- `openssh-server`
+- `qemu-guest-agent`
+- `git`
+- `git-lfs`
+- `build-essential`
+- `clang`
+- `cmake`
+- `ninja-build`
+- `python3`
+- `python3-pip`
+- `tmux`
+- `htop`
+- `rsync`
+- `curl`
+- `unzip`
+- `ca-certificates`
+
+Verification:
+
+- SSH login to `nathan@192.168.5.20` succeeded.
+- Hostname: `unreal-engine`
+- `nproc`: `8`
+- Memory: about `31 GiB`
+- Root filesystem: about `484 GiB` available after resize.
+- `git lfs version` succeeded.
+- `ssh` service active.
+- `qemu-guest-agent` service active.
+- `virsh domifaddr unreal-engine --source agent` reports `192.168.5.20/22`.
+
+Notes:
+
+- The VM was initially created from the Ubuntu 24.04 cloud image as a qcow2
+  overlay, then converted to a standalone qcow2 so it no longer depends on the
+  base cloud image remaining in `/mnt/user/isos`.
+- Unreal Engine itself is not installed yet. Next step is to install or build
+  UE `5.7.4` on this VM, then set up the local source checkout from the chosen
+  Git remote.
