@@ -1,5 +1,33 @@
 # Agrarian Codex Handoff
 
+## Gitea Container Repair - 2026-05-20
+
+- Gitea is hosted on Unraid as Docker container `Gitea`.
+- LAN endpoint:
+  - Web UI: `http://192.168.5.21:3000`
+  - Git SSH: `192.168.5.21:2221`
+- Persistent data path:
+  `/mnt/user/appdata/gitea`
+- What broke:
+  - the container was started with Unraid's Tailscale hook as its entrypoint.
+  - that hook waited for Tailscale authentication and never launched Gitea.
+  - Docker showed no host port bindings because the container correctly uses
+    `br0` with static IP `192.168.5.21`; the real issue was that Gitea was not
+    running.
+- Repair performed:
+  - recreated only the container definition, preserving
+    `/mnt/user/appdata/gitea`.
+  - restored the official `gitea/gitea` entrypoint.
+  - kept `br0` static IP `192.168.5.21`.
+  - set `SSH_LISTEN_PORT=2221` plus matching Gitea server config.
+  - updated Unraid template
+    `/boot/config/plugins/dockerMan/templates-user/my-Gitea.xml` so Tailscale
+    stays disabled on future GUI recreates.
+- Verification:
+  - `curl http://192.168.5.21:3000/` returns the Gitea installation page.
+  - TCP `192.168.5.21:2221` is open.
+  - TCP `192.168.5.21:22` is closed.
+
 ## Agrarian 0.1.Q Craft Shelter Gate - 2026-05-19
 
 - Completed the sixth `0.1.Q MVP QA Gates` item:
