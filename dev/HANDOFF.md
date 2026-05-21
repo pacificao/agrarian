@@ -9499,3 +9499,30 @@ Unreal Engine install status:
   is still placeholder-heavy.
 - Game repo commit:
   `13e931e Prioritize investor visual credibility`.
+
+## Ground Zero Terrain Material Visual Pass - 2026-05-21
+
+- Completed the first `0.2.0 Investor Visual Credibility Baseline` roadmap
+  item: replace or upgrade the terrain material so Ground Zero no longer reads
+  as flat tan placeholder ground.
+- Active game repo:
+  `/home/nathan/UnrealProjects/AgrarianGame` on `unreal-engine`
+  (`192.168.5.20`).
+- Updated `Scripts/setup_ground_zero_demo_map.py` so
+  `M_AGR_GZ_Terrain_CoastalScrub` is rebuilt as a procedural coastal scrub
+  material:
+  dry soil, muted scrub green, and sandy path color families are blended
+  through broad and fine noise nodes, with roughness/specular set for matte
+  ground.
+- Updated `Scripts/verify_ground_zero_natural_environment_pass.py` to verify
+  the saved terrain material package includes noise, lerp, and color-vector
+  expression families instead of accepting a flat constant material.
+- Updated `Docs/Terrain/GroundZeroNaturalEnvironmentPass.md` and marked the
+  roadmap item complete in `AGRARIAN_DEVELOPMENT_ROADMAP.md`.
+- Verification:
+  - setup script completed in Unreal 5.7.4 headless `NullRHI` mode.
+  - natural environment verifier passed: map check reported 0 errors and
+    0 warnings; verifier reported 9 materials, 1 landscape, 17 dressed
+    resource/water actors, and 31 variation actors.
+  - Linux editor target build passed:
+    `AgrarianGameEditor Linux Development` was up to date and succeeded.
