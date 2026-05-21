@@ -9720,3 +9720,35 @@ Unreal Engine install status:
   - `Scripts/verify_asset_license_free_only.py` passed.
   - `Scripts/verify_ground_zero_asset_queue.py` passed.
   - `git diff --check` passed.
+
+## Gameplay Control Restore Hardening - 2026-05-21
+
+- Nathan reported controls still did not work while waiting on Fab asset
+  import.
+- Verified actual Blueprint defaults in Unreal:
+  - `BP_AgrarianGameMode` points to `BP_AgrarianPlayerCharacter` and
+    `BP_AgrarianPlayerController`.
+  - controller has `/Game/Input/IMC_Default` and `/Game/Input/IMC_MouseLook`.
+  - character has Jump, Move, Look, MouseLook, Interact, Sprint, Crouch,
+    Prone, and ToggleCamera actions assigned.
+  - input mapping assets contain WASD/arrow movement, mouse look, gamepad look,
+    interact, sprint, crouch, prone, and camera-toggle mappings.
+- Added `AAgrarianGamePlayerController::RestoreGameplayControlState()` to make
+  frontend completion repair all gameplay state through one path:
+  ignore input stacks, game-only input mode, mouse cursor, mapping contexts,
+  pawn visibility, pawn collision, character movement mode, and view target.
+- `AcknowledgePossession()` now restores gameplay control state for newly
+  possessed local pawns when the frontend is not active.
+- Added `AgrarianRepairGameplayInput` exec command as a manual emergency repair
+  path during testing.
+- Updated menu/startup verifiers to require the restore path and no longer
+  accept stale `SetIgnoreMoveInput(false)` / `SetIgnoreLookInput(false)`
+  patterns.
+- Verification:
+  - Python compile passed for changed verifier scripts.
+  - `Scripts/verify_mvp_menu_input_and_quit_flow.py` passed.
+  - `Scripts/verify_mvp_segmented_startup_pause_flow.py` passed.
+  - Linux editor target build passed:
+    `AgrarianGameEditor Linux Development`.
+  - Unreal Blueprint verifier passed:
+    `Scripts/verify_agrarian_player_blueprints.py`.
