@@ -9594,3 +9594,41 @@ Unreal Engine install status:
   - inspected Blueprint defaults through Unreal Python in headless editor.
   - Linux editor build passed:
     `AgrarianGameEditor Linux Development`.
+
+## Frontend Controls And Vegetation Runtime Fix - 2026-05-21
+
+- Follow-up to live demo testing: controls still appeared disabled after
+  character selection, and bushes/trees still read as placeholder boxes.
+- Active game repo:
+  `/home/nathan/UnrealProjects/AgrarianGame` on `unreal-engine`
+  (`192.168.5.20`).
+- Pulled the latest game repo and handoff repo before continuing; both were
+  already current.
+- Replaced the MVP frontend completion path in
+  `UAgrarianMvpFrontendWidget::CompleteFrontendFlow()` so it calls
+  `AAgrarianGamePlayerController::AgrarianSelectCharacter()` and
+  `AAgrarianGamePlayerController::AgrarianCompleteFrontend()` directly instead
+  of routing through console commands. The fallback path for non-Agrarian
+  controllers now resets the ignore-input stacks with
+  `ResetIgnoreMoveInput()` / `ResetIgnoreLookInput()`.
+- Reworked the generated Ground Zero vegetation proxies:
+  - coastal oak no longer uses box geometry for trunk and branch construction;
+    it now uses tapered cylinders, irregular leaf cards, and canopy clusters.
+  - coyote brush and dry grass use more irregular cards and uneven clusters so
+    they read less like test primitives.
+- Regenerated the Ground Zero map and vegetation assets with
+  `Scripts/setup_ground_zero_demo_map.py`; the setup pass placed 96 trees,
+  220 shrubs, and 420 grass clumps.
+- Updated `Scripts/verify_mvp_menu_input_and_quit_flow.py` so it verifies the
+  direct-controller frontend flow and rejects the old console-command path.
+- Verification:
+  - Python compile passed for the changed setup script.
+  - Linux editor target build passed:
+    `AgrarianGameEditor Linux Development`.
+  - Ground Zero setup script completed in Unreal 5.7.4 headless `NullRHI`
+    mode.
+  - natural environment verifier passed.
+  - native placeholder mesh verifier passed.
+  - MVP menu input and quit flow verifier passed.
+- Note: older packaged Windows investor demos will still show the previous
+  controls/vegetation behavior until rebuilt from the new game commit.
