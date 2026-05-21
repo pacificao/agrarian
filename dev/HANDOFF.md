@@ -9412,3 +9412,24 @@ Game source checkout:
   - confirmed large LFS assets checkout as real files, including
     `Content/Agrarian/Maps/L_GroundZeroTerrain_Test.umap` and
     `Content/Splash/Splash.bmp`.
+
+Unreal Engine install status:
+
+- Target install path prepared:
+  `/opt/UnrealEngine-5.7`
+- Source/build workspace prepared:
+  `/opt/src`
+- Both paths are owned by `nathan:nathan`.
+- Epic source install is currently blocked because the available GitHub access
+  does not have entitlement to `EpicGames/UnrealEngine`:
+  - unauthenticated VM request to `https://github.com/EpicGames/UnrealEngine`
+    returns `404`.
+  - local authenticated `gh repo view EpicGames/UnrealEngine` using the
+    `pacificao` GitHub login also returns repository-not-found.
+- Next step once entitlement is available:
+  - clone Epic source into `/opt/src/UnrealEngine-5.7`.
+  - checkout the required UE `5.7.x` tag or release branch.
+  - run `Setup.sh`, `GenerateProjectFiles.sh`, and the Linux build.
+  - verify `/opt/UnrealEngine-5.7/Engine/Binaries/Linux/UnrealEditor` and
+    commandlets headlessly against
+    `/home/nathan/UnrealProjects/AgrarianGame/AgrarianGame.uproject`.
