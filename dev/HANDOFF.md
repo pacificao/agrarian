@@ -9663,3 +9663,26 @@ Unreal Engine install status:
   - Python compile passed for `Scripts/verify_asset_pipeline_policy.py`.
   - `Scripts/verify_asset_pipeline_policy.py` passed.
   - `git diff --check` passed.
+
+## Asset Pipeline Free-Only Lockdown - 2026-05-21
+
+- Nathan provided Epic/Fab login details for active-session use only. Do not
+  store those credentials in the repo, handoff, shell scripts, manifests, or
+  long-lived config files.
+- Locked the art pipeline to free/approved sources before any Fab acquisition:
+  - Fab assets must be explicitly free unless Nathan approves a paid purchase
+    in a later task.
+  - Quixel/Megascans, CC0/public-domain, team-created, and Nathan-supplied
+    assets remain allowed when their licensing is clear.
+  - random scraped internet images/models remain rejected.
+- Added `Scripts/verify_asset_license_free_only.py`, which fails if the asset
+  license register contains paid, purchased, subscription, unknown, unclear, or
+  nonzero-cost entries.
+- Updated `Docs/Art/AssetLicenses.md`,
+  `Docs/Art/AgrarianAssetPipeline.md`, and
+  `Scripts/verify_asset_pipeline_policy.py` with explicit free-only guardrails.
+- Verification:
+  - Python compile passed for both asset policy verifiers.
+  - `Scripts/verify_asset_pipeline_policy.py` passed.
+  - `Scripts/verify_asset_license_free_only.py` passed.
+  - `git diff --check` passed.
