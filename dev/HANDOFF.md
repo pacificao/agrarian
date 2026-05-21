@@ -9394,3 +9394,21 @@ Notes:
 - Unreal Engine itself is not installed yet. Next step is to install or build
   UE `5.7.4` on this VM, then set up the local source checkout from the chosen
   Git remote.
+
+Game source checkout:
+
+- On 2026-05-20, cloned the self-hosted Gitea game repo onto the VM:
+  `/home/nathan/UnrealProjects/AgrarianGame`
+- Remote:
+  `http://192.168.5.21:3000/nathan/agrarian-game.git`
+- Configured Git identity for `Nathan Slaven <nathan@pacificao.com>`.
+- Configured Git credential storage for Gitea HTTP access so unattended pull
+  and push operations from the VM do not prompt.
+- Verification:
+  - `git lfs pull`
+  - `git lfs fsck`
+  - `git push --dry-run origin main`
+  - confirmed `AgrarianGame.uproject` exists.
+  - confirmed large LFS assets checkout as real files, including
+    `Content/Agrarian/Maps/L_GroundZeroTerrain_Test.umap` and
+    `Content/Splash/Splash.bmp`.
