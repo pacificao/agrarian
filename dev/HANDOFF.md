@@ -9632,3 +9632,34 @@ Unreal Engine install status:
   - MVP menu input and quit flow verifier passed.
 - Note: older packaged Windows investor demos will still show the previous
   controls/vegetation behavior until rebuilt from the new game commit.
+
+## Agrarian Asset Pipeline Foundation - 2026-05-21
+
+- Nathan approved realistic visual asset sourcing from Fab/free, Quixel,
+  CC0/public-domain, team-created, and Nathan-supplied assets. Random scraped
+  internet images/models are rejected unless license evidence is clear and
+  compatible with commercial game use.
+- Created VM staging folders under:
+  `/home/nathan/AssetStaging/Agrarian`
+  - `Incoming`
+  - `LicenseEvidence`
+  - `Approved`
+  - `Processed`
+  - `Rejected`
+- Added repo-side policy docs:
+  - `Docs/Art/AssetLicenses.md`
+  - `Docs/Art/AgrarianAssetPipeline.md`
+- Added `Scripts/verify_asset_pipeline_policy.py` so future edits must keep
+  the approved-source rules, staging path, license tracking, visual direction,
+  and first-priority asset groups documented.
+- Updated `0.2.0 Investor Visual Credibility Baseline` to mark the asset
+  acquisition and ingest pipeline foundation complete before the remaining
+  visual replacement work.
+- First visual sourcing priorities:
+  trees, shrubs, grasses, water/shoreline, rocks/terrain decals, two to four
+  realistic post-collapse frontier humans, and old abandoned equipment being
+  reclaimed by nature.
+- Verification:
+  - Python compile passed for `Scripts/verify_asset_pipeline_policy.py`.
+  - `Scripts/verify_asset_pipeline_policy.py` passed.
+  - `git diff --check` passed.
