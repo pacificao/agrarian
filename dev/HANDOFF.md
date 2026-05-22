@@ -9786,3 +9786,34 @@ Unreal Engine install status:
     `AgrarianGameEditor Linux Development`.
 - Note: previous-game skip/loading behavior is still design-only; no saved-game
   selector exists yet. This startup flow is for the new-game/demo path.
+
+## MVP Pause Save Exit Settings Shell - 2026-05-21
+
+- Implemented the safe menu slice before the deeper settings system:
+  `Resume`, `Save Game`, `Settings`, `Save & Exit`, and
+  `Quit Without Saving`.
+- `Save Game` now issues `AgrarianSaveWorld` and stays in the pause flow with
+  a confirmation screen.
+- `Save & Exit` issues `AgrarianSaveWorld` and then exits.
+- `Quit Without Saving` exits directly.
+- Added keyboard shortcuts for the pause menu:
+  - `Esc` / `Enter` / `Space`: resume.
+  - `S`: save game.
+  - `O`: open settings shell.
+  - `Q`: save and exit.
+  - `X`: quit without saving.
+- Added a settings shell for the categories that should become real options
+  later: units, controls, gameplay, hardware/rendering, audio, accessibility,
+  and account/server preferences.
+- Roadmap updated:
+  - completed pause save/exit/settings shell under `0.2.0 Investor Visual
+    Credibility Baseline`.
+  - added `0.2.F1 Player Options And Settings` for the larger configurable
+    settings system so it is not mixed into the MVP pause-menu hardening.
+- Verification:
+  - Python compile passed for menu verifier scripts.
+  - `Scripts/verify_mvp_menu_input_and_quit_flow.py` passed.
+  - `Scripts/verify_mvp_segmented_startup_pause_flow.py` passed.
+  - `git diff --check` passed.
+  - Linux editor target build passed:
+    `AgrarianGameEditor Linux Development`.
