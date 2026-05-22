@@ -9817,3 +9817,25 @@ Unreal Engine install status:
   - `git diff --check` passed.
   - Linux editor target build passed:
     `AgrarianGameEditor Linux Development`.
+
+## 2027 Awards Direction Roadmap Update - 2026-05-21
+
+- Nathan set the explicit ambition that Agrarian should be good enough to chase
+  2027 award conversations around visual beauty/art direction and best new game
+  concept/new IP.
+- Updated `AGRARIAN_DEVELOPMENT_ROADMAP.md` with a new
+  `2027 Awards Direction` section near the top of the roadmap.
+- Added production bars for:
+  - visual credibility,
+  - geographic truth,
+  - art direction,
+  - systemic originality,
+  - emotional attachment,
+  - demo discipline,
+  - roadmap filtering.
+- Tightened `0.2.0 Investor Visual Credibility Baseline` so it now explicitly
+  serves the art-direction identity, not just placeholder cleanup.
+- Added early visual credibility tasks for reclaimed human-made set dressing,
+  investor screenshot composition checks, and automated placeholder audits.
+- Verification:
+  - `git diff --check` passed in the game repo.
