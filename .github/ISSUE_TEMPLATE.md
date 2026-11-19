@@ -1,7 +1,8 @@
 <!--- Remove this description and sections that do not apply -->
 
 This issue tracker is only for technical issues related to Agrarian Core.
-General Agrarian questions and/or support requests and are best directed to the [Agrarian Discord](https://discord.agrarian.org).
+Report vulnerabilities privately using the [security policy](../SECURITY.md).
+Never include wallet backups, private keys, credentials, or unredacted logs.
 
 ### Describe the issue
 
@@ -31,4 +32,4 @@ List the version number/commit ID, and if it is an official binary, self compile
 - Disk Type (HD/SDD):
 
 ### Any extra information that might be useful in the debugging process.
-This is normally the contents of a `debug.log`, `db.log` or `config.log` file. Raw text or a link to a pastebin type site are preferred.
+Include only relevant log excerpts after removing credentials and personal data.

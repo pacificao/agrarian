@@ -1,152 +1,40 @@
-# Agrarian
+# Agrarian Core
 
-Agrarian is a C++ cryptocurrency-style codebase with a deterministic `depends/` build system for reproducible native and cross-compilation builds.
+Agrarian Core is the open-source C++ node and desktop wallet for the Agrarian
+(AGR) network. This GitHub repository is the official public home for source
+code, issue tracking, contributions, and releases.
 
----
+| Looking for | Start here |
+| --- | --- |
+| Project overview, whitepaper, explorer, web wallet | [AgrarianCoin.com](https://agrariancoin.com/) |
+| Desktop wallet downloads | [GitHub Releases](https://github.com/pacificao/agrarian/releases) — no official Windows or Linux binaries published yet |
+| Build from source | [Desktop wallet guide](doc/build-wallets.md) · [Ubuntu guide](doc/build-ubuntu-24.md) · [Windows cross-build guide](doc/build-windows.md) |
+| Report an issue or contribute | [Issues](https://github.com/pacificao/agrarian/issues) · [Contributing](CONTRIBUTING.md) |
+| Report a vulnerability | [Security policy](SECURITY.md) |
 
-## Repository Structure
+## Build and review
 
-- `depends/` – deterministic third-party dependency build system
-- `src/` – core source code (includes subprojects like `secp256k1/` and `univalue/`)
-- `contrib/` – helper scripts, tooling, packaging, and CI utilities
-- `share/` – auxiliary build and metadata scripts
+Start with the platform guide above for toolchain and Qt requirements. Clone the
+official repository and review the build helper before running it:
 
----
-
-## System Requirements (Ubuntu)
-
-Install the baseline build tools:
-
-```bash
-sudo apt update
-sudo apt install -y \
-  build-essential pkg-config autoconf automake libtool \
-  bsdmainutils cmake ninja-build python3 curl git
+```sh
+git clone https://github.com/pacificao/agrarian.git
+cd agrarian
 ```
 
-For Windows cross-compilation support:
+The documented desktop targets are Ubuntu 24.04 x86-64 and Windows x86-64.
+See the [release checklist](doc/desktop-wallet-release.md) for what must be
+verified before a build is offered as an official download. The default branch
+is development source, not a supported binary release.
 
-```bash
-sudo apt install -y mingw-w64
-```
+- `src/`: core node, wallet, and Qt desktop interface
+- `depends/`: pinned build dependencies
+- `contrib/`: build, packaging, and smoke-test helpers
+- `doc/`: developer and build documentation
 
----
-
-## Building Dependencies (Deterministic Depends System)
-
-The preferred build path uses the deterministic `depends/` system instead of
-mixing system libraries. The current native Ubuntu wallet path builds Qt 6.8.3,
-OpenSSL 3.5.6, Boost 1.91.0, Expat 2.8.0, FreeType 2.14.3, Berkeley DB
-4.8.30, and supporting libraries inside `depends/<host-triplet>/`.
-
-All dependency builds are executed from within the `depends/` directory or via
-the helper scripts in `contrib/`.
-
-### Native Linux
-
-```bash
-cd depends
-make HOST=x86_64-pc-linux-gnu NO_QT=0 -j"$(nproc)"
-```
-
-### Windows Cross-Compile (64-bit)
-
-```bash
-JOBS=1 ./contrib/build-win64-wallet.sh
-```
-
-### Windows Cross-Compile (32-bit)
-
-```bash
-cd depends
-make HOST=i686-w64-mingw32 -j"$(nproc)"
-```
-
-Artifacts are placed under:
-
-```
-depends/<host-triplet>/
-```
-
-Temporary build directories:
-
-```
-depends/work/
-depends/built/
-```
-
-These directories should not be committed to version control.
-
----
-
-## Building Agrarian
-
-Recommended native Ubuntu daemon build:
-
-```bash
-./autogen.sh
-JOBS=1 ./contrib/build-linux.sh
-```
-
-Recommended native Ubuntu desktop wallet build:
-
-```bash
-JOBS=1 ./contrib/build-linux-wallet.sh
-```
-
-Use a larger `JOBS` value only when the host has enough RAM. On an 8-core,
-16 GB host, `JOBS=8` is reasonable.
-
-Manual autotools workflow:
-
-```bash
-./autogen.sh
-CONFIG_SITE="$PWD/depends/x86_64-pc-linux-gnu/share/config.site" ./configure
-make -j"$(nproc)"
-```
-
-To see configuration options:
-
-```bash
-./configure --help
-```
-
-For current build notes, see:
-
-- `doc/modernization.md` for the current 2.0 dependency and build baseline.
-- `doc/build-menu.md` for the interactive build menu.
-- `doc/build-ubuntu-24.md` for native Ubuntu daemon and wallet builds.
-- `doc/build-windows.md` for Windows cross-compilation.
-- `doc/build-wallets.md` for the repeatable desktop wallet quick start.
-
----
-
-## Running Tests
-
-If enabled:
-
-```bash
-make check
-```
-
-Current smoke tests:
-
-```bash
-./contrib/smoke-test-daemon.sh
-./contrib/smoke-test-wallet.sh
-./contrib/smoke-test-qt.sh
-```
-
----
-
-## Development Guidelines
-
-- Do not commit `depends/work/`, `depends/built/`, or host prefix directories.
-- Ensure executable permissions (100755) are intentional for shell scripts.
-- Keep diffs minimal in `depends/` to maintain reproducibility.
-
----
+Run `make check` in a build with tests enabled. Platform-specific smoke-test
+instructions are in the [wallet build guide](doc/build-wallets.md).
 
 ## License
 
-See the `COPYING` file for license details.
+Agrarian Core is distributed under the [MIT license](COPYING).
