@@ -110,6 +110,7 @@ define $(package)_stage_cmds
   DESTDIR=$($(package)_staging_dir) cmake --install .
 endef
 else
+# Only lrelease is built here; it does not need the optional Clang parser.
 define $(package)_stage_cmds
   DESTDIR=$($(package)_staging_dir) cmake --install . && \
   mkdir -p ../qttools-build && \
@@ -120,6 +121,7 @@ define $(package)_stage_cmds
     -DQT_HOST_PATH=$($(package)_staging_prefix_dir) \
     -DQT_BUILD_EXAMPLES=FALSE \
     -DQT_BUILD_TESTS=FALSE \
+    -DCMAKE_DISABLE_FIND_PACKAGE_WrapLibClang=TRUE \
     -DBUILD_SHARED_LIBS=OFF && \
   cmake --build . --target lrelease --parallel && \
   mkdir -p $($(package)_staging_prefix_dir)/libexec && \
