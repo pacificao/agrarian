@@ -74,24 +74,23 @@ EOF
 )
 
 "$AGRARIAND" -datadir="$DATADIR" -regtest -server -listen=0 -dnsseed=0 \
-  -connect=0 -upnp=0 -staking=0 -rpcbind=127.0.0.1 \
+  -connect=0 -upnp=0 -staking=0 \
   -rpcport="$RPCPORT" -port="$PORT" -keypool=10 -daemon
 STARTED=1
 
 for _ in $(seq 1 "$WAIT_SECONDS"); do
-  if rpc getinfo >/dev/null 2>&1; then
+  if rpc getwalletinfo >/dev/null 2>&1; then
     break
   fi
   sleep 1
 done
 
-if ! rpc getinfo >/dev/null; then
-  echo "Timed out waiting for RPC on 127.0.0.1:$RPCPORT" >&2
+if ! rpc getwalletinfo >/dev/null; then
+  echo "Timed out waiting for wallet RPC on 127.0.0.1:$RPCPORT" >&2
   tail -n 80 "$DATADIR/regtest/debug.log" >&2 || true
   exit 1
 fi
 
-rpc getwalletinfo >/dev/null
 receive_address="$(rpc getnewaddress receive)"
 send_address="$(rpc getnewaddress sendtest)"
 rpc generate 101 >/dev/null
