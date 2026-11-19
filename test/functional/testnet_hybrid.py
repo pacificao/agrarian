@@ -98,23 +98,35 @@ def sha256d(data):
     return hashlib.sha256(hashlib.sha256(data).digest()).digest()
 
 
-def mine_pow(node, helper, height, timestamp, pubkey):
-    """Assemble a one-transaction block below the first difficulty retarget."""
+def mine_pow(node, helper, height, timestamp, pubkey, template=None):
+    """Mine a one-transaction block below the first difficulty retarget."""
     assert height <= 24
-    prev = bytes.fromhex(node.rpc("getbestblockhash", raw=True))[::-1]
+    previous_hash = node.rpc("getbestblockhash", raw=True)
+    prev = bytes.fromhex(previous_hash)[::-1]
+    version, bits, reward, checkpoint = 5, TESTNET_POW_LIMIT, 50 * COIN, bytes(32)
     # CScript's height encoding followed by OP_0 for minimum coinbase script size.
     sig = bytes([0x50 + height, 0]) if height <= 16 else bytes([1, height, 0])
+    if template is not None:
+        assert template["previousblockhash"] == previous_hash and template["height"] == height
+        assert template["transactions"] == [] and template["coinbasevalue"] == reward
+        version, bits = template["version"], int(template["bits"], 16)
+        checkpoint = bytes.fromhex(template["acc_checkpoint"])[::-1]
+        sig += bytes.fromhex(template["coinbaseaux"]["flags"])
+        timestamp = max(timestamp, template["mintime"], template["curtime"])
+
     script = bytes([len(pubkey)]) + pubkey + b"\xac"
     coinbase = (struct.pack("<I", 1) + b"\x01" + bytes(32) + bytes([255]) * 4
                 + bytes([len(sig)]) + sig + bytes([255]) * 4 + b"\x01"
-                + struct.pack("<Q", 50 * COIN) + bytes([len(script)]) + script + bytes(4))
-    header = struct.pack("<I", 5) + prev + sha256d(coinbase) + struct.pack(
-        "<III", timestamp, TESTNET_POW_LIMIT, 0,
+                + struct.pack("<Q", reward) + bytes([len(script)]) + script + bytes(4))
+    header = struct.pack("<I", version) + prev + sha256d(coinbase) + struct.pack(
+        "<III", timestamp, bits, 0,
     )
-    target = ((TESTNET_POW_LIMIT & 0xffffff) << (8 * ((TESTNET_POW_LIMIT >> 24) - 3)))
+    target = (bits & 0xffffff) << (8 * ((bits >> 24) - 3))
+    if template is not None:
+        assert target == int(template["target"], 16)
     nonce = subprocess.run([str(helper)], input=header + target.to_bytes(32, "big"),
                            capture_output=True, check=True, timeout=240).stdout
-    block = header[:76] + struct.pack("<I", int(nonce)) + bytes(32) + b"\x01" + coinbase
+    block = header[:76] + struct.pack("<I", int(nonce)) + checkpoint + b"\x01" + coinbase
     result = node.rpc("submitblock", block.hex(), raw=True)
     assert not result, f"PoW rejected at {height}: {result}"
     assert node.rpc("getblockcount") == height
@@ -165,9 +177,10 @@ def run(work):
         assert sum(out["value"] for out in stake["vout"]) - source == 10
         print(f"Both testnet nodes accepted signed PoS block 21 with a 10 AGR subsidy: {tip}", flush=True)
 
-        post_pos = mine_pow(verifier, helper, 22, max(int(time.time()), block["time"] + 1), other_key)
+        template = verifier.rpc("getblocktemplate")
+        post_pos = mine_pow(verifier, helper, 22, block["time"] + 1, other_key, template)
         wait_for(lambda: staker.rpc("getbestblockhash", raw=True) == post_pos)
-        print(f"Both nodes accepted PoW block 22 after PoS: {post_pos}", flush=True)
+        print(f"Both nodes accepted PoW block 22 from getblocktemplate after PoS: {post_pos}", flush=True)
     except Exception:
         for node in (staker, verifier):
             if node.log.exists():

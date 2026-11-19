@@ -39,7 +39,7 @@ Hybrid release gates
    tree and run the subsidy unit tests and
    `python3 test/functional/testnet_hybrid.py`. The latter uses two isolated
    testnet nodes and checks matching modifiers, a peer-accepted PoS block with a
-   10 AGR subsidy, and continued PoW mining. Also exercise wallet encryption,
+   10 AGR subsidy, and continued PoW mining from an RPC template. Also exercise wallet encryption,
    backup/restore and restart, and independently validate masternode payments
    when they are enabled; the two-node hybrid test has no active masternodes.
 2. Replay an immutable copy of the mainnet block files with a known-good build
@@ -51,6 +51,8 @@ Hybrid release gates
    is expected to change some historical metadata. Do not infer that an index
    created by an older binary can be reused. Decide and document the required
    reindex, mixed-version behavior, activation and rollback before deployment.
+   `contrib/replay-chain-offline.py` imports raw block files into a disposable
+   wallet-disabled database, verifies the expected tip, and emits a JSON report.
 3. Review difficulty behavior for alternating PoW/PoS and at the end of PoW,
    and verify ordinary and masternode payouts across that boundary. Do not
    change target arithmetic, historical subsidy behavior or validation rules
