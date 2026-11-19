@@ -112,6 +112,15 @@ Extended staging checks
   50 test AGR to a separate wallet after coinbase maturity. A different,
   older local build accepted the same class of submissions as shares but
   did not submit the block. Identify and hash the pool binary before rollout.
+- Active masternode payouts are still unverified. The isolated, regtest-only
+  fixture funded six mature 10,000 AGR collaterals. Bulk startup reported
+  success without registering all nodes; individual startup produced signed
+  registrations that peers received, but the rehearsal did not establish a
+  six-node enabled voting quorum or an enforced payout. Before release,
+  inspect bulk registration and the transition from pending to enabled,
+  including acceptance of the signed maturity ping. The staging fixture uses
+  an extended regtest mining window and an ephemeral regtest-only signer;
+  never ship the fixture daemon or use a production key to run it.
 
 The currently verified binaries are:
 
