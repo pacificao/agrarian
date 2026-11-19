@@ -1,6 +1,7 @@
 package=zlib
 $(package)_version=1.3.2
 $(package)_download_path=https://zlib.net/fossils
+$(package)_fallback_download_path=https://github.com/madler/zlib/releases/download/v$($(package)_version)
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
 $(package)_sha256_hash=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
 
