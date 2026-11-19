@@ -112,22 +112,32 @@ Extended staging checks
   50 test AGR to a separate wallet after coinbase maturity. A different,
   older local build accepted the same class of submissions as shares but
   did not submit the block. Identify and hash the pool binary before rollout.
-- Active masternode payouts are still unverified. The isolated, regtest-only
-  fixture funded six mature 10,000 AGR collaterals. Bulk startup reported
-  success without registering all nodes; individual startup produced signed
-  registrations that peers received, but the rehearsal did not establish a
-  six-node enabled voting quorum or an enforced payout. Before release,
-  inspect bulk registration and the transition from pending to enabled,
-  including acceptance of the signed maturity ping. The staging fixture uses
-  an extended regtest mining window and an ephemeral regtest-only signer;
-  never ship the fixture daemon or use a production key to run it.
+- Masternode staging: `test/functional/masternode_staging.py` funds six
+  mature 10,000 AGR collaterals and uses a separate observer and staker.
+  Bulk startup now records and relays each successful registration. An
+  independent peer saw six pending entries and accepted all six mature,
+  signed activation pings. Nodes keep the existing ten-minute activation
+  interval and 8,000-second voting age under payment enforcement.
+  With enforcement active and six votes observed for each block, all nine
+  peers accepted PoW block 1271 paying the nominated address 12.5 test AGR
+  and PoS block 1272 paying its nominated address 2.5 of the 10 test AGR
+  stake reward. This checks successful payouts in isolated regtest, not
+  interoperability with a mixed-version masternode quorum on mainnet.
+  The staging fixture uses an extended regtest mining window, a faster
+  regtest ping scheduler and an ephemeral regtest-only spork signer. It
+  advances mock time without changing activation timing or payout rules.
+  Never ship the fixture daemon or use a production key to run it.
 
-The currently verified binaries are:
+Build targets covered by the earlier modernization work:
 
 - Ubuntu daemon and command-line tools
 - Ubuntu Qt desktop wallet
 - Windows x86_64 Qt desktop wallet and command-line tools cross-compiled from
   Ubuntu
+
+These build results do not qualify the current desktop packages for release.
+The wallets remain unpublished pending clean-OS tests of the actual Windows
+and Ubuntu packages built from the reviewed commit.
 
 Recommended Commands
 --------------------
