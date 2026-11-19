@@ -423,17 +423,19 @@ translate: $(srcdir)/qt/agrarianstrings.cpp $(QT_FORMS_UI) $(QT_FORMS_UI) $(BITC
 	@test -n $(LUPDATE) || echo "lupdate is required for updating translations"
 	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(LUPDATE) $^ -locations relative -no-obsolete -ts $(srcdir)/qt/locale/agrarian_en.ts
 
-$(QT_QRC_LOCALE_CPP): $(QT_QRC_LOCALE) $(QT_QM)
+# The host rcc can support codecs (such as Zstandard) absent from the target
+# Qt libraries. Generate codec-independent resources for both targets.
+$(QT_QRC_LOCALE_CPP): $(QT_QRC_LOCALE) $(QT_QM) $(srcdir)/Makefile.qt.include
 	@test -f $(RCC)
 	@cp -f $< $(@D)/temp_$(<F)
-	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(RCC) -name agrarian_locale $(@D)/temp_$(<F) | \
-	  $(SED) -e '/^\*\*.*Created:/d' -e '/^\*\*.*by:/d' > $@
+	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(RCC) -no-compress -name agrarian_locale -o $@.tmp $(@D)/temp_$(<F) && \
+	  $(SED) -e '/^\*\*.*Created:/d' -e '/^\*\*.*by:/d' $@.tmp > $@ && rm -f $@.tmp
 	@rm $(@D)/temp_$(<F)
 
-$(QT_QRC_CPP): $(QT_QRC) $(QT_FORMS_H) $(RES_ICONS) $(RES_IMAGES) $(RES_CSS) $(RES_MOVIES)
+$(QT_QRC_CPP): $(QT_QRC) $(QT_FORMS_H) $(RES_ICONS) $(RES_IMAGES) $(RES_CSS) $(RES_MOVIES) $(srcdir)/Makefile.qt.include
 	@test -f $(RCC)
-	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(RCC) -name agrarian $< | \
-	  $(SED) -e '/^\*\*.*Created:/d' -e '/^\*\*.*by:/d' > $@
+	$(AM_V_GEN) QT_SELECT=$(QT_SELECT) $(RCC) -no-compress -name agrarian -o $@.tmp $< && \
+	  $(SED) -e '/^\*\*.*Created:/d' -e '/^\*\*.*by:/d' $@.tmp > $@ && rm -f $@.tmp
 
 CLEAN_QT = $(nodist_qt_libbitcoinqt_a_SOURCES) $(QT_QM) $(QT_FORMS_H) qt/*.gcda qt/*.gcno qt/temp_agrarian_locale.qrc
 
