@@ -34,7 +34,7 @@ define fetch_file
       $(build_SHA256SUM) -c $$($(1)_source_dir)/.$(4).existing.hash || \
     ( rm -f $$($(1)_source_dir)/$(4) && \
     ( $(call fetch_file_inner,$(1),$(2),$(3),$(4),$(5)) || \
-      $(call fetch_file_inner,$(1),$(FALLBACK_DOWNLOAD_PATH),$(3),$(4),$(5)))))
+      $(call fetch_file_inner,$(1),$(or $($(1)_fallback_download_path),$(FALLBACK_DOWNLOAD_PATH)),$(3),$(4),$(5)))))
 endef
 
 define int_get_build_recipe_hash
