@@ -78,6 +78,8 @@ jobs:
 
   ubuntu-package:
     needs: build
+    # Test whichever platform produced an artifact even if the other build failed.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -108,6 +110,7 @@ jobs:
 
   windows-package:
     needs: build
+    if: ${{ !cancelled() }}
     runs-on: windows-2022
     timeout-minutes: 15
     steps:
