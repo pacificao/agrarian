@@ -5,6 +5,7 @@ Build agrariand and agrarian-cli first. Run this script directly (not via the
 regtest runner). Historical PoW timestamps let the fixture mature stake without
 waiting an hour or changing testnet parameters.
 """
+import argparse
 import hashlib
 import json
 import secrets
@@ -33,41 +34,48 @@ def wait_for(fn, timeout=90):
 
 
 class Node:
-    def __init__(self, directory):
+    def __init__(self, directory, daemon=None, network="testnet"):
         directory.mkdir()
         with socket.socket() as p2p, socket.socket() as rpc:
             p2p.bind(("127.0.0.1", 0))
             rpc.bind(("127.0.0.1", 0))
             self.p2p = p2p.getsockname()[1]
             rpc_port = rpc.getsockname()[1]
-        self.common = ["-testnet", f"-datadir={directory}", f"-rpcport={rpc_port}"]
+        self.p2p_host = "127.0.0.1"
+        self.common = [f"-{network}", f"-datadir={directory}", f"-rpcport={rpc_port}"]
+        self.chain = "test" if network == "testnet" else network
+        self.rpc_port = rpc_port
+        self.daemon = daemon or [str(ROOT / "src/agrariand")]
+        self.legacy = daemon is not None
         self.conf = directory / "agrarian.conf"
-        self.conf.write_text(f"rpcuser=testnet\nrpcpassword={secrets.token_hex(24)}\n")
-        self.log = directory / "testnet4" / "debug.log"
+        self.rpc_user = "isolated-test"
+        self.rpc_password = secrets.token_hex(24)
+        self.conf.write_text(f"rpcuser={self.rpc_user}\nrpcpassword={self.rpc_password}\n")
+        self.log = directory / ("testnet4" if network == "testnet" else network) / "debug.log"
 
-    def start(self, staking):
+    def start(self, staking, extra=()):
         self.proc = subprocess.Popen([
-            str(ROOT / "src/agrariand"), *self.common,
-            "-server=1", "-txindex=1", "-keypool=5", "-listen=1", "-bind=127.0.0.1",
+            *self.daemon, *self.common,
+            "-server=1", "-txindex=1", "-keypool=5", "-listen=1", f"-bind={self.p2p_host}",
             "-rpcbind=127.0.0.1", f"-port={self.p2p}", "-connect=0",
             "-dnsseed=0", "-discover=0", "-upnp=0", "-listenonion=0",
-            f"-staking={int(staking)}", "-debug=staking", "-debug=masternode",
+            f"-staking={int(staking)}", "-debug=staking", "-debug=masternode", *extra,
         ])
-        wait_for(self.ready, timeout=30)
-        assert self.rpc("getblockchaininfo")["chain"] == "test"
+        wait_for(self.ready, timeout=120)
+        assert self.rpc("getblockchaininfo")["chain"] == self.chain
 
     def ready(self):
         try:
-            return self.rpc("getblockcount") >= 0
+            return bool(self.rpc("getwalletinfo"))
         except subprocess.CalledProcessError:
             if self.proc.poll() is not None:
                 raise
             return False
 
-    def rpc(self, method, *args, raw=False):
+    def rpc(self, method, *args, raw=False, timeout=15):
         completed = subprocess.run([
             str(ROOT / "src/agrarian-cli"), *self.common, method, *map(str, args),
-        ], capture_output=True, text=True, timeout=15)
+        ], capture_output=True, text=True, timeout=timeout)
         if completed.returncode:
             raise subprocess.CalledProcessError(completed.returncode, method, stderr=completed.stderr)
         result = completed.stdout.strip()
@@ -76,8 +84,9 @@ class Node:
         return json.loads(result, parse_float=Decimal)
 
     def connect(self, other):
-        self.rpc("addnode", f"127.0.0.1:{other.p2p}", "onetry")
-        wait_for(lambda: self.rpc("getconnectioncount") == 1)
+        self.rpc("addnode", f"{other.p2p_host}:{other.p2p}", "onetry")
+        wait_for(lambda: any(peer["addr"] == f"{other.p2p_host}:{other.p2p}"
+                             for peer in self.rpc("getpeerinfo")))
 
     def stop(self):
         if not hasattr(self, "proc") or self.proc.poll() is not None:
@@ -98,7 +107,7 @@ def sha256d(data):
     return hashlib.sha256(hashlib.sha256(data).digest()).digest()
 
 
-def mine_pow(node, helper, height, timestamp, pubkey, template=None):
+def mine_pow(node, helper, height, timestamp, pubkey, template=None, fixture_peer=None):
     """Mine a one-transaction block below the first difficulty retarget."""
     assert height <= 24
     previous_hash = node.rpc("getbestblockhash", raw=True)
@@ -129,36 +138,50 @@ def mine_pow(node, helper, height, timestamp, pubkey, template=None):
     block = header[:76] + struct.pack("<I", int(nonce)) + checkpoint + b"\x01" + coinbase
     result = node.rpc("submitblock", block.hex(), raw=True)
     assert not result, f"PoW rejected at {height}: {result}"
+    if fixture_peer and fixture_peer.rpc("getblockcount") < height:
+        result = fixture_peer.rpc("submitblock", block.hex(), raw=True, timeout=75)
+        assert not result or result == "duplicate", f"Legacy rejected PoW at {height}: {result}"
     assert node.rpc("getblockcount") == height
     tip = node.rpc("getbestblockhash", raw=True)
-    assert node.rpc("getblock", tip, "true")["proof"] == "pow"
+    block = node.rpc("getblock", tip, "true")
+    assert block.get("proof") == "pow" or (node.legacy and "proof" not in block)
     return tip
 
 
-def run(work):
-    helper = work / "testnet-hybrid-pow"
+def build_solver(helper):
     subprocess.run([
         "c++", "-std=c++17", "-O2", "-pthread", "-I", str(ROOT / "src"),
         str(Path(__file__).with_name("testnet_hybrid_pow.cpp")),
         str(ROOT / "src/crypto/libbitcoin_crypto.a"), "-o", str(helper),
     ], check=True)
-    staker, verifier = Node(work / "staker"), Node(work / "verifier")
+
+
+def run(work, legacy_daemon):
+    helper = work / "testnet-hybrid-pow"
+    build_solver(helper)
+    staker, verifier = Node(work / "staker"), Node(work / "verifier", legacy_daemon)
     try:
         staker.start(staking=False)
-        verifier.start(staking=False)
-        verifier.connect(staker)
+        verifier.start(staking=False, extra=("-par=1",) if legacy_daemon else ())
+        if not legacy_daemon:
+            verifier.connect(staker)
         stake_key, other_key = staker.pubkey(), verifier.pubkey()
         now = int(time.time())
         for height in range(1, 21):
             # Only block 2 pays the staker, so there is exactly one mature staking input.
             stamp = now - 18_000 + height * 600 if height < 20 else now - 10
-            tip = mine_pow(staker, helper, height, stamp, stake_key if height == 2 else other_key)
+            tip = mine_pow(staker, helper, height, stamp, stake_key if height == 2 else other_key,
+                           fixture_peer=verifier if legacy_daemon else None)
             wait_for(lambda: verifier.rpc("getbestblockhash", raw=True) == tip)
             modifier = staker.rpc("getblock", tip, "true")["modifier"]
-            assert modifier == verifier.rpc("getblock", tip, "true")["modifier"], height
+            peer_modifier = verifier.rpc("getblock", tip, "true")["modifier"]
+            if not legacy_daemon:
+                assert modifier == peer_modifier, height
             if height == 3:
                 assert modifier == "7374616b656d6f64"
-        print("Two testnet nodes accepted and relayed 20 real PoW blocks", flush=True)
+                if legacy_daemon:
+                    print(f"Height 3 modifier: release={peer_modifier} candidate={modifier}", flush=True)
+        print("Two testnet nodes accepted 20 real PoW blocks", flush=True)
 
         staker.stop()
         staker.start(staking=True)
@@ -166,7 +189,7 @@ def run(work):
         wait_for(lambda: verifier.rpc("getblockcount") == 21, timeout=240)
         tip = verifier.rpc("getbestblockhash", raw=True)
         assert staker.rpc("getbestblockhash", raw=True) == tip
-        block = verifier.rpc("getblock", tip, "true")
+        block = staker.rpc("getblock", tip, "true")
         assert block["height"] == 21 and block["proof"] == "pos" and len(block["tx"]) == 2
         stake = verifier.rpc("getrawtransaction", block["tx"][1], 1)
         assert stake["vout"][0]["value"] == 0 and stake["vout"][0]["scriptPubKey"]["hex"] == ""
@@ -195,5 +218,11 @@ def run(work):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--legacy-daemon", nargs=argparse.REMAINDER,
+                        help="Legacy verifier executable and arguments (must be last)")
+    args = parser.parse_args()
+    if args.legacy_daemon == []:
+        parser.error("--legacy-daemon requires an executable")
     with tempfile.TemporaryDirectory(prefix="agrarian-testnet-hybrid-") as directory:
-        run(Path(directory))
+        run(Path(directory), args.legacy_daemon)

@@ -94,6 +94,25 @@ Validation record: 2026-11-19
   desktop wallets. The pool RPC and payee checks above are not substitutes
   for these. This record is not approval to change mainnet or publish packages.
 
+Extended staging checks
+-----------------------
+
+- Mixed peers: the deployed v2.0.0 x86-64 daemon, run under emulation,
+  and the candidate accepted the same 20 PoW setup blocks, relayed and
+  accepted the candidate's signed 10 AGR PoS block, and accepted PoW again
+  using the legacy peer's next mining template. This test did not exercise
+  enforced masternode PoS payouts or every historical stake input. The
+  height-3 modifier still differed, so this does not waive the reindex
+  requirement or authorize mixed-version mainnet staking.
+- Miningcore: `test/functional/miningcore_staging.py` uses two real regtest
+  nodes, a temporary PostgreSQL instance, a Stratum miner and PPLNS. The
+  repository-built Miningcore artifact (SHA256
+  `91ece2f93a1d0f83e93524a4b37d9b8e430055a14498c9ef966108936c4ece4f`)
+  accepted and stored the share, submitted an accepted block, and paid
+  50 test AGR to a separate wallet after coinbase maturity. A different,
+  older local build accepted the same class of submissions as shares but
+  did not submit the block. Identify and hash the pool binary before rollout.
+
 The currently verified binaries are:
 
 - Ubuntu daemon and command-line tools
