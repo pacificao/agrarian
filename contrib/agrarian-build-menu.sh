@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-https://github.com/pacificao/agrarian.git}"
-WORKDIR="${WORKDIR:-$HOME/agrarian}"
+OFFICIAL_REPO_URL="https://github.com/pacificao/agrarian.git"
+REPO_URL="${REPO_URL:-$OFFICIAL_REPO_URL}"
+WORKDIR="${WORKDIR:-}"
+BRANCH="${BRANCH:-}"
+RELEASE_TAG=""
 HOST_WIN64="${HOST_WIN64:-x86_64-w64-mingw32}"
 HOST_ARM64="${HOST_ARM64:-aarch64-linux-gnu}"
 
@@ -12,18 +15,6 @@ DAEMON_WAS_RUNNING=0
 DAEMON_RESTART_MODE=""
 DAEMON_RESTART_CMD=()
 DAEMON_SYSTEMD_SERVICE=""
-
-detect_script_branch() {
-  local script_dir
-  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-  git -C "$script_dir" rev-parse --abbrev-ref HEAD 2>/dev/null || true
-}
-
-if [[ -z "${BRANCH:-}" ]]; then
-  BRANCH="$(detect_script_branch)"
-fi
-BRANCH="${BRANCH:-main}"
 
 detect_build_jobs() {
   if command -v nproc >/dev/null 2>&1; then
@@ -529,8 +520,54 @@ install_bootstrap_packages() {
   sudo_cmd apt-get install -y ca-certificates git
 }
 
+resolve_latest_release() {
+  local release
+  [[ "$REPO_URL" == "$OFFICIAL_REPO_URL" ]] ||
+    fail "Latest stable builds use the official GitHub repository. Set BRANCH explicitly for development."
+  release="$(curl --fail --silent --show-error --max-time 20 \
+    --proto '=https' -H 'Accept: application/vnd.github+json' \
+    'https://api.github.com/repos/pacificao/agrarian/releases/latest')" ||
+    fail "Could not find an official stable release on GitHub. Try again later; no development build will be used."
+  RELEASE_TAG="$(python3 -c '
+import json, re, sys
+data = json.load(sys.stdin)
+tag = data.get("tag_name")
+if (data.get("draft") is not False or data.get("prerelease") is not False
+        or not data.get("published_at") or not isinstance(tag, str)
+        or not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+(?:\.[0-9]+)?", tag)):
+    sys.exit(1)
+print(tag)
+' <<< "$release")" || fail "GitHub did not return a valid published stable release."
+}
+
+checkout_stable_release() {
+  local default_dir="$HOME/agrarian-builds/$RELEASE_TAG" suffix=1
+  if [[ -z "$WORKDIR" ]]; then
+    WORKDIR="$default_dir"
+    while [[ -e "$WORKDIR" || -L "$WORKDIR" ]]; do
+      WORKDIR="$default_dir-$suffix"
+      ((suffix += 1))
+    done
+  fi
+  printf '\nLatest stable release: %s\n' "$RELEASE_TAG"
+  WORKDIR="$(prompt "New build directory" "$WORKDIR")"
+  JOBS="$(prompt "Parallel build jobs" "$JOBS")"
+  [[ ! -e "$WORKDIR" && ! -L "$WORKDIR" ]] || fail "Choose a new build directory. Existing files are left untouched."
+  mkdir -p -- "$(dirname -- "$WORKDIR")"
+  mkdir -- "$WORKDIR" || fail "Could not create the new build directory."
+  ROOT="$(cd -- "$WORKDIR" && pwd -P)"
+  git -C "$ROOT" init -q
+  git -C "$ROOT" remote add origin "$OFFICIAL_REPO_URL"
+  run_step 25 "Fetching official release $RELEASE_TAG" \
+    git -C "$ROOT" fetch --no-tags origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+  git -C "$ROOT" switch --detach "refs/tags/$RELEASE_TAG"
+  printf 'Building %s at commit %s\n' "$RELEASE_TAG" "$(git -C "$ROOT" rev-parse HEAD)"
+  cd "$ROOT"
+}
+
 ensure_repo() {
   local head remote_head
+  WORKDIR="${WORKDIR:-$HOME/agrarian}"
 
   if [[ "${AGRARIAN_PROMPTS_DONE:-0}" != "1" ]]; then
     WORKDIR="$(prompt "Repository directory" "$WORKDIR")"
@@ -827,9 +864,19 @@ show_completion() {
 main() {
   select_target
   progress 5 "Selected target: $MENU_CHOICE"
-  run_step 10 "Installing bootstrap Ubuntu packages" install_bootstrap_packages
-  ensure_repo
-  reexec_from_checkout
+  if [[ -z "$BRANCH" ]]; then
+    # Old release tags can contain older launchers; keep this one in control.
+    if ! has_cmd git || ! has_cmd curl || ! has_cmd python3; then
+      run_step 10 "Installing release lookup tools" apt_get_update_with_repair
+      sudo_cmd apt-get install -y ca-certificates git curl python3
+    fi
+    resolve_latest_release
+    checkout_stable_release
+  else
+    run_step 10 "Installing bootstrap Ubuntu packages" install_bootstrap_packages
+    ensure_repo
+    reexec_from_checkout
+  fi
   run_step 40 "Installing required Ubuntu packages" install_packages
   run_step 43 "Preparing running Agrarian processes" prepare_running_processes_for_build
   build_selected

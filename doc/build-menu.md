@@ -11,7 +11,14 @@ for common Agrarian targets:
 - Linux ARM64 daemon and CLI tools
 - Linux ARM64 Qt GUI wallet
 
-The script clones the Agrarian repository if the selected checkout directory
+By default, the launcher resolves the latest published stable release from
+GitHub, checks out that tag in a new directory, and prints the exact commit.
+Publishing a new stable release updates the default without editing the
+launcher. If the lookup fails, the launcher stops instead of building main.
+The stable workflow does not run the menu script bundled with an older tag.
+
+In development mode (`BRANCH=main` or another explicit branch), the script
+clones the Agrarian repository if the selected checkout directory
 does not exist. An existing checkout must already be on the configured branch,
 have no local changes or untracked files, and allow a fast-forward. The menu
 does not reset or clean the checkout. Use a dedicated build directory, away
@@ -40,7 +47,7 @@ From a fresh Ubuntu host:
 
     sudo apt-get update
     sudo apt-get install -y git ca-certificates
-    git clone --branch 2.0 https://github.com/pacificao/agrarian.git agrarian
+    git clone https://github.com/pacificao/agrarian.git agrarian
     cd agrarian
     ./contrib/agrarian-build-menu.sh
 
@@ -78,13 +85,13 @@ Defaults
 The script can be configured with environment variables:
 
     REPO_URL=https://github.com/pacificao/agrarian.git
-    BRANCH=<current checkout branch, or main when run standalone>
-    WORKDIR=$HOME/agrarian
+    BRANCH=<unset for latest stable; set main for a development build>
+    WORKDIR=<fresh versioned directory under $HOME/agrarian-builds by default>
     JOBS=<detected CPU count>
 
 Example:
 
-    JOBS=8 WORKDIR=$HOME/src/agrarian ./contrib/agrarian-build-menu.sh
+    BRANCH=main JOBS=2 WORKDIR=$HOME/src/agrarian-dev ./contrib/agrarian-build-menu.sh
 
 To test the 2.0 branch from a standalone downloaded copy of the script:
 
