@@ -8,12 +8,12 @@ PORT="${PORT:-36436}"
 WAIT_SECONDS="${WAIT_SECONDS:-90}"
 AGRARIAND="${AGRARIAND:-$ROOT/src/agrariand}"
 AGRARIAN_CLI="${AGRARIAN_CLI:-$ROOT/src/agrarian-cli}"
-BACKUP="${BACKUP:-/tmp/agrarian-wallet-backup-smoke.dat}"
+BACKUP="${BACKUP:-$DATADIR/wallet-backup-smoke.dat}"
+STARTED=0
 
 cleanup() {
-  if [[ -x "$AGRARIAN_CLI" && -d "$DATADIR" ]]; then
-    "$AGRARIAN_CLI" -datadir="$DATADIR" -regtest \
-      -rpcuser=wallet -rpcpassword=wallet-pass -rpcport="$RPCPORT" stop >/dev/null 2>&1 || true
+  if [[ "$STARTED" == 1 ]]; then
+    rpc stop >/dev/null 2>&1 || true
   fi
 }
 trap cleanup EXIT
@@ -27,19 +27,42 @@ require_path() {
 
 rpc() {
   "$AGRARIAN_CLI" -datadir="$DATADIR" -regtest \
-    -rpcuser=wallet -rpcpassword=wallet-pass -rpcconnect=127.0.0.1 \
-    -rpcport="$RPCPORT" "$@"
+    -rpcconnect=127.0.0.1 -rpcport="$RPCPORT" "$@"
 }
 
 require_path "$AGRARIAND"
 require_path "$AGRARIAN_CLI"
 
-mkdir -p "$DATADIR"
-cat > "$DATADIR/agrarian.conf" <<EOF
+if [[ -L "$DATADIR" ]]; then
+  echo "The smoke-test datadir must not be a symlink." >&2
+  exit 1
+fi
+mkdir -p -- "$DATADIR"
+test_dir="$(realpath -e -- "$DATADIR")"
+dir_contents="$(find "$test_dir" -mindepth 1 -maxdepth 1 -print -quit)"
+if [[ -n "$dir_contents" ]]; then
+  echo "A fresh, empty smoke-test datadir is required." >&2
+  exit 1
+fi
+if [[ -e "$BACKUP" || -L "$BACKUP" ]]; then
+  echo "Refusing to overwrite an existing backup: $BACKUP" >&2
+  exit 1
+fi
+backup_dir="$(realpath -e -- "$(dirname -- "$BACKUP")")"
+if [[ "$backup_dir" != "$test_dir" ]]; then
+  echo "The smoke-test backup must be inside its disposable datadir." >&2
+  exit 1
+fi
+
+smoke_rpc_password="$(openssl rand -hex 32)"
+(
+  umask 077
+  set -o noclobber
+  cat > "$DATADIR/agrarian.conf" <<EOF
 regtest=1
 server=1
 rpcuser=wallet
-rpcpassword=wallet-pass
+rpcpassword=$smoke_rpc_password
 rpcbind=127.0.0.1
 rpcallowip=127.0.0.1
 listen=0
@@ -48,10 +71,12 @@ upnp=0
 staking=0
 keypool=10
 EOF
+)
 
 "$AGRARIAND" -datadir="$DATADIR" -regtest -server -listen=0 -dnsseed=0 \
-  -connect=0 -upnp=0 -staking=0 -rpcuser=wallet -rpcpassword=wallet-pass \
-  -rpcbind=127.0.0.1 -rpcport="$RPCPORT" -port="$PORT" -keypool=10 -daemon
+  -connect=0 -upnp=0 -staking=0 -rpcbind=127.0.0.1 \
+  -rpcport="$RPCPORT" -port="$PORT" -keypool=10 -daemon
+STARTED=1
 
 for _ in $(seq 1 "$WAIT_SECONDS"); do
   if rpc getinfo >/dev/null 2>&1; then
@@ -75,7 +100,6 @@ txid="$(rpc sendtoaddress "$send_address" 1.0)"
 rpc generate 1 >/dev/null
 rpc gettransaction "$txid" >/dev/null
 
-rm -f "$BACKUP"
 rpc backupwallet "$BACKUP"
 test -s "$BACKUP"
 

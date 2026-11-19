@@ -31,6 +31,42 @@ Berkeley DB 4.8.30 is intentionally retained for legacy `wallet.dat`
 compatibility. Future wallet-storage modernization should add a dedicated SQLite
 backend and migration flow instead of changing the BDB version in-place.
 
+Hybrid release gates
+--------------------
+
+1. Keep the staking consensus patch separate from dependency, build-tree and
+   wallet-format modernization. First build a source-only candidate in a clean
+   tree and run the subsidy unit tests and
+   `python3 test/functional/testnet_hybrid.py`. The latter uses two isolated
+   testnet nodes and checks matching modifiers, a peer-accepted PoS block with a
+   10 AGR subsidy, and continued PoW mining. Also exercise wallet encryption,
+   backup/restore and restart, and independently validate masternode payments
+   when they are enabled; the two-node hybrid test has no active masternodes.
+2. Replay an immutable copy of the mainnet block files with a known-good build
+   and the candidate in separate offline data directories, with wallets and
+   outbound connections disabled. Rebuild the block index from the raw blocks
+   for the candidate rather than relying on a copied index. Record the source
+   tip height and hash, both replay results, the UTXO-set digest and representative
+   historical block hashes. Compare stake modifiers too: the deterministic fix
+   is expected to change some historical metadata. Do not infer that an index
+   created by an older binary can be reused. Decide and document the required
+   reindex, mixed-version behavior, activation and rollback before deployment.
+3. Review difficulty behavior for alternating PoW/PoS and at the end of PoW,
+   and verify ordinary and masternode payouts across that boundary. Do not
+   change target arithmetic, historical subsidy behavior or validation rules
+   as part of tooling cleanup. Use test vectors and an explicit compatibility
+   plan for any rule change.
+4. On a test network, check the actual pool client against the candidate daemon:
+   get a mining template after PoS, submit PoW, verify notifications, and check
+   reward maturity and payouts. Check explorer and web-wallet RPC compatibility.
+   The verbose `getblock` response identifies block type as `proof: pow|pos`;
+   serialized blocks and the mining template response are unchanged.
+5. Only after those gates pass, build daemon, CLI, and Qt artifacts from the
+   same reviewed commit. Run a staged node upgrade before updating pool,
+   masternode, website and wallet infrastructure. Keep staking off on shared
+   service wallets while evaluating a separate encrypted staking wallet. Follow
+   the [desktop wallet release checklist](desktop-wallet-release.md) for downloads.
+
 The currently verified binaries are:
 
 - Ubuntu daemon and command-line tools

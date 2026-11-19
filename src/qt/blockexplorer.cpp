@@ -198,11 +198,11 @@ std::string BlockToString(CBlockIndex* pBlock)
         return "";
 
     CBlock block;
-    ReadBlockFromDisk(block, pBlock);
+    if (!ReadBlockFromDisk(block, pBlock))
+        return "";
 
     CAmount Fees = 0;
     CAmount OutVolume = 0;
-    CAmount Reward = 0;
 
     std::string TxLabels[] = {_("Hash"), _("From"), _("Amount"), _("To"), _("Amount")};
 
@@ -211,11 +211,12 @@ std::string BlockToString(CBlockIndex* pBlock)
         const CTransaction& tx = block.vtx[i];
         TxContent += TxToRow(tx);
 
-        CAmount In = getTxIn(tx);
-        CAmount Out = tx.GetValueOut();
-        if (tx.IsCoinBase())
-            Reward += Out;
-        else if (In < 0)
+        if (tx.IsCoinBase() || tx.IsCoinStake())
+            continue;
+
+        const CAmount In = getTxIn(tx);
+        const CAmount Out = tx.GetValueOut();
+        if (In < 0)
             Fees = -Params().MaxMoneyOut();
         else {
             Fees += In - Out;
@@ -224,11 +225,8 @@ std::string BlockToString(CBlockIndex* pBlock)
     }
     TxContent += "</table>";
 
-    CAmount Generated;
-    if (pBlock->nHeight == 0)
-        Generated = OutVolume;
-    else
-        Generated = GetBlockValue(pBlock->nHeight - 1);
+    const std::string subsidy = pBlock->nHeight == 0 ? _("Not applicable") :
+        ValueToString(GetBlockValue(pBlock->nHeight, block.IsProofOfStake()));
 
     std::string BlockContentCells[] =
         {
@@ -237,7 +235,7 @@ std::string BlockToString(CBlockIndex* pBlock)
             _("Number of Transactions"), itostr(block.vtx.size()),
             _("Value Out"), ValueToString(OutVolume),
             _("Fees"), ValueToString(Fees),
-            _("Generated"), ValueToString(Generated),
+            _("Base subsidy"), subsidy,
             _("Timestamp"), TimeToString(block.nTime),
             _("Difficulty"), strprintf("%.4f", GetDifficulty(pBlock)),
             _("Bits"), utostr(block.nBits),

@@ -4,49 +4,29 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "primitives/transaction.h"
+#include "chainparams.h"
 #include "main.h"
 #include "test_agrarian.h"
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_FIXTURE_TEST_SUITE(main_tests, TestingSetup)
+BOOST_FIXTURE_TEST_SUITE(main_tests, BasicTestingSetup)
 
-CAmount nMoneySupplyPoWEnd = 43199500 * COIN;
-
-BOOST_AUTO_TEST_CASE(subsidy_limit_test)
+BOOST_AUTO_TEST_CASE(hybrid_block_subsidy)
 {
-    CAmount nSum = 0;
-    for (int nHeight = 0; nHeight < 1; nHeight += 1) {
-        /* premine in block 1 (60,001 AGR) */
-        CAmount nSubsidy = GetBlockValue(nHeight);
-        BOOST_CHECK(nSubsidy <= 60001 * COIN);
-        nSum += nSubsidy;
-    }
+    const int firstStake = Params().FIRST_POS_BLOCK();
+    const int lastWork = Params().LAST_POW_BLOCK();
+    BOOST_REQUIRE_LT(firstStake, lastWork);
 
-    for (int nHeight = 1; nHeight < 86400; nHeight += 1) {
-        /* PoW Phase One */
-        CAmount nSubsidy = GetBlockValue(nHeight);
-        BOOST_CHECK(nSubsidy <= 250 * COIN);
-        nSum += nSubsidy;
-    }
-
-    for (int nHeight = 86400; nHeight < 151200; nHeight += 1) {
-        /* PoW Phase Two */
-        CAmount nSubsidy = GetBlockValue(nHeight);
-        BOOST_CHECK(nSubsidy <= 225 * COIN);
-        nSum += nSubsidy;
-    }
-
-    for (int nHeight = 151200; nHeight < 259200; nHeight += 1) {
-        /* PoW Phase Two */
-        CAmount nSubsidy = GetBlockValue(nHeight);
-        BOOST_CHECK(nSubsidy <= 45 * COIN);
-        BOOST_CHECK(MoneyRange(nSubsidy));
-        nSum += nSubsidy;
-        BOOST_CHECK(nSum > 0 && nSum <= nMoneySupplyPoWEnd);
-    }
-    BOOST_CHECK(nSum == 4109975100000000ULL);
+    // The genesis return value is historical; genesis itself bypasses
+    // ordinary subsidy validation. Test the spendable-block schedule below.
+    BOOST_CHECK_EQUAL(GetBlockValue(1, false), 50 * COIN);
+    BOOST_CHECK_EQUAL(GetBlockValue(firstStake, false), 50 * COIN);
+    BOOST_CHECK_EQUAL(GetBlockValue(firstStake, true), 10 * COIN);
+    BOOST_CHECK_EQUAL(GetBlockValue(lastWork, false), 50 * COIN);
+    BOOST_CHECK_EQUAL(GetBlockValue(lastWork, true), 10 * COIN);
+    BOOST_CHECK_EQUAL(GetBlockValue(lastWork + 1, false), 0);
+    BOOST_CHECK_EQUAL(GetBlockValue(lastWork + 1, true), 10 * COIN);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

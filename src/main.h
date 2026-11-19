@@ -247,16 +247,9 @@ bool GetOutput(const uint256& hash, unsigned int index, CValidationState& state,
 double ConvertBitsToDouble(unsigned int nBits);
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZAGRStake);
 
-/**
- * Hybrid difficulty selection.
- * Implementations should route to the correct target calculation (PoW vs PoS)
- * based on the fProofOfStake flag rather than height-era assumptions.
- */
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, bool fProofOfStake);
-
 bool ActivateBestChain(CValidationState& state, CBlock* pblock = NULL, bool fAlreadyChecked = false);
+/** Base subsidy for a candidate block. Proof eligibility is validated separately. */
 CAmount GetBlockValue(int nHeight, bool fProofOfStake);
-CAmount GetBlockValue(int nHeight);
 
 /** Create a new block index entry for a given block hash */
 CBlockIndex* InsertBlockIndex(uint256 hash);
@@ -462,7 +455,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 /** Context-independent validity checks */
 bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool fCheckPOW = true);
 bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW = true, bool fCheckMerkleRoot = true, bool fCheckSig = true);
-bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev);
+bool CheckWork(const CBlock& block, const CBlockIndex* pindexPrev);
 
 /** Context-dependent validity checks */
 bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& state, CBlockIndex* pindexPrev);

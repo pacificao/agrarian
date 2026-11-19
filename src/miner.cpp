@@ -644,7 +644,9 @@ void BitcoinMiner(CWallet* pwallet, bool fProofOfStake)
                 fMintableCoins = pwallet->MintableCoins();
             }
 
-            if (chainActive.Tip()->nHeight < Params().LAST_POW_BLOCK()) {
+            // Staking can start while PoW is still allowed. The stake kernel
+            // separately enforces maturity and eligibility of the input.
+            if (chainActive.Height() + 1 < Params().FIRST_POS_BLOCK()) {
                 MilliSleep(5000);
                 continue;
             }

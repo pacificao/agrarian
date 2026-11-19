@@ -565,8 +565,6 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, b
         ++it;
     }
 
-    CAmount blockValue = GetBlockValue(pindexPrev->nHeight);
-
     if (fProofOfStake) {
         if (nHighestCount > 0) {
             unsigned int i = txNew.vout.size();
@@ -584,7 +582,8 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, b
         }
     } else {
         //miners get the full amount on these blocks
-        txNew.vout[0].nValue = blockValue;
+        // Preserve the historical parent-height calculation in this refactor.
+        txNew.vout[0].nValue = GetBlockValue(pindexPrev->nHeight, /*fProofOfStake=*/false);
 
         if (nHighestCount > 0) {
             txNew.vout.resize(2);

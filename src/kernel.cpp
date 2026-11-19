@@ -154,9 +154,10 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
         return true; // genesis block's modifier is 0
     }
     if (pindexPrev->nHeight == 2) {
-        //Give a stake modifier to the first block
+        // Use the fixed bytes "stakemod", not a pointer to a string literal:
+        // virtual addresses can differ between nodes and process restarts.
         fGeneratedStakeModifier = true;
-        nStakeModifier = uint64_t("stakemodifier");
+        nStakeModifier = 0x7374616b656d6f64ULL;
         return true;
     }
 

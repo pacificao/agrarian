@@ -2014,14 +2014,6 @@ int64_t GetBlockValue(int nHeight, bool fProofOfStake)
     return 0;
 }
 
-// Backward-compatible wrapper for call sites that only know height.
-// Prefer GetBlockValue(height, isPoS) when block type is available.
-int64_t GetBlockValue(int nHeight)
-{
-    return GetBlockValue(nHeight, false);
-}
-
-
 CAmount GetSeeSaw(const CAmount& blockValue, int nMasternodeCount, int nHeight)
 {
     //if a mn count is inserted into the function we are looking for a specific result for a masternode count
@@ -4273,7 +4265,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
     return true;
 }
 
-bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev)
+bool CheckWork(const CBlock& block, const CBlockIndex* pindexPrev)
 {
     if (pindexPrev == NULL)
         return error("%s : null pindexPrev for block %s", __func__, block.GetHash().ToString().c_str());
