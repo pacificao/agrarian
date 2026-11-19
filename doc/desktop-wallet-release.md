@@ -41,11 +41,13 @@ checksum and exercise the installed GUI and a disposable regtest wallet.
 
 The Ubuntu smoke job runs in a fresh 24.04 userspace with runtime packages
 only; the Windows job uses a fresh Windows Server x64 runner and the NSIS
-installer. Still test interactively on the actual advertised desktop OSes
-(initially Ubuntu 24.04 Desktop x64 and Windows 11 x64), including starting
-from shortcuts, syncing from an empty data directory and opening a disposable
-`wallet.dat` made by the previous released version. CI tests alone do not
-establish these results. Never upload a live wallet to CI.
+installer. Pair the fresh Windows installer test with a Windows 11 x64 desktop
+smoke test of the exact same artifact, using isolated regtest data. The
+desktop can be a workstation; don't call it a clean installation. Use a clean
+Windows 11 VM if results disagree or a Windows 11-specific installation issue
+appears. Check desktop launch, syncing from an empty data directory and opening
+a disposable `wallet.dat` made by the previous released version. CI tests
+alone do not establish these results. Never upload a live wallet to CI.
 
 Local release-preparation regression: the wallet smoke test found an RPC
 startup race during wallet encryption. The RPC table now returns the existing
