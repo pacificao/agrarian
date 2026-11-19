@@ -69,6 +69,31 @@ Hybrid release gates
    service wallets while evaluating a separate encrypted staking wallet. Follow
    the [desktop wallet release checklist](desktop-wallet-release.md) for downloads.
 
+Validation record: 2026-11-19
+-----------------------------
+
+- Isolated testnet: two nodes accepted a signed PoS block paying the 10 AGR
+  subsidy, then mined/submitted a valid PoW block based on the verifier's next
+  `getblocktemplate` response. Both nodes agreed on their stake modifiers.
+- Focused unit suite: 13 assertions passed for subsidy boundaries and
+  proof-specific masternode payee checks. Local regtest covered mining, sending,
+  encryption with a locked restart, and recovery of balance and transaction
+  history from a disposable wallet backup.
+- Offline replay: the deployed v2.0.0 reference and the candidate rebuilt
+  from the same `blk00000.dat` snapshot, each with no wallet or external peers.
+  Both passed level-4 verification at height 8,681, with matching tip
+  `0000005c121943a095feb808637969d780ab4fba024b42ef115fcd55bfcd4d85`
+  and UTXO digest
+  `c022a9cd3ae28aec1b9d0335155769efc468aa4b8d11b903372ed5f7ee39dd7f`.
+  The historical block hashes sampled were unchanged; the height-3 modifier
+  differed, as expected. Rebuild the full block index for staking-capable
+  upgraded nodes rather than carrying forward the legacy modifier index.
+- Still open: mixed-version policy and canary rollout, end-to-end Miningcore
+  Stratum/share/payout testing, live masternode nomination/enforcement in a
+  test deployment, and clean OS checks for the packaged Windows and Linux
+  desktop wallets. The pool RPC and payee checks above are not substitutes
+  for these. This record is not approval to change mainnet or publish packages.
+
 The currently verified binaries are:
 
 - Ubuntu daemon and command-line tools
