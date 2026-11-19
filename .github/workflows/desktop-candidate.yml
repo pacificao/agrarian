@@ -1,0 +1,136 @@
+name: Desktop wallet candidate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [review/hybrid-stability]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }} x64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu, windows]
+    env:
+      JOBS: '4'
+      PLATFORM: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Install the build toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential pkg-config autoconf automake libtool bsdmainutils \
+            curl cmake ninja-build unzip xz-utils bzip2 \
+            libfontconfig1-dev libfreetype-dev libharfbuzz-dev libbrotli-dev libbz2-dev \
+            libexpat1-dev libglib2.0-dev libgraphite2-dev libpng-dev zlib1g-dev \
+            libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-icccm4-dev \
+            libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render0-dev \
+            libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev libxcb-sync-dev \
+            libxcb-util-dev libxcb-xfixes0-dev libxcb-xinerama0-dev libxcb-xkb-dev \
+            libxau-dev libxdmcp-dev libxext-dev libxi-dev libxrender-dev \
+            libxkbcommon-dev libxkbcommon-x11-dev
+          if [[ "$PLATFORM" == windows ]]; then
+            sudo apt-get install -y --no-install-recommends g++-mingw-w64-x86-64-posix nsis
+            sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+            sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+          fi
+      - name: Build from the reviewed source
+        run: |
+          build_dir=$(mktemp -d "$RUNNER_TEMP/agrarian-source.XXXXXX")
+          bash contrib/export-release-source.sh "$GITHUB_SHA" "$build_dir"
+          mkdir "$RUNNER_TEMP/packages"
+          cd "$build_dir"
+          if [[ "$PLATFORM" == windows ]]; then
+            ./contrib/build-win64-wallet.sh
+            make deploy
+            installers=(agrarian-*-win64-setup.exe)
+            [[ ${#installers[@]} == 1 && -s "${installers[0]}" ]]
+            install -m 755 "${installers[0]}" "$RUNNER_TEMP/packages/"
+            file src/qt/agrarian-qt.exe src/agrariand.exe "${installers[0]}"
+          else
+            ./contrib/build-linux-wallet.sh
+            stage_dir=$(mktemp -d "$RUNNER_TEMP/agrarian-package.XXXXXX")
+            install -D -m 755 src/qt/agrarian-qt "$stage_dir/agrarian/bin/agrarian-qt"
+            install -m 755 src/agrariand src/agrarian-cli src/agrarian-tx "$stage_dir/agrarian/bin/"
+            install -m 644 COPYING "$stage_dir/agrarian/"
+            strip "$stage_dir"/agrarian/bin/*
+            tar -C "$stage_dir" -czf "$RUNNER_TEMP/packages/agrarian-ubuntu-24.04-x64.tar.gz" agrarian
+            file src/qt/agrarian-qt src/agrariand
+          fi
+          cd "$RUNNER_TEMP/packages"
+          sha256sum -- * > SHA256SUMS
+          { printf 'commit=%s\n' "$GITHUB_SHA"; gcc --version; if [[ "$PLATFORM" == windows ]]; then x86_64-w64-mingw32-g++ --version; fi; } > BUILD-INFO.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: candidate-${{ matrix.platform }}-x64
+          path: ${{ runner.temp }}/packages/
+          if-no-files-found: error
+          retention-days: 7
+
+  ubuntu-package:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: candidate-ubuntu-x64
+          path: ${{ runner.temp }}/wallet-candidate
+      - name: Exercise the downloaded package on pristine Ubuntu userspace
+        run: |
+          cd "$RUNNER_TEMP/wallet-candidate"
+          sha256sum -c SHA256SUMS
+          docker run --rm -v "$PWD:/package:ro" \
+            -v "$GITHUB_WORKSPACE/test/functional/desktop_package_smoke.py:/smoke.py:ro" ubuntu:24.04 bash -euxc '
+            apt-get update
+            apt-get install -y --no-install-recommends python3 xvfb xauth ca-certificates \
+              fonts-dejavu-core libegl1 libgl1 libfontconfig1 libfreetype6 libharfbuzz0b \
+              libglib2.0-0t64 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+              libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 \
+              libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libx11-xcb1 libxi6 libxrender1
+            cd /tmp
+            tar -xzf /package/agrarian-ubuntu-24.04-x64.tar.gz
+            ldd agrarian/bin/agrarian-qt
+            runuser -u nobody -- xvfb-run -a python3 /smoke.py --qt agrarian/bin/agrarian-qt --daemon agrarian/bin/agrariand
+          '
+
+  windows-package:
+    needs: build
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: candidate-windows-x64
+          path: ${{ runner.temp }}/wallet-candidate
+      - name: Install and exercise the downloaded package on Windows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-Location (Join-Path $env:RUNNER_TEMP 'wallet-candidate')
+          $installers = @(Get-ChildItem -File -Filter '*-win64-setup.exe')
+          if ($installers.Count -ne 1) { throw 'Expected one installer' }
+          $expected = ((Get-Content SHA256SUMS -Raw).Trim() -split '\s+', 2)[0]
+          if ((Get-FileHash $installers[0].FullName).Hash -ine $expected) { throw 'Installer hash mismatch' }
+          $destination = Join-Path $env:RUNNER_TEMP 'agrarian-installed'
+          if (Test-Path -LiteralPath $destination) { throw 'Install location is not clean' }
+          $result = Start-Process -FilePath $installers[0].FullName -ArgumentList "/S /D=$destination" -Wait -PassThru
+          if ($result.ExitCode -ne 0) { throw "Installer exit code $($result.ExitCode)" }
+          python "$env:GITHUB_WORKSPACE/test/functional/desktop_package_smoke.py" `
+            --qt "$destination/agrarian-qt.exe" --daemon "$destination/daemon/agrariand.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'Installed wallet smoke test failed' }
