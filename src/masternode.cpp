@@ -781,7 +781,13 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
     // see if we have this Masternode
     CMasternode* pmn = mnodeman.Find(vin);
     if (pmn != NULL && pmn->protocolVersion >= masternodePayments.GetMinMasternodePaymentsProto()) {
-        if (fRequireEnabled && !pmn->IsEnabled()) return false;
+        // A pending node needs one mature, authenticated ping to become
+        // enabled. Reject early pings and every other non-enabled state.
+        if (fRequireEnabled && !pmn->IsEnabled() &&
+            (pmn->activeState != CMasternode::MASTERNODE_PRE_ENABLED ||
+             sigTime - pmn->sigTime < MASTERNODE_MIN_MNP_SECONDS)) {
+            return false;
+        }
 
         // LogPrint("masternode","mnping - Found corresponding mn for vin: %s\n", vin.ToString());
         // update only if there is no known ping for this masternode or
