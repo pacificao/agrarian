@@ -2004,9 +2004,6 @@ bool AppInit2()
 
     // ********************************************************* Step 12: finished
 
-    SetRPCWarmupFinished();
-    uiInterface.InitMessage(_("Done loading"));
-
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
         // Add wallet transactions that aren't already in a block to mapTransactions
@@ -2022,6 +2019,11 @@ bool AppInit2()
     }
 #endif
 
+    if (fRequestShutdown)
+        return false;
 
-    return !fRequestShutdown;
+    SetRPCWarmupFinished();
+    uiInterface.InitMessage(_("Done loading"));
+
+    return true;
 }

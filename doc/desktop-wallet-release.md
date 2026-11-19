@@ -47,6 +47,12 @@ from shortcuts, syncing from an empty data directory and opening a disposable
 `wallet.dat` made by the previous released version. CI tests alone do not
 establish these results. Never upload a live wallet to CI.
 
+Local release-preparation regression: the wallet smoke test found an RPC
+startup race during wallet encryption. The RPC table now returns the existing
+warmup error until initialization has finished. A native diagnostic daemon
+with the fix passed the transaction, encryption, restart, and backup-restore
+checks. This is not a test of either packaged desktop GUI.
+
 Both platforms must pass on the same commit and hashes. Obtain an approved
 release-signing key and publish its fingerprint through a trusted channel;
 the 2.0.0 source tag is not a signed baseline. Do not create a public tag,
