@@ -12,8 +12,10 @@ for common Agrarian targets:
 - Linux ARM64 Qt GUI wallet
 
 The script clones the Agrarian repository if the selected checkout directory
-does not exist. If the checkout already exists, it fetches, checks out the
-configured branch, and performs a fast-forward pull.
+does not exist. An existing checkout must already be on the configured branch,
+have no local changes or untracked files, and allow a fast-forward. The menu
+does not reset or clean the checkout. Use a dedicated build directory, away
+from a running node or wallet.
 
 Only bootstrap packages needed to update the checkout are installed before the
 pull. Target-specific packages are installed after the checkout is current, so

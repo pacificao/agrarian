@@ -539,10 +539,14 @@ ensure_repo() {
 
   if [[ -d "$WORKDIR/.git" ]]; then
     ROOT="$WORKDIR"
+    [[ -z "$(git -C "$ROOT" status --porcelain --untracked-files=normal)" ]] ||
+      fail "This checkout has local changes or untracked files. Use a fresh build directory."
+    [[ "$(git -C "$ROOT" symbolic-ref --quiet --short HEAD)" == "$BRANCH" ]] ||
+      fail "This checkout is not on $BRANCH. Use a fresh build directory or switch branches yourself."
     run_step 25 "Fetching existing Agrarian checkout" git -C "$ROOT" fetch origin "$BRANCH"
-    run_step 30 "Resetting checkout to origin/$BRANCH" git -C "$ROOT" reset --hard "origin/$BRANCH"
-    run_step 35 "Checking out $BRANCH" git -C "$ROOT" checkout -B "$BRANCH" "origin/$BRANCH"
-    run_step 37 "Removing local untracked checkout files" git -C "$ROOT" clean -fd
+    git -C "$ROOT" merge-base --is-ancestor HEAD FETCH_HEAD ||
+      fail "This checkout is ahead of or diverged from origin/$BRANCH. Use a fresh build directory."
+    run_step 35 "Fast-forwarding $BRANCH" git -C "$ROOT" merge --ff-only FETCH_HEAD
   else
     mkdir -p "$(dirname "$WORKDIR")"
     run_step 35 "Cloning Agrarian into $WORKDIR" git clone --branch "$BRANCH" "$REPO_URL" "$WORKDIR"
