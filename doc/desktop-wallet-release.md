@@ -29,6 +29,26 @@ the supported Linux target until other distributions are tested.
    verification link. Point them to versioned GitHub release assets, and keep the
    web wallet and source-build launcher available as separate options.
 
-No desktop wallet packages are published at the time this checklist was added.
-The web wallet and desktop wallet are separate products; these build steps do
-not change the hosted web wallet or any network node.
+Candidate automation
+--------------------
+
+The **Desktop wallet candidate** workflow builds the assigned commit on
+Ubuntu 24.04 x86-64. The source export omits old checked-in objects, compiled
+dependencies, download stamps and generated build state; `depends` fetches and
+verifies the sources from its pinned recipes. Outputs are temporary CI
+artifacts, not GitHub Release downloads. Both package jobs verify the artifact
+checksum and exercise the installed GUI and a disposable regtest wallet.
+
+The Ubuntu smoke job runs in a fresh 24.04 userspace with runtime packages
+only; the Windows job uses a fresh Windows Server x64 runner and the NSIS
+installer. Still test interactively on the actual advertised desktop OSes
+(initially Ubuntu 24.04 Desktop x64 and Windows 11 x64), including starting
+from shortcuts, syncing from an empty data directory and opening a disposable
+`wallet.dat` made by the previous released version. CI tests alone do not
+establish these results. Never upload a live wallet to CI.
+
+Both platforms must pass on the same commit and hashes. Obtain an approved
+release-signing key and publish its fingerprint through a trusted channel;
+the 2.0.0 source tag is not a signed baseline. Do not create a public tag,
+update the website, or publish candidate binaries while a gate is open.
+The hosted web wallet is separate from the native packages.

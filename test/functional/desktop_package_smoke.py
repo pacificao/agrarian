@@ -12,7 +12,7 @@ import tempfile
 import time
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import ProxyHandler, Request, build_opener
 
 
 def wait_for(check, proc, timeout=90):
@@ -34,13 +34,14 @@ def test(qt, daemon, root):
     password = secrets.token_hex(32)
     passphrase = secrets.token_hex(32)
     credential = base64.b64encode(f"package-test:{password}".encode()).decode()
+    opener = build_opener(ProxyHandler({}))
 
-    def rpc(method, *params):
+    def rpc(method, *params, timeout=5):
         request = Request(f"http://127.0.0.1:{port}/", headers={
             "Authorization": f"Basic {credential}", "Content-Type": "application/json",
         }, data=json.dumps({"id": "package-test", "method": method, "params": params}).encode())
         try:
-            response = urlopen(request, timeout=5)
+            response = opener.open(request, timeout=timeout)
         except HTTPError as exc:
             response = exc
         with response:
@@ -52,7 +53,7 @@ def test(qt, daemon, root):
     def start(binary, path, *extra):
         return subprocess.Popen([str(binary), "-regtest", f"-datadir={path}",
             "-server=1", "-listen=0", "-connect=0", "-dnsseed=0", "-discover=0",
-            "-upnp=0", "-listenonion=0", "-staking=0", "-keypool=5",
+            "-upnp=0", "-listenonion=0", "-staking=0", "-keypool=5", "-par=1",
             "-rpcbind=127.0.0.1", f"-rpcport={port}", *extra])
 
     def stop(proc):
@@ -86,11 +87,11 @@ def test(qt, daemon, root):
         wait_for(lambda: rpc("getwalletinfo"), proc)
         assert rpc("getblockchaininfo")["chain"] == "regtest"
         address = rpc("getnewaddress")
-        assert len(rpc("generate", 101)) == 101
+        assert len(rpc("generate", 101, timeout=90)) == 101
         txid = rpc("sendtoaddress", address, 1)
         rpc("generate", 1)
         assert rpc("gettransaction", txid)["confirmations"] == 1
-        rpc("encryptwallet", passphrase)
+        rpc("encryptwallet", passphrase, timeout=180)
         assert proc.wait(timeout=45) == 0
         proc = start(daemon, path)
         wait_for(lambda: rpc("getwalletinfo"), proc)

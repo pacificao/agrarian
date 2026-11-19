@@ -92,7 +92,8 @@ Validation record: 2026-11-19
   Stratum/share/payout testing, live masternode nomination/enforcement in a
   test deployment, and clean OS checks for the packaged Windows and Linux
   desktop wallets. The pool RPC and payee checks above are not substitutes
-  for these. This record is not approval to change mainnet or publish packages.
+  for these; the subsequent staging results are listed below. This record is
+  not approval to change mainnet or publish packages.
 
 Extended staging checks
 -----------------------
@@ -138,6 +139,31 @@ Build targets covered by the earlier modernization work:
 These build results do not qualify the current desktop packages for release.
 The wallets remain unpublished pending clean-OS tests of the actual Windows
 and Ubuntu packages built from the reviewed commit.
+
+Production canary and rollback
+------------------------------
+
+1. Record the running binaries' hashes, service flags, chain tip, enabled
+   sporks and Miningcore artifact hash. Take an encrypted, access-controlled
+   backup of service configuration, wallet data and existing indexes. Do not
+   copy live wallet data into staging.
+2. Run offline replay with the **exact release daemon** and a recent immutable
+   block snapshot. Check the expected tip hash, UTXO digest and representative
+   stake modifiers. A build or smoke test is not a substitute for replay.
+3. Start with a separate read-only canary with wallet and staking disabled.
+   Rebuild its block index from raw blocks; do not reuse the old modifier
+   index. Compare tip, chainwork, peer connectivity and the RPC queries used
+   by the explorer, wallet and pool. Exercise the pool before changing its
+   endpoint, then observe it through normal share submission and a payout
+   window before upgrading any wallet/key-holding service.
+4. Stop rollout on a divergence, missing payees, rejected pool blocks,
+   regressed RPC behavior, or unexplained service errors. Repoint consumers to
+   the untouched legacy endpoint. If an instance must be reverted, stop it and
+   restart its verified legacy binary with its preserved legacy data directory
+   or an index rebuilt by that binary. Never run the old binary against an
+   index rebuilt by the candidate. Reconcile any transactions before restoring
+   an older wallet backup; never blindly replace a wallet that received funds
+   or created keys after the backup.
 
 Recommended Commands
 --------------------
