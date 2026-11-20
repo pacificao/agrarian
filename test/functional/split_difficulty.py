@@ -2,6 +2,7 @@
 """Exercise the opt-in split-difficulty activation with actual local peers."""
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 from testnet_hybrid import Node, wait_for
@@ -20,9 +21,12 @@ def run(directory):
     staker = Node(directory / "staker", network="regtest")
     legacy = Node(directory / "legacy-rules", network="regtest")
     try:
-        miner.start(staking=False, extra=ENABLED)
-        staker.start(staking=False, extra=ENABLED)
-        legacy.start(staking=False, extra=("-par=1",))
+        # The wallet's MintableCoins readiness check still enforces the
+        # one-hour age, even though the underlying regtest kernel skips it.
+        fixture_clock = f"-mocktime={int(time.time()) - 7200}"
+        miner.start(staking=False, extra=(*ENABLED, fixture_clock))
+        staker.start(staking=False, extra=(*ENABLED, fixture_clock))
+        legacy.start(staking=False, extra=("-par=1", fixture_clock))
         staker.connect(miner)
         stake_address = staker.rpc("getnewaddress", raw=True)
         first = miner.rpc("generate", 30, timeout=90)
