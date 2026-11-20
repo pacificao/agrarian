@@ -28,6 +28,17 @@ PoW tolerance does not apply when the split rule is active.
 
 ## Release gates
 
+**Activation blocker: hybrid chain selection.** The existing branch comparator
+uses accumulated `nChainWork`, calculated from the inverse compact target
+without a proof-type conversion. At the captured mainnet tip (8,889), an
+independent calculation of the candidate gave PoW `1d173c32` and PoS
+`1c04bc95`. Under the unchanged comparator, those targets give one PoS
+block about 1,256 times the score of one PoW block at that boundary.
+This is a branch-selection score, not a comparison of the actual resource
+costs of the proofs. Do not set an activation height until the weight
+policy and its impact on reorgs and chain selection have been reviewed and
+validated, including headers arriving before full block proof types are known.
+
 1. Run the native wide-target and exact staking-burst regression tests and
    the opt-in peer test. Verify a legacy-rules peer agrees until activation
    and intentionally cannot accept at least one new-rules block.
