@@ -42,7 +42,7 @@ PoW tolerance does not apply when the split rule is active.
   competing history after reconnecting. Wallet/explorer confirmation policy
   must not claim otherwise.
 
-**Activation blocker: hybrid chain selection.** The existing branch comparator
+**Activation blocker: hybrid chain selection.** The daemon's existing branch comparator
 uses accumulated `nChainWork`, calculated from the inverse compact target
 without a proof-type conversion. At the captured mainnet tip (8,889), an
 independent calculation of the candidate gave PoW `1d173c32` and PoS
@@ -53,13 +53,40 @@ costs of the proofs. Do not set an activation height until the weight
 policy and its impact on reorgs and chain selection have been reviewed and
 validated, including headers arriving before full block proof types are known.
 
-The offline design checks in `test/functional/test_hybrid_branch_model.py`
-keep separate work and stake evidence for candidate histories. A branch with
-no less of either kind and strictly more of one dominates. Competing branches
-with more of opposite proofs are incomparable under that partial order.
-This diagnostic is intentionally **not** a fork choice. Returning an arbitrary
-winner, silently blending raw inverse targets, or treating production of more
-blocks as proof of greater security would hide the unresolved question.
+### Decision: stage separate evidence with fixed reference units
+
+Keep the proof target histories separate. For competing fully validated branches,
+sum inverse-target evidence separately by proof. Compare the exact integer score
+`work_total * stake_reference + stake_total * work_reference`, where the two
+references must be fixed and shared by every node. Each proof adds positive
+evidence without a quota, vote, or anchor from the other. Blocks on a shared
+prefix cancel out. Exact arithmetic avoids rounding out low-score blocks, and
+changing peer populations does not change how a node scores the same history.
+
+Use the two captured targets above **only as staging reference fixtures**. At
+those specific targets, one block of either proof contributes the same score.
+For example, 24 reference PoW blocks would lose to one reference PoS block under
+raw `nChainWork`; normalized scoring ranks the 24-block branch higher. This is
+an explicit calibration decision, not a claim that either proof has the same
+cost to produce, that either always gets half the score, or that this rule
+guarantees finality. A doubled PoW reference can reverse the ranking of a
+three-PoW versus two-PoS branch. Retargets and participation move contributions
+over time even when the references stay fixed. The model adds no arbitrary
+per-block score cap or fixed positive minimum.
+
+The executable model in `test/functional/test_hybrid_branch_model.py` implements
+that comparison, including exact ties. It does not choose a winner when
+distinct branch tips have equal scores, and it does not change the daemon.
+Retain raw `nChainWork` for legacy/header uses until those call sites have been
+audited. For native staging, derive a separate wide score from full-block data,
+including reindex/reload; never rank a header-only PoS candidate as if its proof
+were known. Check that the selected score also governs any download gates that
+could otherwise prevent a node from finding the better fully validated chain.
+Test ties (including withholding an equal-score competing tip), restart,
+reordering, and reorgs across the activation boundary. Evaluate production
+reference ranges, sustained underparticipation, calibration drift, and PoW
+sunset separately. Do not activate on public networks until those results and
+the production fork-choice parameters have been independently reviewed.
 
 **Separate arithmetic gate:** the legacy stake kernel multiplies the base
 target by the input weight in 256 bits. The split retarget can reach high
