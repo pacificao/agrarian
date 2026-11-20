@@ -5,6 +5,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "chainparams.h"
+#include "kernel.h"
 #include "main.h"
 #include "masternode-payments.h"
 #include "pow.h"
@@ -104,6 +105,19 @@ BOOST_AUTO_TEST_CASE(split_difficulty_never_exceeds_the_target_limit)
         history[i].nBits = limit;
     }
     BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&history.back(), BlockProof::Work), limit);
+}
+
+BOOST_AUTO_TEST_CASE(split_difficulty_stake_weight_is_monotonic_without_rewriting_legacy)
+{
+    uint256 target;
+    target.SetCompact(0x207fffff);
+    BOOST_CHECK(!stakeTargetHit(target, 100, target, true));
+    BOOST_CHECK(stakeTargetHit(target - 1, 100, target, true));
+    BOOST_CHECK(stakeTargetHit(target, 200, target, true));
+    BOOST_CHECK(!stakeTargetHit(target, 300, target, false));
+    BOOST_CHECK(stakeTargetHit(target, 300, target, true));
+    BOOST_CHECK(stakeTargetHit(~uint256(0), 300, target, true));
+    BOOST_CHECK(!stakeTargetHit(uint256(0), 99, target, true));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

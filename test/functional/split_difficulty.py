@@ -23,14 +23,19 @@ def run(directory):
     try:
         # The wallet's MintableCoins readiness check still enforces the
         # one-hour age, even though the underlying regtest kernel skips it.
-        fixture_clock = f"-mocktime={int(time.time()) - 7200}"
-        miner.start(staking=False, extra=(*ENABLED, fixture_clock))
-        staker.start(staking=False, extra=(*ENABLED, fixture_clock))
-        legacy.start(staking=False, extra=("-par=1", fixture_clock))
+        fixture_clock = int(time.time()) - 7200
+        miner.start(staking=False, extra=ENABLED)
+        staker.start(staking=False, extra=ENABLED)
+        legacy.start(staking=False, extra=("-par=1",))
+        for node in (miner, staker, legacy):
+            node.rpc("setmocktime", fixture_clock)
         staker.connect(miner)
-        stake_address = staker.rpc("getnewaddress", raw=True)
+        stake_addresses = [staker.rpc("getnewaddress", raw=True) for _ in range(2)]
         first = miner.rpc("generate", 30, timeout=90)
-        miner.rpc("sendtoaddress", stake_address, 50, raw=True)
+        for address in stake_addresses:
+            # Avoid making the fixture depend on the legacy kernel's wrapped
+            # multiplication at regtest's very large initial stake target.
+            miner.rpc("sendtoaddress", address, 1, raw=True)
         history = first + miner.rpc("generate", 30, timeout=90)
         assert len(history) == ACTIVATION - 1
         wait_for(lambda: staker.rpc("getbestblockhash", raw=True) == history[-1])
@@ -51,20 +56,58 @@ def run(directory):
         assert legacy.rpc("getblockcount") == ACTIVATION - 1
         print("Legacy and candidate agreed before activation; candidate peers accepted the new PoW target.", flush=True)
 
+        # Exercise confirmation under PoW when nobody is staking.
+        payment_address = miner.rpc("getnewaddress", raw=True)
+        work_payment = miner.rpc("sendtoaddress", payment_address, 1, raw=True)
+        work_only = miner.rpc("generate", 2)
+        wait_for(lambda: staker.rpc("getbestblockhash", raw=True) == work_only[-1])
+        assert miner.rpc("gettransaction", work_payment)["confirmations"] == 2
+        pow_tip_height = miner.rpc("getblockcount")
         work_before_stake = miner.rpc("getblocktemplate")["bits"]
+
+        # The receiver doesn't need staking credentials. Relay this normal
+        # transfer to the staker before it connects and can produce a block.
+        stake_payment = miner.rpc("sendtoaddress", payment_address, 2, raw=True)
+        payment_raw = miner.rpc("getrawtransaction", stake_payment, raw=True)
         staker.stop()
         staker.start(staking=True, extra=ENABLED)
+        assert staker.rpc("getstakingstatus")["mintablecoins"], staker.rpc("getstakingstatus")
+        staker.rpc("sendrawtransaction", payment_raw, raw=True)
         staker.connect(miner)
-        wait_for(lambda: miner.rpc("getblockcount") == ACTIVATION + 1, timeout=180)
+        wait_for(lambda: miner.rpc("getblockcount") >= pow_tip_height + 2, timeout=210)
         stake_tip = miner.rpc("getbestblockhash", raw=True)
-        assert staker.rpc("getbestblockhash", raw=True) == stake_tip
-        stake = miner.rpc("getblock", stake_tip, "true")
-        assert stake["proof"] == "pos" and stake["bits"] != work_before_stake
+        wait_for(lambda: staker.rpc("getbestblockhash", raw=True) == stake_tip)
+        for height in range(pow_tip_height + 1, pow_tip_height + 3):
+            stake = miner.rpc("getblock", miner.rpc("getblockhash", height, raw=True), "true")
+            assert stake["proof"] == "pos" and stake["bits"] != work_before_stake
+        assert miner.rpc("gettransaction", stake_payment)["confirmations"] >= 1
         assert miner.rpc("getblocktemplate")["bits"] == work_before_stake
         following_work = miner.rpc("generate", 1)[0]
         wait_for(lambda: staker.rpc("getbestblockhash", raw=True) == following_work)
         assert miner.rpc("getblock", following_work, "true")["bits"] == work_before_stake
-        print("Both peers accepted signed PoS followed by PoW; stake did not alter the PoW template.", flush=True)
+        print("PoW-only and PoS-only each confirmed a transfer; both peers accepted PoW again after the stake-only stretch.", flush=True)
+
+        # These competing tails use the same proof after a shared mixed
+        # prefix. This exercises ordinary convergence without asserting a
+        # security policy for tails that have more of opposite proofs.
+        staker.stop()
+        # Advance the miner's fixture clock only after the peer is gone;
+        # changing it while connected would also jump socket timeout clocks.
+        miner.rpc("setmocktime", int(time.time()))
+        staker.start(staking=False, extra=ENABLED)
+        assert staker.rpc("getbestblockhash", raw=True) == following_work
+        assert not staker.rpc("getpeerinfo")
+        short_tip = staker.rpc("generate", 1)[0]
+        long_tip = miner.rpc("generate", 3)[-1]
+        assert short_tip != long_tip
+        assert staker.rpc("getbestblockhash", raw=True) == short_tip
+        staker.connect(miner)
+        wait_for(lambda: staker.rpc("getbestblockhash", raw=True) == long_tip, timeout=45)
+        assert miner.rpc("getbestblockhash", raw=True) == long_tip
+        assert staker.rpc("getblock", short_tip, "true")["confirmations"] == -1
+        assert miner.rpc("gettransaction", work_payment)["confirmations"] > 0
+        assert miner.rpc("gettransaction", stake_payment)["confirmations"] > 0
+        print("Peers converged after competing PoW tails on a shared mixed history.", flush=True)
     except Exception:
         for node in (staker, miner, legacy):
             if node.log.is_file():

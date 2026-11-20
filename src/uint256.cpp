@@ -265,6 +265,7 @@ template base_uint<512>::base_uint(const std::string&);
 template base_uint<512>& base_uint<512>::operator<<=(unsigned int);
 template base_uint<512>& base_uint<512>::operator>>=(unsigned int);
 template base_uint<512>& base_uint<512>::operator*=(uint32_t);
+template base_uint<512>& base_uint<512>::operator*=(const base_uint<512>&);
 template base_uint<512>& base_uint<512>::operator/=(const base_uint<512>&);
 template int base_uint<512>::CompareTo(const base_uint<512>&) const;
 template std::string base_uint<512>::GetHex() const;

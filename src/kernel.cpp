@@ -8,6 +8,7 @@
 
 #include "db.h"
 #include "kernel.h"
+#include "pow.h"
 #include "script/interpreter.h"
 #include "timedata.h"
 #include "util.h"
@@ -287,8 +288,19 @@ bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int
 }
 
 // Test hash vs target
-bool stakeTargetHit(const uint256& hashProofOfStake, const int64_t& nValueIn, const uint256& bnTargetPerCoinDay)
+bool stakeTargetHit(const uint256& hashProofOfStake, const int64_t& nValueIn, const uint256& bnTargetPerCoinDay, bool wideTarget)
 {
+    if (wideTarget) {
+        if (nValueIn < 100)
+            return false;
+        // Compare in the full product domain. Crossing 2^256 covers the
+        // entire hash range; truncation would make added stake less eligible.
+        uint512 weighted(bnTargetPerCoinDay);
+        weighted *= uint512(static_cast<uint64_t>(nValueIn / 100));
+        return uint512(hashProofOfStake) < weighted;
+    }
+
+    // Keep the historical multiplication for pre-activation validation.
     // Get the stake weight - weight is equal to coin amount
     uint256 bnCoinDayWeight = uint256(nValueIn) / 100;
 
@@ -296,19 +308,23 @@ bool stakeTargetHit(const uint256& hashProofOfStake, const int64_t& nValueIn, co
     return hashProofOfStake < (bnCoinDayWeight* bnTargetPerCoinDay);
 }
 
-bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint64_t nStakeModifier, const uint256& bnTarget,
-                unsigned int nTimeBlockFrom, unsigned int& nTimeTx, uint256& hashProofOfStake)
+static bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const uint64_t nStakeModifier, const uint256& bnTarget,
+                       unsigned int nTimeBlockFrom, unsigned int& nTimeTx, uint256& hashProofOfStake, bool wideTarget)
 {
     CDataStream ss(SER_GETHASH, 0);
     ss << nStakeModifier << nTimeBlockFrom << ssUniqueID << nTimeTx;
     hashProofOfStake = Hash(ss.begin(), ss.end());
 
-    return stakeTargetHit(hashProofOfStake, nValueIn, bnTarget);
+    return stakeTargetHit(hashProofOfStake, nValueIn, bnTarget, wideTarget);
 }
 
 bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockFrom, unsigned int& nTimeTx, uint256& hashProofOfStake)
 {
-    int nHeightStart = chainActive.Height();
+    const CBlockIndex* previous = chainActive.Tip();
+    if (!previous)
+        return false;
+    const int nHeightStart = previous->nHeight;
+    const bool wideTarget = IsSplitDifficultyActive(previous);
 
     // Ensure staking begins at the correct height
     if (nHeightStart < Params().FIRST_POS_BLOCK()) {
@@ -349,7 +365,7 @@ bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockF
         nTryTime = nTimeTx + nHashDrift - i;
 
         // If stake hash does not meet the target, continue to next iteration
-        if (!CheckStake(ssUniqueID, nValueIn, nStakeModifier, bnTargetPerCoinDay, nTimeBlockFrom, nTryTime, hashProofOfStake))
+        if (!CheckStake(ssUniqueID, nValueIn, nStakeModifier, bnTargetPerCoinDay, nTimeBlockFrom, nTryTime, hashProofOfStake, wideTarget))
             continue;
 
         fSuccess = true; // Successfully created a stake hash
@@ -394,8 +410,11 @@ bool ContextualCheckZerocoinStake(int nPreviousBlockHeight, CStakeInput* stake)
 }
 
 // Check kernel hash target and coinstake signature
-bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::unique_ptr<CStakeInput>& stake, int nPreviousBlockHeight)
+bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::unique_ptr<CStakeInput>& stake, const CBlockIndex* previous)
 {
+    if (!previous)
+        return false;
+    const int nPreviousBlockHeight = previous->nHeight;
     const CTransaction tx = block.vtx[1];
     if (!tx.IsCoinStake()) {
         return error("CheckProofOfStake(): called on non-coinstake %s", tx.GetHash().ToString().c_str());
@@ -463,7 +482,8 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::uniqu
         }
     }
 
-    if (!CheckStake(stake->GetUniqueness(), stake->GetValue(), nStakeModifier, bnTargetPerCoinDay, nBlockFromTime, nTxTime, hashProofOfStake)) {
+    if (!CheckStake(stake->GetUniqueness(), stake->GetValue(), nStakeModifier, bnTargetPerCoinDay,
+                    nBlockFromTime, nTxTime, hashProofOfStake, IsSplitDifficultyActive(previous))) {
         return error("CheckProofOfStake(): kernel check failed on coinstake %s, hashProof=%s",
                      tx.GetHash().GetHex(), hashProofOfStake.GetHex());
     }
