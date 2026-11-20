@@ -434,7 +434,7 @@ AC_DEFUN([_BITCOIN_QT_FIND_STATIC_PLUGINS],[
          if test -r "$qt_plugin_path/platforms/libqxcb.prl" && test -r "$qt_lib_path/libQt6Core.prl"; then
            dnl Static Qt 6.8 does not generate .pc files. Use the metadata
            dnl shipped with the actual archives, including optional system libs.
-           QT6_STATIC_DEPS=`"$SHELL" "$srcdir/contrib/qt-static-link-flags.sh" "$qt_lib_path" "$qt_plugin_path"` || AC_MSG_ERROR([Could not read static Qt6 link metadata])
+           QT6_STATIC_DEPS=`"$SHELL" "$srcdir/contrib/qt-static-link-flags.sh" "$qt_lib_path" "$qt_plugin_path" "$depends_prefix"` || AC_MSG_ERROR([Could not read static Qt6 link metadata])
            QT_LIBS="-Wl,--start-group $QT_LIBS $QT6_STATIC_DEPS -Wl,--end-group"
          else
            QT_LIBS="-lQt6XcbQpa -lQt6InputSupport -lQt6FbSupport -lQt6DeviceDiscoverySupport $QT_LIBS"
