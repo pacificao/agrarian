@@ -18,14 +18,34 @@
 #include <algorithm>
 #include <math.h>
 
+int RegtestHybridScoreHeight()
+{
+    if (Params().NetworkID() != CBaseChainParams::REGTEST)
+        return 0;
+    const int64_t height = GetArg("-regtestsplitdifficultyheight", 0);
+    return height >= Params().FIRST_POS_BLOCK() && height <= Params().LAST_POW_BLOCK() ? height : 0;
+}
+
+uint512 GetHybridBlockScore(const CBlockIndex& block, BlockProof proof)
+{
+    // Staging fixtures, not mainnet calibration. These are GetBlockProof at
+    // compact targets 0x1d173c32 (work) and 0x1c04bc95 (stake).
+    constexpr uint64_t workReference = 184847936;
+    constexpr uint64_t stakeReference = 232128606112;
+    uint512 score(GetBlockProof(block));
+    score *= uint512(proof == BlockProof::Stake ? workReference : stakeReference);
+    // Even INT_MAX blocks of maximum uint256 work and these 38-bit
+    // references fit in 325 bits. No rounding or wrap affects ordering.
+    return score;
+}
+
 bool IsSplitDifficultyActive(const CBlockIndex* previous)
 {
     if (!previous)
         return false;
 
-    int64_t activation = Params().SplitDifficultyHeight();
-    if (Params().NetworkID() == CBaseChainParams::REGTEST)
-        activation = GetArg("-regtestsplitdifficultyheight", 0);
+    const int64_t activation = Params().NetworkID() == CBaseChainParams::REGTEST
+        ? RegtestHybridScoreHeight() : Params().SplitDifficultyHeight();
 
     const int64_t height = int64_t(previous->nHeight) + 1;
     return activation >= Params().FIRST_POS_BLOCK() && height >= activation &&

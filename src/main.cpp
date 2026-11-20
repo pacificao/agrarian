@@ -121,7 +121,7 @@ const string strMessageMagic = "DarkNet Signed Message:\n";
 namespace
 {
 struct CBlockIndexWorkComparator {
-    bool operator()(CBlockIndex* pa, CBlockIndex* pb) const
+    bool operator()(const CBlockIndex* pa, const CBlockIndex* pb) const
     {
         // First sort by most total work, ...
         if (pa->nChainWork > pb->nChainWork) return false;
@@ -141,13 +141,47 @@ struct CBlockIndexWorkComparator {
     }
 };
 
+// Only linked full blocks may enter the candidate set. Header order remains
+// a discovery heuristic and must not depend on a guessed proof type.
+struct CBlockIndexCandidateComparator {
+    bool operator()(const CBlockIndex* pa, const CBlockIndex* pb) const
+    {
+        const int activation = RegtestHybridScoreHeight();
+        if (activation && (pa->nHeight >= activation || pb->nHeight >= activation)) {
+            assert(pa->nChainTx && pb->nChainTx);
+            if (pa->nHybridScore != pb->nHybridScore)
+                return pa->nHybridScore < pb->nHybridScore;
+            // Deterministic staging tie-break, independent of arrival/reload.
+            // Prefer activated tips over a legacy tip with exactly equal score.
+            if ((pa->nHeight >= activation) != (pb->nHeight >= activation))
+                return pa->nHeight < activation;
+            return pb->GetBlockHash() < pa->GetBlockHash();
+        }
+        return CBlockIndexWorkComparator()(pa, pb);
+    }
+};
+
+static void BuildHybridScore(CBlockIndex* index)
+{
+    const int activation = RegtestHybridScoreHeight();
+    if (!activation || !index->nChainTx)
+        return;
+    // Preserve legacy ordering across the prefix. After activation, staking
+    // keeps its normalized units even after the permitted PoW period ends.
+    const BlockProof proof = index->nHeight >= activation && index->IsProofOfStake()
+        ? BlockProof::Stake : BlockProof::Work;
+    index->nHybridScore = GetHybridBlockScore(*index, proof);
+    if (index->pprev)
+        index->nHybridScore += index->pprev->nHybridScore;
+}
+
 CBlockIndex* pindexBestInvalid;
 
 /**
      * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for itself and all ancestors) and
      * as good as our current tip or better. Entries may be failed, though.
      */
-set<CBlockIndex*, CBlockIndexWorkComparator> setBlockIndexCandidates;
+set<CBlockIndex*, CBlockIndexCandidateComparator> setBlockIndexCandidates;
 /** Number of nodes with fSyncStarted. */
 int nSyncStarted = 0;
 /** All pairs A->B, where A (or one if its ancestors) misses transactions, but B has transactions. */
@@ -436,7 +470,7 @@ void ProcessBlockAvailability(NodeId nodeid)
     if (state->hashLastUnknownBlock != 0) {
         BlockMap::iterator itOld = mapBlockIndex.find(state->hashLastUnknownBlock);
         if (itOld != mapBlockIndex.end() && itOld->second->nChainWork > 0) {
-            if (state->pindexBestKnownBlock == NULL || itOld->second->nChainWork >= state->pindexBestKnownBlock->nChainWork)
+            if (RegtestHybridScoreHeight() || state->pindexBestKnownBlock == NULL || itOld->second->nChainWork >= state->pindexBestKnownBlock->nChainWork)
                 state->pindexBestKnownBlock = itOld->second;
             state->hashLastUnknownBlock = uint256(0);
         }
@@ -454,7 +488,7 @@ void UpdateBlockAvailability(NodeId nodeid, const uint256& hash)
     BlockMap::iterator it = mapBlockIndex.find(hash);
     if (it != mapBlockIndex.end() && it->second->nChainWork > 0) {
         // An actually better block was announced.
-        if (state->pindexBestKnownBlock == NULL || it->second->nChainWork >= state->pindexBestKnownBlock->nChainWork)
+        if (RegtestHybridScoreHeight() || state->pindexBestKnownBlock == NULL || it->second->nChainWork >= state->pindexBestKnownBlock->nChainWork)
             state->pindexBestKnownBlock = it->second;
     } else {
         // An unknown block was announced; just assume that the latest one is the best one.
@@ -496,7 +530,8 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count, std::vector<CBl
     // Make sure pindexBestKnownBlock is up to date, we'll need it.
     ProcessBlockAvailability(nodeid);
 
-    if (state->pindexBestKnownBlock == NULL || state->pindexBestKnownBlock->nChainWork < chainActive.Tip()->nChainWork) {
+    if (state->pindexBestKnownBlock == NULL ||
+        (!RegtestHybridScoreHeight() && state->pindexBestKnownBlock->nChainWork < chainActive.Tip()->nChainWork)) {
         // This peer has nothing interesting.
         return;
     }
@@ -3603,7 +3638,7 @@ static CBlockIndex* FindMostWorkChain()
 
         // Find the best candidate header.
         {
-            std::set<CBlockIndex*, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexCandidates.rbegin();
+            auto it = setBlockIndexCandidates.rbegin();
             if (it == setBlockIndexCandidates.rend())
                 return NULL;
             pindexNew = *it;
@@ -3656,7 +3691,7 @@ static void PruneBlockIndexCandidates()
 {
     // Note that we can't delete the current block itself, as we may need to return to it later in case a
     // reorganization to a better block fails.
-    std::set<CBlockIndex*, CBlockIndexWorkComparator>::iterator it = setBlockIndexCandidates.begin();
+    auto it = setBlockIndexCandidates.begin();
     while (it != setBlockIndexCandidates.end() && setBlockIndexCandidates.value_comp()(*it, chainActive.Tip())) {
         setBlockIndexCandidates.erase(it++);
     }
@@ -3717,7 +3752,9 @@ static bool ActivateBestChainStep(CValidationState& state, CBlockIndex* pindexMo
                 }
             } else {
                 PruneBlockIndexCandidates();
-                if (!pindexOldTip || chainActive.Tip()->nChainWork > pindexOldTip->nChainWork) {
+                if (!pindexOldTip || (RegtestHybridScoreHeight()
+                    ? CBlockIndexCandidateComparator()(pindexOldTip, chainActive.Tip())
+                    : chainActive.Tip()->nChainWork > pindexOldTip->nChainWork)) {
                     // We're in a better position than we were. Return temporarily to release the lock.
                     fContinue = false;
                     break;
@@ -3963,6 +4000,7 @@ bool ReceivedBlockTransactions(const CBlock& block, CValidationState& state, CBl
             CBlockIndex* pindex = queue.front();
             queue.pop_front();
             pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
+            BuildHybridScore(pindex);
             {
                 LOCK(cs_nBlockSequenceId);
                 pindex->nSequenceId = nBlockSequenceId++;
@@ -5065,7 +5103,8 @@ bool static LoadBlockIndexDB(string& strError)
                 pindex->nChainTx = pindex->nTx;
             }
         }
-        if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && (pindex->nChainTx || pindex->pprev == NULL))
+        BuildHybridScore(pindex);
+        if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && pindex->nChainTx)
             setBlockIndexCandidates.insert(pindex);
         if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork))
             pindexBestInvalid = pindex;
@@ -5476,7 +5515,7 @@ void static CheckBlockIndex()
             // Checks for not-invalid blocks.
             assert((pindex->nStatus & BLOCK_FAILED_MASK) == 0); // The failed mask cannot be set for blocks without invalid parents.
         }
-        if (!CBlockIndexWorkComparator()(pindex, chainActive.Tip()) && pindexFirstMissing == NULL) {
+        if (pindexFirstMissing == NULL && !CBlockIndexCandidateComparator()(pindex, chainActive.Tip())) {
             if (pindexFirstInvalid == NULL) { // If this block sorts at least as good as the current tip and is valid, it must be in setBlockIndexCandidates.
                 assert(setBlockIndexCandidates.count(pindex));
             }

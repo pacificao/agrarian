@@ -5,6 +5,7 @@ import tempfile
 import time
 from pathlib import Path
 
+from test_hybrid_branch_model import ProofTotals, STAGING_SCORE
 from testnet_hybrid import Node, wait_for
 
 
@@ -20,6 +21,7 @@ def run(directory):
     miner = Node(directory / "miner", network="regtest")
     staker = Node(directory / "staker", network="regtest")
     legacy = Node(directory / "legacy-rules", network="regtest")
+    rival = Node(directory / "rival", network="regtest")
     try:
         # The wallet's MintableCoins readiness check still enforces the
         # one-hour age, even though the underlying regtest kernel skips it.
@@ -108,14 +110,75 @@ def run(directory):
         assert miner.rpc("gettransaction", work_payment)["confirmations"] > 0
         assert miner.rpc("gettransaction", stake_payment)["confirmations"] > 0
         print("Peers converged after competing PoW tails on a shared mixed history.", flush=True)
+
+        # Make opposite-proof branches off the same pre-stake ancestor.
+        # Follow the real proof bits, not an assumed relationship between the
+        # test network's easy targets and the fixed calibration fixtures.
+        rival.start(staking=False, extra=ENABLED)
+        branch = miner.rpc("getblockhash", pow_tip_height, raw=True)
+        for height in range(1, pow_tip_height + 1):
+            block = miner.rpc("getblockhash", height, raw=True)
+            assert not rival.rpc("submitblock", raw_block(miner, block), raw=True)
+        assert rival.rpc("getbestblockhash", raw=True) == branch
+        work_fork = rival.rpc("generate", 1)[0]
+        stake_fork = [miner.rpc("getblockhash", height, raw=True)
+                      for height in range(pow_tip_height + 1, pow_tip_height + 3)]
+        assert all(miner.rpc("getblock", h, "true")["proof"] == "pos" for h in stake_fork)
+
+        def branch_score(node, blocks):
+            totals = ProofTotals()
+            for block in blocks:
+                info = node.rpc("getblock", block, "true")
+                totals = totals.append(info["proof"], int(info["bits"], 16))
+            return STAGING_SCORE.score(totals)
+
+        work_score = branch_score(rival, [work_fork])
+        stake_score = branch_score(miner, stake_fork)
+        # In this fixture the harder fork-choice preference is PoW. The
+        # native unit test separately checks the captured inverse ranking.
+        assert work_score > stake_score
+        for block in stake_fork:
+            assert not rival.rpc("submitblock", raw_block(miner, block), raw=True)
+        assert rival.rpc("getbestblockhash", raw=True) == work_fork
+        assert rival.rpc("getblock", stake_fork[-1], "true")["confirmations"] == -1
+        rival.rpc("invalidateblock", work_fork)
+        assert rival.rpc("getbestblockhash", raw=True) == stake_fork[-1]
+        rival.rpc("reconsiderblock", work_fork)
+        assert rival.rpc("getbestblockhash", raw=True) == work_fork
+        print("Opposite-proof forks followed the model; invalidate/reconsider switched and restored the winner.", flush=True)
+
+        # Produce a same-score PoW sibling on a second node. This gives two
+        # nodes opposite arrival order without having to forge a block.
+        tie_peer = legacy  # disposable data, containing the legacy prefix only
+        tie_peer.stop()
+        tie_peer.start(staking=False, extra=ENABLED)
+        for height in range(ACTIVATION, pow_tip_height + 1):
+            block = miner.rpc("getblockhash", height, raw=True)
+            assert not tie_peer.rpc("submitblock", raw_block(miner, block), raw=True)
+        sibling = tie_peer.rpc("generate", 1)[0]
+        assert sibling != work_fork
+        assert branch_score(tie_peer, [sibling]) == work_score
+        assert not rival.rpc("submitblock", raw_block(tie_peer, sibling), raw=True)
+        assert not tie_peer.rpc("submitblock", raw_block(rival, work_fork), raw=True)
+        winner, loser = sorted((sibling, work_fork), key=lambda h: int(h, 16))
+        for node in (rival, tie_peer):
+            assert node.rpc("getbestblockhash", raw=True) == winner
+        rival.stop()
+        rival.start(staking=False, extra=ENABLED)
+        assert rival.rpc("getbestblockhash", raw=True) == winner
+        rival.rpc("invalidateblock", winner)
+        assert rival.rpc("getbestblockhash", raw=True) == loser
+        rival.rpc("reconsiderblock", winner)
+        assert rival.rpc("getbestblockhash", raw=True) == winner
+        print("Equal-score forks converged regardless of receipt order and retained their ranking after restart.", flush=True)
     except Exception:
-        for node in (staker, miner, legacy):
+        for node in (rival, staker, miner, legacy):
             if node.log.is_file():
                 print(f"=== {node.log} ===")
                 print("\n".join(node.log.read_text(errors="replace").splitlines()[-30:]))
         raise
     finally:
-        for node in (staker, miner, legacy):
+        for node in (rival, staker, miner, legacy):
             node.stop()
 
 

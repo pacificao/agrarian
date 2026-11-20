@@ -42,7 +42,7 @@ PoW tolerance does not apply when the split rule is active.
   competing history after reconnecting. Wallet/explorer confirmation policy
   must not claim otherwise.
 
-**Activation blocker: hybrid chain selection.** The daemon's existing branch comparator
+**Activation blocker: production hybrid chain selection.** The legacy branch comparator
 uses accumulated `nChainWork`, calculated from the inverse compact target
 without a proof-type conversion. At the captured mainnet tip (8,889), an
 independent calculation of the candidate gave PoW `1d173c32` and PoS
@@ -74,19 +74,23 @@ three-PoW versus two-PoS branch. Retargets and participation move contributions
 over time even when the references stay fixed. The model adds no arbitrary
 per-block score cap or fixed positive minimum.
 
-The executable model in `test/functional/test_hybrid_branch_model.py` implements
-that comparison, including exact ties. It does not choose a winner when
-distinct branch tips have equal scores, and it does not change the daemon.
-Retain raw `nChainWork` for legacy/header uses until those call sites have been
-audited. For native staging, derive a separate wide score from full-block data,
-including reindex/reload; never rank a header-only PoS candidate as if its proof
-were known. Check that the selected score also governs any download gates that
-could otherwise prevent a node from finding the better fully validated chain.
-Test ties (including withholding an equal-score competing tip), restart,
-reordering, and reorgs across the activation boundary. Evaluate production
-reference ranges, sustained underparticipation, calibration drift, and PoW
-sunset separately. Do not activate on public networks until those results and
-the production fork-choice parameters have been independently reviewed.
+The regtest daemon implements the model using exact 512-bit arithmetic and
+linked full blocks. It rebuilds the score from the block index on startup, so
+no disk format changes are needed. Legacy prefix blocks all count in legacy
+work units, regardless of proof type. When either candidate reaches activation,
+compare their normalized totals; after PoW ends, preserve accrued scores and
+continue adding normalized PoS evidence. Equal scores favor an activated tip
+over a preactivation tip, then the lowest tip hash between activated tips.
+This deterministic tie-break is a staging policy, not a fairness guarantee.
+
+Header ordering and legacy diagnostics still use raw `nChainWork`. In the
+regtest experiment only, download scheduling does not reject an advertised
+branch just because its raw `nChainWork` is lower. The normal block-connect
+checks decide whether a candidate can actually be activated. The reference
+parameters, public-network bootstrap/reorg behavior (including how legacy
+stake validation finds its modifier on a competing branch), sustained
+underparticipation, and the PoW sunset still need independent review. Do not
+set public activation by carrying over these fixture values.
 
 **Separate arithmetic gate:** the legacy stake kernel multiplies the base
 target by the input weight in 256 bits. The split retarget can reach high
@@ -119,9 +123,10 @@ python3 -B test/functional/split_difficulty.py
 
 The peer fixture uses fresh disposable regtest wallets, old funding
 timestamps set through regtest RPC, and actual transactions. No production
-wallet is necessary. Its competing-tail check covers convergence after a
-shared mixed-proof prefix, not a security claim about crossing PoW/PoS
-evidence on competing tails.
+wallet is necessary. It covers a peer reorganization after a shared
+mixed-proof prefix, opposite-proof tails against the offline score model, and
+equal-score siblings submitted in different order across two nodes, including
+stopping and reopening a node and invalidating/reconsidering the winner.
 
 ### Before changing mainnet
 

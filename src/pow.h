@@ -12,6 +12,7 @@
 class CBlockHeader;
 class CBlockIndex;
 class uint256;
+class uint512;
 class arith_uint256;
 
 // Define difficulty retarget algorithms
@@ -26,6 +27,8 @@ enum class BlockProof { Work, Stake };
 
 /** Whether the next block uses independent hybrid difficulty rules. */
 bool IsSplitDifficultyActive(const CBlockIndex* previous);
+int RegtestHybridScoreHeight();
+uint512 GetHybridBlockScore(const CBlockIndex& block, BlockProof proof);
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, BlockProof proof);
 

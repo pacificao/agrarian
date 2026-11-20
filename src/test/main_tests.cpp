@@ -120,4 +120,24 @@ BOOST_AUTO_TEST_CASE(split_difficulty_stake_weight_is_monotonic_without_rewritin
     BOOST_CHECK(!stakeTargetHit(uint256(0), 99, target, true));
 }
 
+BOOST_AUTO_TEST_CASE(hybrid_fork_score_reconciles_reference_units_exactly)
+{
+    CBlockIndex work, stake;
+    work.nBits = 0x1d173c32;
+    stake.nBits = 0x1c04bc95;
+    BOOST_CHECK(GetBlockProof(stake) > GetBlockProof(work) * 24);
+    const auto workScore = GetHybridBlockScore(work, BlockProof::Work);
+    const auto stakeScore = GetHybridBlockScore(stake, BlockProof::Stake);
+    BOOST_CHECK(workScore == stakeScore);
+    BOOST_CHECK(workScore * uint32_t(24) > stakeScore);
+    BOOST_CHECK(workScore + stakeScore > workScore);
+
+    CBlockIndex easy, hard;
+    easy.nBits = 0x2100ffff; // uint256-domain boundary, not a network target
+    hard.nBits = 0x01010000; // target = 1
+    BOOST_CHECK(GetHybridBlockScore(easy, BlockProof::Stake) == uint512(184847936));
+    BOOST_CHECK(GetHybridBlockScore(hard, BlockProof::Work) > uint512(~uint256(0)));
+    BOOST_CHECK_EQUAL(RegtestHybridScoreHeight(), 0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
