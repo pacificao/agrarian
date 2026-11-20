@@ -17,6 +17,15 @@ def raw_block(node, block_hash):
     return node.rpc("getblock", block_hash, "false", raw=True)
 
 
+def submit_known_block(receiver, source, block_hash):
+    # A stored side block may not run ConnectBlock immediately, so submitblock
+    # has no BlockChecked callback and returns "inconclusive" rather than null.
+    raw = raw_block(source, block_hash)
+    result = receiver.rpc("submitblock", raw, raw=True)
+    assert result in ("", "inconclusive"), result
+    assert raw_block(receiver, block_hash) == raw
+
+
 def run(directory):
     miner = Node(directory / "miner", network="regtest")
     staker = Node(directory / "staker", network="regtest")
@@ -138,7 +147,7 @@ def run(directory):
         # native unit test separately checks the captured inverse ranking.
         assert work_score > stake_score
         for block in stake_fork:
-            assert not rival.rpc("submitblock", raw_block(miner, block), raw=True)
+            submit_known_block(rival, miner, block)
         assert rival.rpc("getbestblockhash", raw=True) == work_fork
         assert rival.rpc("getblock", stake_fork[-1], "true")["confirmations"] == -1
         rival.rpc("invalidateblock", work_fork)
@@ -158,8 +167,8 @@ def run(directory):
         sibling = tie_peer.rpc("generate", 1)[0]
         assert sibling != work_fork
         assert branch_score(tie_peer, [sibling]) == work_score
-        assert not rival.rpc("submitblock", raw_block(tie_peer, sibling), raw=True)
-        assert not tie_peer.rpc("submitblock", raw_block(rival, work_fork), raw=True)
+        submit_known_block(rival, tie_peer, sibling)
+        submit_known_block(tie_peer, rival, work_fork)
         winner, loser = sorted((sibling, work_fork), key=lambda h: int(h, 16))
         for node in (rival, tie_peer):
             assert node.rpc("getbestblockhash", raw=True) == winner
