@@ -134,12 +134,18 @@ reset_configure_state
 ./autogen.sh
 
 echo "Configuring Ubuntu Qt6 wallet build..."
-QT_SYSTEM_PKG_CONFIG_LIBDIR="$QT_SYSTEM_PKG_CONFIG_LIBDIR" CONFIG_SITE="$BASE_CONFIG" ./configure \
+if ! QT_SYSTEM_PKG_CONFIG_LIBDIR="$QT_SYSTEM_PKG_CONFIG_LIBDIR" CONFIG_SITE="$BASE_CONFIG" ./configure \
   --disable-maintainer-mode \
   --disable-tests \
   --disable-bench \
   --with-gui=qt6 \
-  --with-qtdbus=no
+  --with-qtdbus=no; then
+  if [[ -f config.log ]]; then
+    rg -n -C 2 'undefined reference|cannot find|ld:|Could not resolve|link metadata' config.log 2>/dev/null | tail -n 100 || \
+      grep -En -C 2 'undefined reference|cannot find|ld:|Could not resolve|link metadata' config.log | tail -n 100 || true
+  fi
+  exit 1
+fi
 
 echo "Cleaning stale target objects before compiling..."
 make clean

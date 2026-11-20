@@ -131,5 +131,5 @@ endif
 
 define $(package)_postprocess_cmds
   rm -rf share/doc share/examples share/qt6/sbom && \
-  rm -f lib/lib*.la lib/*.prl plugins/*/*.prl
+  rm -f lib/lib*.la $(if $(filter-out linux,$(host_os)),lib/*.prl plugins/*/*.prl)
 endef

@@ -47,6 +47,7 @@ DIST_CONTRIB = \
   $(top_srcdir)/contrib/agrarian-tx.bash-completion \
   $(top_srcdir)/contrib/agrariand.bash-completion \
   $(top_srcdir)/contrib/init \
+  $(top_srcdir)/contrib/qt-static-link-flags.sh \
   $(top_srcdir)/contrib/install_db4.sh
 
 DIST_SHARE = \
