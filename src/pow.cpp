@@ -15,13 +15,79 @@
 #include "uint256.h"
 #include "util.h"
 
+#include <algorithm>
 #include <math.h>
 
-
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
+bool IsSplitDifficultyActive(const CBlockIndex* previous)
 {
+    if (!previous)
+        return false;
+
+    int64_t activation = Params().SplitDifficultyHeight();
     if (Params().NetworkID() == CBaseChainParams::REGTEST)
-        return pindexLast->nBits;
+        activation = GetArg("-regtestsplitdifficultyheight", 0);
+
+    const int64_t height = int64_t(previous->nHeight) + 1;
+    return activation >= Params().FIRST_POS_BLOCK() && height >= activation &&
+        height <= Params().LAST_POW_BLOCK();
+}
+
+unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof proof)
+{
+    constexpr unsigned int window = 24;
+    const uint256& limit = Params().ProofOfWorkLimit();
+    const bool stake = proof == BlockProof::Stake;
+    uint512 sum = 0;
+    uint512 lastTarget = 0;
+    unsigned int count = 0;
+    int64_t newest = 0;
+    int64_t oldest = 0;
+
+    // Proof type comes from validated full blocks, never from the header alone.
+    for (const CBlockIndex* index = previous; index && index->nHeight > 0 && count < window; index = index->pprev) {
+        if (index->IsProofOfStake() != stake)
+            continue;
+        bool negative, overflow;
+        uint256 target;
+        target.SetCompact(index->nBits, &negative, &overflow);
+        if (negative || overflow || target == 0 || target > limit)
+            continue;
+        const uint512 wideTarget(target);
+        if (count == 0) {
+            lastTarget = wideTarget;
+            newest = index->GetBlockTime();
+        }
+        oldest = index->GetBlockTime();
+        sum += wideTarget;
+        ++count;
+    }
+
+    // A dormant/missing stream does not inherit the other proof's difficulty.
+    if (count == 0)
+        return limit.GetCompact();
+    if (count == 1)
+        return lastTarget.trim256().GetCompact();
+
+    // Two equally spaced streams aim for the existing combined spacing when
+    // both are active. Keep the legacy PoS-only regime after the hybrid window.
+    const int64_t nominal = (count - 1) * 2 * Params().TargetSpacing();
+    const int64_t elapsed = std::max(nominal / 3, std::min(nominal * 3, newest - oldest));
+    // Widen before summing/scaling, including on regtest's near-256-bit limit.
+    uint512 next = sum / uint512(count);
+    next *= static_cast<uint32_t>(elapsed);
+    next /= uint512(nominal);
+    const uint512 lower = std::max(uint512(1), uint512(lastTarget / uint512(3)));
+    const uint512 upper = std::min(uint512(limit), uint512(lastTarget * uint32_t(3)));
+    return std::max(lower, std::min(upper, next)).trim256().GetCompact();
+}
+
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, BlockProof proof)
+{
+    if (IsSplitDifficultyActive(pindexLast))
+        return GetNextSplitWorkRequired(pindexLast, proof);
+
+    if (Params().NetworkID() == CBaseChainParams::REGTEST)
+        return pindexLast ? pindexLast->nBits : Params().ProofOfWorkLimit().GetCompact();
 
     /* current difficulty formula, agrarian - DarkGravity v3, written by Evan Duffield - evan@dashpay.io */
     const CBlockIndex* BlockLastSolved = pindexLast;

@@ -22,7 +22,15 @@ enum DiffMode {
     DIFF_DGW = 3,     // Retarget using Dark Gravity Wave v3
 };
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock);
+enum class BlockProof { Work, Stake };
+
+/** Whether the next block uses independent hybrid difficulty rules. */
+bool IsSplitDifficultyActive(const CBlockIndex* previous);
+
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, BlockProof proof);
+
+/** Candidate per-proof retarget, exposed for deterministic consensus tests. */
+unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof proof);
 
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);

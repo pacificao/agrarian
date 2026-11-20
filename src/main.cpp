@@ -4270,9 +4270,10 @@ bool CheckWork(const CBlock& block, const CBlockIndex* pindexPrev)
     if (pindexPrev == NULL)
         return error("%s : null pindexPrev for block %s", __func__, block.GetHash().ToString().c_str());
 
-    unsigned int nBitsRequired = GetNextWorkRequired(pindexPrev, &block);
+    const BlockProof proof = block.IsProofOfStake() ? BlockProof::Stake : BlockProof::Work;
+    unsigned int nBitsRequired = GetNextWorkRequired(pindexPrev, proof);
 
-    if ((Params().NetworkID() != CBaseChainParams::REGTEST) && block.IsProofOfWork() && (pindexPrev->nHeight + 1 <= 68589)) {
+    if (!IsSplitDifficultyActive(pindexPrev) && (Params().NetworkID() != CBaseChainParams::REGTEST) && block.IsProofOfWork() && (pindexPrev->nHeight + 1 <= 68589)) {
         double n1 = ConvertBitsToDouble(block.nBits);
         double n2 = ConvertBitsToDouble(nBitsRequired);
 
@@ -4299,7 +4300,10 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
 
     int nHeight = pindexPrev->nHeight + 1;
 
-    if ((Params().NetworkIDString() == "regtest") && block.nBits != GetNextWorkRequired(pindexPrev, &block))
+    // A header does not identify its proof type. Active split rules are
+    // therefore checked on the complete block by CheckWork().
+    if (Params().NetworkID() == CBaseChainParams::REGTEST && !IsSplitDifficultyActive(pindexPrev) &&
+        block.nBits != GetNextWorkRequired(pindexPrev, BlockProof::Work))
         return state.DoS(100, error("%s : incorrect proof of work", __func__),
                 REJECT_INVALID, "bad-diffbits");
 
@@ -4487,6 +4491,11 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
                              REJECT_INVALID, "bad-prevblk");
         }
     }
+
+    // Header-only ancestors do not have reliable proof-type flags. Wait for
+    // their full blocks rather than retargeting against incomplete history.
+    if (IsSplitDifficultyActive(pindexPrev) && !pindexPrev->nChainTx)
+        return error("%s: missing full block history for split difficulty", __func__);
 
     if (block.GetHash() != Params().HashGenesisBlock() && !CheckWork(block, pindexPrev))
         return false;

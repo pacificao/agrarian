@@ -38,6 +38,7 @@
 #include "guiinterface.h"
 #include "util.h"
 #include "utilmoneystr.h"
+#include "utilstrencodings.h"
 #include "validationinterface.h"
 #include "zagr/accumulatorcheckpoints.h"
 #include "zagrchain.h"
@@ -579,6 +580,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-datacarriersize", strprintf(_("Maximum size of data in data carrier transactions we relay and mine (default: %u)"), MAX_OP_RETURN_RELAY));
     if (GetBoolArg("-help-debug", false)) {
         strUsage += HelpMessageOpt("-blockversion=<n>", "Override block version to test forking scenarios");
+        strUsage += HelpMessageOpt("-regtestsplitdifficultyheight=<n>", "Activate independent PoW/PoS targets on an isolated regtest chain (default: disabled)");
     }
 
     strUsage += HelpMessageGroup(_("Block creation options:"));
@@ -755,6 +757,13 @@ bool AppInitServers()
  */
 bool AppInit2()
 {
+    if (mapArgs.count("-regtestsplitdifficultyheight")) {
+        int32_t height;
+        if (Params().NetworkID() != CBaseChainParams::REGTEST ||
+            !ParseInt32(GetArg("-regtestsplitdifficultyheight", ""), &height) ||
+            height < Params().FIRST_POS_BLOCK() || height > Params().LAST_POW_BLOCK())
+            return InitError(_("Split difficulty override is only supported within the regtest hybrid block range."));
+    }
 // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise

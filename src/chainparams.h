@@ -127,6 +127,7 @@ public:
     // - PoW blocks are permitted up to and including LAST_POW_BLOCK().
     int FIRST_POS_BLOCK() const { return nFirstPoSBlock; }
     int LAST_POW_BLOCK() const { return nLastPOWBlock; }
+    int SplitDifficultyHeight() const { return nSplitDifficultyHeight; }
 
     int Zerocoin_StartHeight() const { return nZerocoinStartHeight; }
     int Zerocoin_Block_EnforceSerialRange() const { return nBlockEnforceSerialRange; }
@@ -166,6 +167,9 @@ protected:
     // Hybrid PoW/PoS window controls.
     int nFirstPoSBlock;
     int nLastPOWBlock;
+    // A reviewed, coordinated public network activation must set this in source.
+    // Zero leaves historical and future blocks on the existing rules.
+    int nSplitDifficultyHeight = 0;
 
     int nMasternodeCountDrift;
     int nMaturity;

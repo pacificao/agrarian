@@ -390,6 +390,11 @@ public:
     uint512() {}
     uint512(const base_uint<512>& b) : base_uint<512>(b) {}
     uint512(uint64_t b) : base_uint<512>(b) {}
+    explicit uint512(const uint256& value)
+    {
+        for (unsigned int i = 0; i < uint256::WIDTH; ++i)
+            pn[i] = value.pn[i];
+    }
     explicit uint512(const std::string& str) : base_uint<512>(str) {}
     explicit uint512(const std::vector<unsigned char>& vch) : base_uint<512>(vch) {}
 
