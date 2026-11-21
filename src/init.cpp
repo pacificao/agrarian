@@ -28,6 +28,7 @@
 #include "masternodeman.h"
 #include "miner.h"
 #include "net.h"
+#include "pow.h"
 #include "rpc/server.h"
 #include "script/standard.h"
 #include "scheduler.h"
@@ -758,6 +759,12 @@ bool AppInitServers()
  */
 bool AppInit2()
 {
+    const auto& consensus = Params();
+    if (consensus.NetworkID() != CBaseChainParams::REGTEST &&
+        (consensus.SplitDifficultyHeight() != 0 || consensus.SplitStakeLimit() != 0 ||
+         consensus.SplitWorkReference() != 0 || consensus.SplitStakeReference() != 0) &&
+        HybridConsensusHeight() == 0)
+        return InitError(_("Incomplete or invalid public hybrid consensus parameters."));
     if (mapArgs.count("-regtestbranchstakemodifier") &&
         (Params().NetworkID() != CBaseChainParams::REGTEST || !mapArgs.count("-regtestsplitdifficultyheight")))
         return InitError(_("Branch stake modifier override requires isolated regtest split difficulty."));

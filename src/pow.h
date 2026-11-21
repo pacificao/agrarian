@@ -11,6 +11,7 @@
 #include <cstddef>
 class CBlockHeader;
 class CBlockIndex;
+class CChainParams;
 class uint256;
 class uint512;
 class arith_uint256;
@@ -28,6 +29,9 @@ enum class BlockProof { Work, Stake };
 /** Whether the next block uses independent hybrid difficulty rules. */
 bool IsSplitDifficultyActive(const CBlockIndex* previous);
 int RegtestHybridScoreHeight();
+/** Shared hard-fork boundary; zero means no active or scheduled profile. */
+int HybridConsensusHeight();
+int PublicHybridConsensusHeight(const CChainParams& params);
 uint512 GetHybridBlockScore(const CBlockIndex& block, BlockProof proof);
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, BlockProof proof);

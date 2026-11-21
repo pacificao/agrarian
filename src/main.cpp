@@ -146,7 +146,7 @@ struct CBlockIndexWorkComparator {
 struct CBlockIndexCandidateComparator {
     bool operator()(const CBlockIndex* pa, const CBlockIndex* pb) const
     {
-        const int activation = RegtestHybridScoreHeight();
+        const int activation = HybridConsensusHeight();
         if (activation && (pa->nHeight >= activation || pb->nHeight >= activation)) {
             assert(pa->nChainTx && pb->nChainTx);
             if (pa->nHybridScore != pb->nHybridScore)
@@ -163,7 +163,7 @@ struct CBlockIndexCandidateComparator {
 
 static void BuildHybridScore(CBlockIndex* index)
 {
-    const int activation = RegtestHybridScoreHeight();
+    const int activation = HybridConsensusHeight();
     if (!activation || !index->nChainTx)
         return;
     // Preserve legacy ordering across the prefix. After activation, staking
@@ -470,7 +470,7 @@ void ProcessBlockAvailability(NodeId nodeid)
     if (state->hashLastUnknownBlock != 0) {
         BlockMap::iterator itOld = mapBlockIndex.find(state->hashLastUnknownBlock);
         if (itOld != mapBlockIndex.end() && itOld->second->nChainWork > 0) {
-            if (RegtestHybridScoreHeight() || state->pindexBestKnownBlock == NULL || itOld->second->nChainWork >= state->pindexBestKnownBlock->nChainWork)
+            if (HybridConsensusHeight() || state->pindexBestKnownBlock == NULL || itOld->second->nChainWork >= state->pindexBestKnownBlock->nChainWork)
                 state->pindexBestKnownBlock = itOld->second;
             state->hashLastUnknownBlock = uint256(0);
         }
@@ -488,7 +488,7 @@ void UpdateBlockAvailability(NodeId nodeid, const uint256& hash)
     BlockMap::iterator it = mapBlockIndex.find(hash);
     if (it != mapBlockIndex.end() && it->second->nChainWork > 0) {
         // An actually better block was announced.
-        if (RegtestHybridScoreHeight() || state->pindexBestKnownBlock == NULL || it->second->nChainWork >= state->pindexBestKnownBlock->nChainWork)
+        if (HybridConsensusHeight() || state->pindexBestKnownBlock == NULL || it->second->nChainWork >= state->pindexBestKnownBlock->nChainWork)
             state->pindexBestKnownBlock = it->second;
     } else {
         // An unknown block was announced; just assume that the latest one is the best one.
@@ -531,7 +531,7 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count, std::vector<CBl
     ProcessBlockAvailability(nodeid);
 
     if (state->pindexBestKnownBlock == NULL ||
-        (!RegtestHybridScoreHeight() && state->pindexBestKnownBlock->nChainWork < chainActive.Tip()->nChainWork)) {
+        (!HybridConsensusHeight() && state->pindexBestKnownBlock->nChainWork < chainActive.Tip()->nChainWork)) {
         // This peer has nothing interesting.
         return;
     }
@@ -3771,7 +3771,7 @@ static bool ActivateBestChainStep(CValidationState& state, CBlockIndex* pindexMo
                 }
             } else {
                 PruneBlockIndexCandidates();
-                if (!pindexOldTip || (RegtestHybridScoreHeight()
+                if (!pindexOldTip || (HybridConsensusHeight()
                     ? CBlockIndexCandidateComparator()(pindexOldTip, chainActive.Tip())
                     : chainActive.Tip()->nChainWork > pindexOldTip->nChainWork)) {
                     // We're in a better position than we were. Return temporarily to release the lock.

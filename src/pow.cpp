@@ -26,16 +26,39 @@ int RegtestHybridScoreHeight()
     return height >= Params().FIRST_POS_BLOCK() && height <= Params().LAST_POW_BLOCK() ? height : 0;
 }
 
+int HybridConsensusHeight()
+{
+    const auto& params = Params();
+    if (params.NetworkID() == CBaseChainParams::REGTEST)
+        return RegtestHybridScoreHeight();
+    return PublicHybridConsensusHeight(params);
+}
+
+int PublicHybridConsensusHeight(const CChainParams& params)
+{
+    if (params.NetworkID() == CBaseChainParams::REGTEST)
+        return 0;
+    const int height = params.SplitDifficultyHeight();
+    const uint256& stakeLimit = params.SplitStakeLimit();
+    if (height < params.FIRST_POS_BLOCK() || height > params.LAST_POW_BLOCK() ||
+        stakeLimit == 0 || stakeLimit >= params.ProofOfWorkLimit() ||
+        uint256().SetCompact(stakeLimit.GetCompact()) != stakeLimit ||
+        !params.SplitWorkReference() || !params.SplitStakeReference())
+        return 0;
+    return height;
+}
+
 uint512 GetHybridBlockScore(const CBlockIndex& block, BlockProof proof)
 {
     // Staging fixtures, not mainnet calibration. These are GetBlockProof at
     // compact targets 0x1d173c32 (work) and 0x1c04bc95 (stake).
-    constexpr uint64_t workReference = 184847936;
-    constexpr uint64_t stakeReference = 232128606112;
+    const bool publicProfile = Params().NetworkID() != CBaseChainParams::REGTEST && HybridConsensusHeight() != 0;
+    const uint64_t workReference = publicProfile ? Params().SplitWorkReference() : 184847936;
+    const uint64_t stakeReference = publicProfile ? Params().SplitStakeReference() : 232128606112;
     uint512 score(GetBlockProof(block));
     score *= uint512(proof == BlockProof::Stake ? workReference : stakeReference);
-    // Even INT_MAX blocks of maximum uint256 work and these 38-bit
-    // references fit in 325 bits. No rounding or wrap affects ordering.
+    // Even INT_MAX blocks of maximum uint256 work and uint64 references
+    // fit in 351 bits. No rounding or wrap affects ordering.
     return score;
 }
 
@@ -44,9 +67,7 @@ bool IsSplitDifficultyActive(const CBlockIndex* previous)
     if (!previous)
         return false;
 
-    // Retarget and fork choice must activate together. Both stay regtest-only
-    // until the branch-relative stake validation is complete.
-    const int64_t activation = RegtestHybridScoreHeight();
+    const int64_t activation = HybridConsensusHeight();
 
     const int64_t height = int64_t(previous->nHeight) + 1;
     return activation >= Params().FIRST_POS_BLOCK() && height >= activation &&

@@ -902,7 +902,7 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
     obj.push_back(Pair("verificationprogress", Checkpoints::GuessVerificationProgress(chainActive.Tip())));
     obj.push_back(Pair("chainwork", chainActive.Tip()->nChainWork.GetHex()));
     CBlockIndex* tip = chainActive.Tip();
-    const int hybridHeight = RegtestHybridScoreHeight();
+    const int hybridHeight = HybridConsensusHeight();
     if (hybridHeight > 0) {
         UniValue hybrid(UniValue::VOBJ);
         const bool splitNext = IsSplitDifficultyActive(tip);

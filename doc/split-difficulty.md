@@ -142,8 +142,11 @@ a public PoS stream; specify and validate a separate PoS bootstrap bound.
 The retarget calculation now accepts a distinct stake bound, uses it when
 there are no same-proof samples, and caps easier historical stake targets
 without discarding their timestamps. The public-network bound is still
-unset. Split retarget and normalized fork choice share the regtest-only
-gate; setting a height on its own cannot enable a partial public rule.
+unset. Split retarget and normalized fork choice share an activation gate.
+For public networks the profile must include a valid height, canonical PoS
+limit below the PoW limit, and two nonzero immutable scoring references. The
+daemon rejects partial profiles at startup. Both public profiles are unset;
+only isolated regtest currently activates the new rule.
 
 The offline `stake_bootstrap_snapshot.py` check reconstructs only the ancestry
 of the independently replayed tip and matches the daemon's total amount and

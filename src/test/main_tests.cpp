@@ -137,7 +137,41 @@ BOOST_AUTO_TEST_CASE(split_difficulty_respects_an_independent_stake_bootstrap_bo
     BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&newest, BlockProof::Stake, stakeLimit),
                       uint256((stakeLimit + newestTarget) / uint256(2)).GetCompact());
     BOOST_CHECK(Params().SplitStakeLimit() == 0);
+    BOOST_CHECK_EQUAL(HybridConsensusHeight(), 0);
     BOOST_CHECK(!IsSplitDifficultyActive(&newest));
+}
+
+BOOST_AUTO_TEST_CASE(public_hybrid_activation_requires_a_complete_profile)
+{
+    struct FixtureParams : CChainParams {
+        FixtureParams() {
+            networkID = CBaseChainParams::MAIN;
+            nFirstPoSBlock = 2;
+            nLastPOWBlock = 20000;
+            bnProofOfWorkLimit.SetCompact(0x1e0fffff);
+        }
+        const Checkpoints::CCheckpointData& Checkpoints() const override { return Params().Checkpoints(); }
+        void Height(int h) { nSplitDifficultyHeight = h; }
+        void Bound(const uint256& limit) { bnSplitStakeLimit = limit; }
+        void References(uint64_t work, uint64_t stake) { nSplitWorkReference = work; nSplitStakeReference = stake; }
+    } fixture;
+
+    BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
+    fixture.Height(10000);
+    BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
+    uint256 limit;
+    limit.SetCompact(0x1c010000);
+    fixture.Bound(limit);
+    BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
+    fixture.References(184847936, 232128606112);
+    fixture.Bound(limit + 1); // Rounded down by the wire's compact representation.
+    BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
+    fixture.Bound(fixture.ProofOfWorkLimit());
+    BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
+    fixture.Bound(limit);
+    BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 10000);
+    fixture.Height(20001);
+    BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
 }
 
 BOOST_AUTO_TEST_CASE(split_difficulty_stake_weight_is_monotonic_without_rewriting_legacy)
