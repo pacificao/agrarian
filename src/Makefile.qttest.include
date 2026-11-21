@@ -25,13 +25,15 @@ qt_test_test_agrarian_qt_SOURCES = \
 if ENABLE_WALLET
 qt_test_test_agrarian_qt_SOURCES += \
   qt/test/overviewpagetests.cpp \
-  qt/test/paymentservertests.cpp
+  qt/test/paymentservertests.cpp \
+  qt/test/poolminingtests.cpp
 endif
 
 nodist_qt_test_test_agrarian_qt_SOURCES = $(TEST_QT_MOC_CPP)
 if ENABLE_WALLET
-nodist_qt_test_test_agrarian_qt_SOURCES += qt/test/overviewpagetests.moc
+nodist_qt_test_test_agrarian_qt_SOURCES += qt/test/overviewpagetests.moc qt/test/poolminingtests.moc
 qt/test/test_agrarian_qt-overviewpagetests.$(OBJEXT): qt/test/overviewpagetests.moc
+qt/test/test_agrarian_qt-poolminingtests.$(OBJEXT): qt/test/poolminingtests.moc
 endif
 
 qt_test_test_agrarian_qt_LDADD = $(LIBBITCOINQT) $(LIBBITCOIN_SERVER)

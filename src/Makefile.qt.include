@@ -169,6 +169,7 @@ BITCOIN_QT_H = \
   qt/optionsdialog.h \
   qt/optionsmodel.h \
   qt/overviewpage.h \
+  qt/poolminingdialog.h \
   qt/paymentrequestplus.h \
   qt/paymentserver.h \
   qt/peertablemodel.h \
@@ -312,6 +313,7 @@ BITCOIN_QT_WALLET_CPP = \
   qt/multisigdialog.cpp\
   qt/openuridialog.cpp \
   qt/overviewpage.cpp \
+  qt/poolminingdialog.cpp \
   qt/paymentrequestplus.cpp \
   qt/paymentserver.cpp \
   qt/receivecoinsdialog.cpp \

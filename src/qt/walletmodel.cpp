@@ -251,6 +251,15 @@ bool WalletModel::validateAddress(const QString& address)
     return addressParsed.IsValid();
 }
 
+bool WalletModel::ownsSpendableAddress(const QString& address) const
+{
+    const CBitcoinAddress destination(address.toStdString());
+    if (!destination.IsValid() || destination.IsScript())
+        return false;
+    LOCK(wallet->cs_wallet);
+    return (wallet->IsMine(CTxOut(0, GetScriptForDestination(destination.Get()))) & ISMINE_SPENDABLE) != 0;
+}
+
 void WalletModel::updateAddressBookLabels(const CTxDestination& dest, const string& strName, const string& strPurpose)
 {
     LOCK(wallet->cs_wallet);

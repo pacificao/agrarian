@@ -159,6 +159,12 @@ bool WalletFrame::hasLegacyZagrBalance()
     return view && view->hasLegacyZagrBalance();
 }
 
+WalletModel* WalletFrame::currentWalletModel()
+{
+    auto* view = currentWalletView();
+    return view ? view->getWalletModel() : nullptr;
+}
+
 void WalletFrame::gotoSendCoinsPage(QString addr)
 {
     QMap<QString, WalletView*>::const_iterator i;

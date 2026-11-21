@@ -7,6 +7,7 @@
 #include "bitcoingui.h"
 
 #include "bitcoinunits.h"
+#include "chainparams.h"
 #include "clientmodel.h"
 #include "guiconstants.h"
 #include "guiutil.h"
@@ -21,6 +22,7 @@
 
 #ifdef ENABLE_WALLET
 #include "blockexplorer.h"
+#include "poolminingdialog.h"
 #include "walletframe.h"
 #include "walletmodel.h"
 #include "wallet/wallet.h"
@@ -433,6 +435,8 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
     toggleMiningAction->setStatusTip(tr("Start or stop CPU mining using the configured mining processor threads"));
     toggleMiningAction->setToolTip(toggleMiningAction->statusTip());
     toggleMiningAction->setCheckable(true);
+    poolMiningAction = new QAction(tr("Mine on &All The Acronyms…"), this);
+    poolMiningAction->setStatusTip(tr("Mine AGR on the public pool using this wallet for payouts"));
 
     openInfoAction = new QAction(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation), tr("&Information"), this);
     openInfoAction->setStatusTip(tr("Show diagnostic information"));
@@ -493,6 +497,7 @@ void BitcoinGUI::createActions(const NetworkStyle* networkStyle)
         connect(openAction, SIGNAL(triggered()), this, SLOT(openClicked()));
         connect(multiSendAction, SIGNAL(triggered()), this, SLOT(gotoMultiSendDialog()));
         connect(toggleMiningAction, SIGNAL(triggered()), this, SLOT(toggleMining()));
+        connect(poolMiningAction, &QAction::triggered, this, &BitcoinGUI::showPoolMining);
         connect(multisigCreateAction, SIGNAL(triggered()), this, SLOT(gotoMultisigCreate()));
         connect(multisigSpendAction, SIGNAL(triggered()), this, SLOT(gotoMultisigSpend()));
         connect(multisigSignAction, SIGNAL(triggered()), this, SLOT(gotoMultisigSign()));
@@ -542,6 +547,8 @@ void BitcoinGUI::createMenuBar()
 
     if (walletFrame) {
         QMenu* mining = appMenuBar->addMenu(tr("&Mining"));
+        if (Params().NetworkID() == CBaseChainParams::MAIN)
+            mining->addAction(poolMiningAction);
         mining->addAction(toggleMiningAction);
         mining->addSeparator();
         mining->addAction(optionsAction);
@@ -672,6 +679,8 @@ bool BitcoinGUI::setCurrentWallet(const QString& name)
         return false;
     if (privacyAction->isChecked())
         gotoOverviewPage();
+    if (poolMiningDialog)
+        poolMiningDialog->setWallet(walletFrame->currentWalletModel());
     updateLegacyZagrAction();
     return true;
 }
@@ -681,6 +690,8 @@ void BitcoinGUI::removeAllWallets()
     if (!walletFrame)
         return;
     setWalletActionsEnabled(false);
+    if (poolMiningDialog)
+        poolMiningDialog->setWallet(nullptr);
     walletFrame->removeAllWallets();
     updateLegacyZagrAction();
 }
@@ -711,6 +722,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     usedReceivingAddressesAction->setEnabled(enabled);
     openAction->setEnabled(enabled);
     toggleMiningAction->setEnabled(enabled);
+    poolMiningAction->setEnabled(enabled);
 }
 
 void BitcoinGUI::createTrayIcon(const NetworkStyle* networkStyle)
@@ -825,6 +837,12 @@ void BitcoinGUI::toggleMining()
     const bool currentlyMining = GetBoolArg("-gen", false);
     const bool startMining = !currentlyMining;
 
+    if (startMining && poolMiningDialog && poolMiningDialog->isMining()) {
+        QMessageBox::information(this, tr("Pool mining is running"), tr("Stop pool mining before starting solo mining."));
+        updateMiningAction();
+        return;
+    }
+
     if (!pwalletMain) {
         QMessageBox::warning(this, tr("Mining unavailable"), tr("CPU mining requires an active wallet."));
         updateMiningAction();
@@ -846,6 +864,18 @@ void BitcoinGUI::toggleMining()
     statusBar()->showMessage(message, 5000);
 }
 
+void BitcoinGUI::showPoolMining()
+{
+    if (!walletFrame || Params().NetworkID() != CBaseChainParams::MAIN)
+        return;
+    if (!poolMiningDialog)
+        poolMiningDialog = new PoolMiningDialog(this);
+    poolMiningDialog->setWallet(walletFrame->currentWalletModel());
+    poolMiningDialog->show();
+    poolMiningDialog->raise();
+    poolMiningDialog->activateWindow();
+}
+
 void BitcoinGUI::updateMiningAction()
 {
     if (!toggleMiningAction)
@@ -854,7 +884,7 @@ void BitcoinGUI::updateMiningAction()
     const bool mining = GetBoolArg("-gen", false);
     toggleMiningAction->blockSignals(true);
     toggleMiningAction->setChecked(mining);
-    toggleMiningAction->setText(mining ? tr("&Stop CPU Mining") : tr("&Start CPU Mining"));
+    toggleMiningAction->setText(mining ? tr("&Stop solo CPU mining") : tr("&Start solo CPU mining"));
     toggleMiningAction->blockSignals(false);
 }
 

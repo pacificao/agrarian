@@ -24,6 +24,7 @@ class ClientModel;
 class NetworkStyle;
 class Notificator;
 class OptionsModel;
+class PoolMiningDialog;
 class BlockExplorer;
 class RPCConsole;
 class SendCoinsRecipient;
@@ -131,6 +132,8 @@ private:
     QAction* showHelpMessageAction;
     QAction* multiSendAction;
     QAction* toggleMiningAction;
+    QAction* poolMiningAction{nullptr};
+    PoolMiningDialog* poolMiningDialog{nullptr};
 
     QSystemTrayIcon* trayIcon;
     QMenu* trayIconMenu;
@@ -240,6 +243,7 @@ private slots:
     void openClicked();
     /** Toggle CPU mining using the configured mining thread count. */
     void toggleMining();
+    void showPoolMining();
     /** Refresh CPU mining action text/check state. */
     void updateMiningAction();
 

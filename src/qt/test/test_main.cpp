@@ -38,6 +38,7 @@ Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 extern void noui_connect();
 #ifdef ENABLE_WALLET
 int runOverviewPageTests();
+int runPoolMiningTests();
 #endif
 
 // This is all you need to run all the tests
@@ -67,6 +68,8 @@ int main(int argc, char *argv[])
     if (QTest::qExec(&test2) != 0)
         fInvalid = true;
     if (runOverviewPageTests() != 0)
+        fInvalid = true;
+    if (runPoolMiningTests() != 0)
         fInvalid = true;
 #endif
 

@@ -148,6 +148,7 @@ public:
 
     // Check address for validity
     bool validateAddress(const QString& address);
+    bool ownsSpendableAddress(const QString& address) const;
 
     // Return status record for SendCoins, contains error id + information
     struct SendCoinsReturn {
