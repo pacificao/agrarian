@@ -292,6 +292,11 @@ BOOST_AUTO_TEST_CASE(hybrid_stake_origin_comes_from_candidate_utxo_view)
 
 BOOST_AUTO_TEST_CASE(public_stake_rehearsal_checks_a_real_kernel_at_the_candidate_bound)
 {
+    struct Restore {
+        CBaseChainParams::Network network = Params().NetworkID();
+        ~Restore() { SelectParams(network); }
+    } restore;
+    SelectParams(CBaseChainParams::MAIN);
     BOOST_REQUIRE(Params().NetworkID() == CBaseChainParams::MAIN);
     const uint256 parentHash(123), otherHash(124);
     const COutPoint input(uint256(456), 0);
