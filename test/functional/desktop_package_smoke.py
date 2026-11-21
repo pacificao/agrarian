@@ -103,16 +103,24 @@ def test(qt, daemon, root, installer=None):
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Agrarian\Agrarian-Qt-testnet") as key:
                 return winreg.QueryValueEx(key, "fHideZeroBalances")
 
+        def install_path():
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Agrarian Core (64-bit)") as key:
+                location, _ = winreg.QueryValueEx(key, "Path")
+                return Path(location).resolve()
+
         wallet_file = gui_directory / "regtest" / "wallet.dat"
         config_file = gui_directory / "agrarian.conf"
         data_hashes = (digest(wallet_file), digest(config_file))
         display_setting = wallet_setting()
+        assert install_path() == qt.parent, "First install did not record the custom folder"
         # Remove only the disposable executable from the expected destination
         # so a reinstall into the wrong folder cannot pass this test.
         old_binary = qt.with_suffix(".exe.previous")
         qt.rename(old_binary)
         install_again(0)
-        assert qt.is_file() and digest(qt) == digest(old_binary)
+        assert install_path() == qt.parent, "Upgrade changed the registered install folder"
+        assert qt.is_file(), "Upgrade did not put the wallet back in its original folder"
+        assert digest(qt) == digest(old_binary), "Reinstalled wallet executable has an unexpected hash"
         assert (digest(wallet_file), digest(config_file)) == data_hashes
         assert wallet_setting() == display_setting
         gui = start(qt, gui_directory, "-choosedatadir=0")

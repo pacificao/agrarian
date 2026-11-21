@@ -1,10 +1,13 @@
-Name "@PACKAGE_NAME@ (@WINDOWS_BITS@-bit)"
+!define INSTALLER_NAME "@PACKAGE_NAME@ (@WINDOWS_BITS@-bit)"
+Name "${INSTALLER_NAME}"
 
 RequestExecutionLevel highest
 SetCompressor /SOLID lzma
 
 # General Symbol Definitions
-!define REGKEY "SOFTWARE\$(^Name)"
+# InstallDirRegKey runs before NSIS language strings (including ^Name)
+# are available. Use the same literal key existing installers already write.
+!define REGKEY "SOFTWARE\${INSTALLER_NAME}"
 !define VERSION @CLIENT_VERSION_MAJOR@.@CLIENT_VERSION_MINOR@.@CLIENT_VERSION_REVISION@
 !define COMPANY "@PACKAGE_NAME@ project"
 !define URL https://agrariancoin.com
