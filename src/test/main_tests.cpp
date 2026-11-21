@@ -5,6 +5,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "chainparams.h"
+#include "coins.h"
 #include "kernel.h"
 #include "main.h"
 #include "masternode-payments.h"
@@ -194,6 +195,37 @@ BOOST_AUTO_TEST_CASE(hybrid_stake_modifier_is_relative_to_the_candidate_branch)
     BOOST_CHECK(FindBranchStakeModifier(&left, &rightLater, 10) == nullptr);
     BOOST_CHECK(FindBranchStakeModifier(&origin, &missing, 100) == nullptr);
     BOOST_CHECK(FindBranchStakeModifier(&origin, &left, 100) == nullptr);
+}
+
+BOOST_AUTO_TEST_CASE(hybrid_stake_origin_comes_from_candidate_utxo_view)
+{
+    const uint256 leftHash(11), rightHash(12);
+    const COutPoint input(uint256(20), 0);
+    CBlockIndex common, leftOrigin, rightOrigin, leftParent, rightParent;
+    leftOrigin.nHeight = rightOrigin.nHeight = 1;
+    leftOrigin.pprev = rightOrigin.pprev = &common;
+    leftParent.nHeight = rightParent.nHeight = 2;
+    leftParent.pprev = &leftOrigin;
+    rightParent.pprev = &rightOrigin;
+    leftParent.phashBlock = &leftHash;
+    rightParent.phashBlock = &rightHash;
+
+    CCoinsView base;
+    CCoinsViewCache left(&base), right(&base);
+    left.SetBestBlock(leftHash);
+    right.SetBestBlock(rightHash);
+    {
+        auto coins = right.ModifyCoins(input.hash);
+        coins->nHeight = 1;
+        coins->vout.emplace_back(COIN, CScript() << OP_TRUE);
+    }
+
+    CTxOut output;
+    BOOST_CHECK(ResolveBranchStakeCoin(input, &rightParent, right, output) == &rightOrigin);
+    BOOST_CHECK_EQUAL(output.nValue, COIN);
+    BOOST_CHECK(ResolveBranchStakeCoin(input, &leftParent, left, output) == nullptr);
+    BOOST_CHECK(ResolveBranchStakeCoin(input, &leftParent, right, output) == nullptr);
+    BOOST_CHECK(ResolveBranchStakeCoin(COutPoint(input.hash, 1), &rightParent, right, output) == nullptr);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

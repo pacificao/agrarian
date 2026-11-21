@@ -2937,6 +2937,12 @@ static int64_t nTimeIndex = 0;
 static int64_t nTimeCallbacks = 0;
 static int64_t nTimeTotal = 0;
 
+static bool UsesBranchStakeContext(const CBlock& block, const CBlockIndex* parent)
+{
+    return IsSplitDifficultyActive(parent) && block.IsProofOfStake() &&
+           !block.vtx[1].HasZerocoinSpendInputs() && !block.vtx[1].HasZerocoinPublicSpendInputs();
+}
+
 bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck, bool fAlreadyChecked)
 {
     AssertLockHeld(cs_main);
@@ -2956,6 +2962,13 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         view.SetBestBlock(pindex->GetBlockHash());
         return true;
     }
+
+    // Check transparent stake against the candidate parent's UTXO state
+    // before spending any inputs. A stored side block may not connect yet.
+    const bool branchStake = UsesBranchStakeContext(block, pindex->pprev);
+    uint256 branchProof;
+    if (branchStake && !CheckBranchProofOfStake(block, pindex->pprev, view, branchProof))
+        return state.DoS(100, error("ConnectBlock: invalid branch stake proof"), REJECT_INVALID, "bad-branch-stake");
 
     // Hybrid consensus:
 // - PoS blocks are permitted starting at Params().FIRST_POS_BLOCK().
@@ -3211,6 +3224,12 @@ bool fScriptChecks = pindex->nHeight >= Checkpoints::GetTotalBlocksEstimate();
     //IMPORTANT NOTE: Nothing before this point should actually store to disk (or even memory)
     if (fJustCheck)
         return true;
+
+    if (IsSplitDifficultyActive(pindex->pprev)) {
+        if (branchStake)
+            pindex->hashProofOfStake = branchProof;
+        pindex->nStakeModifierChecksum = GetStakeModifierChecksum(pindex);
+    }
 
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull() || !pindex->IsValid(BLOCK_VALID_SCRIPTS)) {
@@ -3946,7 +3965,7 @@ CBlockIndex* AddToBlockIndex(const CBlock& block)
             LogPrintf("AddToBlockIndex() : SetStakeEntropyBit() failed \n");
 
         // ppcoin: record proof-of-stake hash value
-        if (pindexNew->IsProofOfStake()) {
+        if (pindexNew->IsProofOfStake() && !UsesBranchStakeContext(block, pindexNew->pprev)) {
             if (!mapProofOfStake.count(hash))
                 LogPrintf("AddToBlockIndex() : hashProofOfStake not found in map \n");
             pindexNew->hashProofOfStake = mapProofOfStake[hash];
@@ -4538,9 +4557,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
     if (block.GetHash() != Params().HashGenesisBlock() && !CheckWork(block, pindexPrev))
         return false;
 
-    bool isPoS = false;
-    if (block.IsProofOfStake()) {
-        isPoS = true;
+    const bool isPoS = block.IsProofOfStake();
+    if (isPoS && !UsesBranchStakeContext(block, pindexPrev)) {
         uint256 hashProofOfStake = 0;
         unique_ptr<CStakeInput> stake;
 

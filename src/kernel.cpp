@@ -333,6 +333,57 @@ static bool CheckStake(const CDataStream& ssUniqueID, CAmount nValueIn, const ui
     return stakeTargetHit(hashProofOfStake, nValueIn, bnTarget, wideTarget);
 }
 
+const CBlockIndex* ResolveBranchStakeCoin(const COutPoint& outpoint, const CBlockIndex* parent,
+                                         const CCoinsViewCache& view, CTxOut& output)
+{
+    if (!parent || view.GetBestBlock() != parent->GetBlockHash())
+        return nullptr;
+
+    const CCoins* coins = view.AccessCoins(outpoint.hash);
+    if (!coins || !coins->IsAvailable(outpoint.n) || coins->nHeight > static_cast<unsigned int>(parent->nHeight))
+        return nullptr;
+
+    const CBlockIndex* origin = parent->GetAncestor(coins->nHeight);
+    if (!origin)
+        return nullptr;
+    output = coins->vout[outpoint.n];
+    return origin;
+}
+
+bool CheckBranchProofOfStake(const CBlock& block, const CBlockIndex* parent,
+                            const CCoinsViewCache& view, uint256& proofHash)
+{
+    if (!block.IsProofOfStake() || block.vtx[1].vin.empty())
+        return false;
+
+    const CTransaction& coinstake = block.vtx[1];
+    const CTxIn& input = coinstake.vin.front();
+    CTxOut output;
+    const CBlockIndex* origin = ResolveBranchStakeCoin(input.prevout, parent, view, output);
+    if (!origin || origin->nHeight < Params().FIRST_POS_BLOCK())
+        return false;
+    if (!VerifyScript(input.scriptSig, output.scriptPubKey, STANDARD_SCRIPT_VERIFY_FLAGS,
+                      TransactionSignatureChecker(&coinstake, 0)))
+        return false;
+
+    const CBlockIndex* modifier = Params().NetworkID() == CBaseChainParams::REGTEST ? origin :
+        FindBranchStakeModifier(origin, parent, GetStakeModifierSelectionInterval());
+    if (!modifier)
+        return false;
+
+    unsigned int stakeTime = block.nTime;
+    if (parent->nHeight >= Params().Zerocoin_Block_Public_Spend_Enabled() - 1 &&
+        int64_t(stakeTime) < origin->GetBlockTime() + nStakeMinAge)
+        return false;
+
+    uint256 target;
+    target.SetCompact(block.nBits);
+    CDataStream uniqueness(SER_NETWORK, 0);
+    uniqueness << input.prevout.n << input.prevout.hash;
+    return CheckStake(uniqueness, output.nValue, modifier->nStakeModifier, target,
+                      origin->nTime, stakeTime, proofHash, true);
+}
+
 bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockFrom, unsigned int& nTimeTx, uint256& hashProofOfStake)
 {
     const CBlockIndex* previous = chainActive.Tip();

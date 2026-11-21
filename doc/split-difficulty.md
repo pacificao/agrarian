@@ -100,25 +100,26 @@ the legacy modifier scan reads successors from that same chain. Regtest
 returns a fixed modifier at the origin, so a passing regtest reorg does not
 prove agreement under the public network's modifier-selection rules.
 
-`FindBranchStakeModifier` provides and tests parent-relative modifier
-selection. The remaining activation work is to resolve stake origins on the
-candidate branch, make validation and wallet generation use that same context,
-check legacy zAGR lookups separately, and test real public-network modifier
-timing on competing branches. Do not compensate for missing candidate inputs
-by falling back to the active branch. Do not switch `RegtestHybridScoreHeight`
-to read the public activation height until these checks pass.
+The opt-in regtest path now validates transparent stake when connecting the
+candidate block, using the candidate parent's unspent outputs and ancestry.
+It does not fall back to the active-chain transaction index for a missing
+kernel input. Regtest uses its existing origin modifier; the branch-relative
+selector covers public modifier timing in isolation but is not activated on
+public networks. Legacy and accumulator-based stake keep their existing path.
+Do not expose public activation until the full competing-branch, wallet,
+legacy zAGR, and reindex checks pass.
 
 Use the UTXO view for the candidate's parent when resolving a transparent
 stake input. Its coin record gives the origin height; the parent's ancestor
 at that height gives the block. A global transaction-ID lookup is not a
 substitute: the legacy transaction index is written on connection, so it does
-not reliably index a branch that has not been connected. Check the stake
-kernel before committing that candidate view, and calculate its modifier
-metadata in branch order. Today, `AddToBlockIndex` computes modifier metadata
-before connection; changing validation timing requires moving that dependency
-together. Cover stake originating after the fork, an input spent only on the
-other branch, restart and reindex, and the wallet's ability to produce a block
-that an independent node accepts.
+not reliably index a branch that has not been connected. The experimental
+path writes its proof hash into the in-memory index only after a successful
+connect. The legacy modifier selection uses ancestry and block entropy, not
+that proof hash. Before activating, audit how modifier metadata is persisted
+and reconstructed, and test restart/reindex and actual public-network timing
+with stake originating after the fork. Confirm an independent validator
+accepts the same block the wallet produced.
 
 **Separate arithmetic gate:** the legacy stake kernel multiplies the base
 target by the input weight in 256 bits. The split retarget can reach high
