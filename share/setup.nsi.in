@@ -71,6 +71,8 @@ ShowUninstDetails show
 
 # Installer sections
 Section -Main SEC0000
+    Call ConfirmSafeUpgrade
+    Call RequireAgrarianStopped
     SetOutPath $INSTDIR
     SetOverwrite on
     File @abs_top_srcdir@/release/@BITCOIN_GUI_NAME@@EXEEXT@
@@ -156,6 +158,50 @@ no_smgroup:
 SectionEnd
 
 # Installer functions
+Function ConfirmSafeUpgrade
+    IfSilent done
+    IfFileExists "$INSTDIR\@BITCOIN_GUI_NAME@@EXEEXT@" 0 done
+    MessageBox MB_OKCANCEL|MB_ICONINFORMATION|MB_DEFBUTTON2 "Before updating, make a copy of your wallet using File > Backup Wallet in Agrarian Core. Save it somewhere outside the install folder.$\r$\n$\r$\nThen exit Agrarian Core normally and wait for it to finish shutting down. Setup will reuse the selected install folder and won't reset wallet settings or touch your data directory.$\r$\n$\r$\nChoose OK when ready, or Cancel to go back and make the backup." IDOK done
+    SetErrorLevel 2
+    Abort
+done:
+FunctionEnd
+
+# tasklist filters by exact image name. With CSV and no header, a match
+# starts with the quoted image name; no English message is parsed.
+!macro RequireImageStopped IMAGE
+    nsExec::ExecToStack /TIMEOUT=5000 '"$SYSDIR\tasklist.exe" /FI "IMAGENAME eq ${IMAGE}" /FO CSV /NH'
+    Pop $0
+    Pop $1
+    StrCmp $0 "0" +2
+    Goto check_failed
+    StrCpy $2 '$\"${IMAGE}$\",'
+    StrLen $3 $2
+    StrCpy $1 $1 $3
+    StrCmp $1 $2 0 +3
+    StrCpy $0 "${IMAGE}"
+    Goto still_running
+!macroend
+
+Function RequireAgrarianStopped
+check_again:
+    !insertmacro RequireImageStopped "@BITCOIN_GUI_NAME@@EXEEXT@"
+    !insertmacro RequireImageStopped "@BITCOIN_DAEMON_NAME@@EXEEXT@"
+    Return
+still_running:
+    DetailPrint "Waiting for $0 to stop. No application files have been changed."
+    IfSilent stopped_required
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Agrarian is still running ($0). Exit the wallet normally and wait for shutdown to finish. If you're running the daemon, stop it normally as well.$\r$\n$\r$\nChoose Retry to check again. Setup will not force the application to close." IDRETRY check_again
+    Goto stopped_required
+check_failed:
+    DetailPrint "Setup couldn't check for running Agrarian processes ($0)."
+    IfSilent stopped_required
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Setup couldn't check whether Agrarian is running. Close Agrarian and the daemon, then choose Retry. No application files have been changed." IDRETRY check_again
+stopped_required:
+    SetErrorLevel 2
+    Abort
+FunctionEnd
+
 Function .onInit
     InitPluginsDir
 !if "@WINDOWS_BITS@" == "64"
