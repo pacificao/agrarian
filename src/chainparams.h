@@ -128,6 +128,7 @@ public:
     int FIRST_POS_BLOCK() const { return nFirstPoSBlock; }
     int LAST_POW_BLOCK() const { return nLastPOWBlock; }
     int SplitDifficultyHeight() const { return nSplitDifficultyHeight; }
+    const uint256& SplitStakeLimit() const { return bnSplitStakeLimit; }
 
     int Zerocoin_StartHeight() const { return nZerocoinStartHeight; }
     int Zerocoin_Block_EnforceSerialRange() const { return nBlockEnforceSerialRange; }
@@ -170,6 +171,7 @@ protected:
     // A reviewed, coordinated public network activation must set this in source.
     // Zero leaves historical and future blocks on the existing rules.
     int nSplitDifficultyHeight = 0;
+    uint256 bnSplitStakeLimit; // Unset on public networks until independently calibrated.
 
     int nMasternodeCountDrift;
     int nMaturity;

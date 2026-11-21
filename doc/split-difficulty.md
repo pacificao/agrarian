@@ -108,6 +108,18 @@ timing on competing branches. Do not compensate for missing candidate inputs
 by falling back to the active branch. Do not switch `RegtestHybridScoreHeight`
 to read the public activation height until these checks pass.
 
+Use the UTXO view for the candidate's parent when resolving a transparent
+stake input. Its coin record gives the origin height; the parent's ancestor
+at that height gives the block. A global transaction-ID lookup is not a
+substitute: the legacy transaction index is written on connection, so it does
+not reliably index a branch that has not been connected. Check the stake
+kernel before committing that candidate view, and calculate its modifier
+metadata in branch order. Today, `AddToBlockIndex` computes modifier metadata
+before connection; changing validation timing requires moving that dependency
+together. Cover stake originating after the fork, an input spent only on the
+other branch, restart and reindex, and the wallet's ability to produce a block
+that an independent node accepts.
+
 **Separate arithmetic gate:** the legacy stake kernel multiplies the base
 target by the input weight in 256 bits. The split retarget can reach high
 bootstrap targets, making wraparound relevant: increasing eligible weight
@@ -125,6 +137,12 @@ the corresponding input is **232,128.606113 AGR**. These are mathematical
 acceptance thresholds for one otherwise eligible input, not measurements
 of active stake or block frequency. Do not use the PoW limit to bootstrap
 a public PoS stream; specify and validate a separate PoS bootstrap bound.
+
+The retarget calculation now accepts a distinct stake bound, uses it when
+there are no same-proof samples, and caps easier historical stake targets
+without discarding their timestamps. The public-network bound is still
+unset. Split retarget and normalized fork choice share the regtest-only
+gate; setting a height on its own cannot enable a partial public rule.
 
 References for review: [Peercoin RFC 0030](https://github.com/peercoin/rfcs/blob/master/text/0030-PoW-ASERT/0030-PoW-ASERT.md)
 separates retargets but assigns PoW and PoS different security roles;

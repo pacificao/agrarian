@@ -70,7 +70,8 @@ BOOST_AUTO_TEST_CASE(split_difficulty_isolates_stake_bursts)
     }
     const auto work = GetNextSplitWorkRequired(&history[24], BlockProof::Work);
     BOOST_CHECK_EQUAL(work, 0x1d2f75d0u);
-    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&history[24], BlockProof::Stake),
+    const uint256& fixtureLimit = Params().ProofOfWorkLimit();
+    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&history[24], BlockProof::Stake, fixtureLimit),
                       Params().ProofOfWorkLimit().GetCompact());
 
     // The observed mainnet incident comprised 99 stake blocks over 155 s.
@@ -80,10 +81,10 @@ BOOST_AUTO_TEST_CASE(split_difficulty_isolates_stake_bursts)
         history[i].nBits = 0x1c04fd77;
     }
     BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&history.back(), BlockProof::Work), work);
-    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&history[25], BlockProof::Stake), 0x1c04fd77u);
+    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&history[25], BlockProof::Stake, fixtureLimit), 0x1c04fd77u);
     uint256 prior, next;
     prior.SetCompact(history.back().nBits);
-    next.SetCompact(GetNextSplitWorkRequired(&history.back(), BlockProof::Stake));
+    next.SetCompact(GetNextSplitWorkRequired(&history.back(), BlockProof::Stake, fixtureLimit));
     BOOST_CHECK_EQUAL(next.GetCompact(), uint256(prior / uint256(3)).GetCompact());
     BOOST_CHECK_NE(GetNextWorkRequired(&history.back(), BlockProof::Work), work);
     BOOST_CHECK(!IsSplitDifficultyActive(&history.back()));
@@ -105,6 +106,37 @@ BOOST_AUTO_TEST_CASE(split_difficulty_never_exceeds_the_target_limit)
         history[i].nBits = limit;
     }
     BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&history.back(), BlockProof::Work), limit);
+}
+
+BOOST_AUTO_TEST_CASE(split_difficulty_respects_an_independent_stake_bootstrap_bound)
+{
+    uint256 stakeLimit;
+    stakeLimit.SetCompact(0x1c04bc95); // staging fixture, not an approved mainnet bound
+    const uint256& workLimit = Params().ProofOfWorkLimit();
+    BOOST_REQUIRE(stakeLimit < workLimit);
+    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(nullptr, BlockProof::Stake, stakeLimit), stakeLimit.GetCompact());
+    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(nullptr, BlockProof::Work, workLimit), workLimit.GetCompact());
+
+    CBlockIndex genesis, oldStake, newest;
+    oldStake.pprev = &genesis;
+    oldStake.nHeight = 1;
+    oldStake.nTime = 1000;
+    oldStake.nBits = workLimit.GetCompact();
+    oldStake.SetProofOfStake();
+    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&oldStake, BlockProof::Stake, stakeLimit), stakeLimit.GetCompact());
+
+    newest.pprev = &oldStake;
+    newest.nHeight = 2;
+    newest.nTime = oldStake.nTime + 2 * Params().TargetSpacing();
+    newest.nBits = 0x1c023000;
+    newest.SetProofOfStake();
+    uint256 newestTarget;
+    newestTarget.SetCompact(newest.nBits);
+    // The easier legacy sample contributes timing, but its target is capped.
+    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&newest, BlockProof::Stake, stakeLimit),
+                      uint256((stakeLimit + newestTarget) / uint256(2)).GetCompact());
+    BOOST_CHECK(Params().SplitStakeLimit() == 0);
+    BOOST_CHECK(!IsSplitDifficultyActive(&newest));
 }
 
 BOOST_AUTO_TEST_CASE(split_difficulty_stake_weight_is_monotonic_without_rewriting_legacy)

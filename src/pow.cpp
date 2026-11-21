@@ -44,8 +44,9 @@ bool IsSplitDifficultyActive(const CBlockIndex* previous)
     if (!previous)
         return false;
 
-    const int64_t activation = Params().NetworkID() == CBaseChainParams::REGTEST
-        ? RegtestHybridScoreHeight() : Params().SplitDifficultyHeight();
+    // Retarget and fork choice must activate together. Both stay regtest-only
+    // until the branch-relative stake validation is complete.
+    const int64_t activation = RegtestHybridScoreHeight();
 
     const int64_t height = int64_t(previous->nHeight) + 1;
     return activation >= Params().FIRST_POS_BLOCK() && height >= activation &&
@@ -54,8 +55,15 @@ bool IsSplitDifficultyActive(const CBlockIndex* previous)
 
 unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof proof)
 {
+    const uint256& limit = proof == BlockProof::Stake && Params().NetworkID() != CBaseChainParams::REGTEST
+        ? Params().SplitStakeLimit() : Params().ProofOfWorkLimit();
+    return GetNextSplitWorkRequired(previous, proof, limit);
+}
+
+unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof proof, const uint256& limit)
+{
+    assert(limit > 0);
     constexpr unsigned int window = 24;
-    const uint256& limit = Params().ProofOfWorkLimit();
     const bool stake = proof == BlockProof::Stake;
     uint512 sum = 0;
     uint512 lastTarget = 0;
@@ -70,9 +78,11 @@ unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof pr
         bool negative, overflow;
         uint256 target;
         target.SetCompact(index->nBits, &negative, &overflow);
-        if (negative || overflow || target == 0 || target > limit)
+        if (negative || overflow || target == 0)
             continue;
-        const uint512 wideTarget(target);
+        // Preserve the pre-activation sample's timing, but do not carry an
+        // easier legacy target across the new proof-specific upper bound.
+        const uint512 wideTarget(std::min(target, limit));
         if (count == 0) {
             lastTarget = wideTarget;
             newest = index->GetBlockTime();
