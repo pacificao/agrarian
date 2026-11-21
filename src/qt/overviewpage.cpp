@@ -119,15 +119,6 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
     nDisplayUnit = 0; // just make sure it's not unitialized
     ui->setupUi(this);
     ui->frame_ZerocoinBalances->hide();
-    ui->frame_CombinedBalances->hide();
-    ui->labelAGRPercent->hide();
-    // The sync warning must remain visible even when legacy balances are hidden.
-    ui->horizontalLayout_4->insertWidget(2, ui->labelWalletStatus);
-    auto* legacyNotice = new QLabel(tr("Legacy zAGR only. Creating new zAGR is disabled. This is separate from your regular AGR balance."), ui->frame_ZerocoinBalances);
-    legacyNotice->setObjectName("legacyZagrNotice");
-    legacyNotice->setWordWrap(true);
-    ui->verticalLayout_7->insertWidget(1, legacyNotice);
-    ui->label_5z_3->setText(tr("Legacy zAGR balance"));
 
     // Recent transactions
     ui->listTransactions->setItemDelegate(txdelegate);
@@ -161,30 +152,6 @@ bool OverviewPage::hasLegacyZagrBalance() const
     return currentZerocoinBalance > 0 || currentUnconfirmedZerocoinBalance > 0 || currentimmatureZerocoinBalance > 0;
 }
 
-void OverviewPage::getPercentage(CAmount nUnlockedBalance, CAmount nZerocoinBalance, QString& sAGRPercentage, QString& szAGRPercentage)
-{
-    int nPrecision = 2;
-    double dzPercentage = 0.0;
-
-    if (nZerocoinBalance <= 0){
-        dzPercentage = 0.0;
-    }
-    else{
-        if (nUnlockedBalance <= 0){
-            dzPercentage = 100.0;
-        }
-        else{
-            dzPercentage = 100.0 * (double)(nZerocoinBalance / (double)(nZerocoinBalance + nUnlockedBalance));
-        }
-    }
-
-    double dPercentage = 100.0 - dzPercentage;
-
-    szAGRPercentage = "(" + QLocale(QLocale::system()).toString(dzPercentage, 'f', nPrecision) + " %)";
-    sAGRPercentage = "(" + QLocale(QLocale::system()).toString(dPercentage, 'f', nPrecision) + " %)";
-
-}
-
 void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmedBalance, const CAmount& immatureBalance,
                               const CAmount& zerocoinBalance, const CAmount& unconfirmedZerocoinBalance, const CAmount& immatureZerocoinBalance,
                               const CAmount& watchOnlyBalance, const CAmount& watchUnconfBalance, const CAmount& watchImmatureBalance)
@@ -209,7 +176,6 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     // AGR Balance
     CAmount nTotalBalance = balance + unconfirmedBalance;
     CAmount agrAvailableBalance = balance - immatureBalance - nLockedBalance;
-    CAmount nUnlockedBalance = nTotalBalance - nLockedBalance;
 
     // AGR Watch-Only Balance
     CAmount nTotalWatchBalance = watchOnlyBalance + watchUnconfBalance;
@@ -217,14 +183,6 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
 
     // zAGR Balance
     CAmount matureZerocoinBalance = zerocoinBalance - unconfirmedZerocoinBalance - immatureZerocoinBalance;
-
-    // Percentages
-    QString szPercentage = "";
-    QString sPercentage = "";
-    getPercentage(nUnlockedBalance, zerocoinBalance, sPercentage, szPercentage);
-    // Combined balances
-    CAmount availableTotalBalance = agrAvailableBalance + matureZerocoinBalance;
-    CAmount sumTotalBalance = nTotalBalance + zerocoinBalance;
 
     // AGR labels
     ui->labelBalance->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, agrAvailableBalance, false, BitcoinUnits::separatorAlways));
@@ -246,25 +204,11 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelzBalanceMature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, matureZerocoinBalance, false, BitcoinUnits::separatorAlways));
     ui->labelzBalanceImmature->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, immatureZerocoinBalance, false, BitcoinUnits::separatorAlways));
 
-    // Combined labels
-    ui->labelBalancez->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, availableTotalBalance, false, BitcoinUnits::separatorAlways));
-    ui->labelTotalz->setText(BitcoinUnits::floorHtmlWithUnit(nDisplayUnit, sumTotalBalance, false, BitcoinUnits::separatorAlways));
-
-    // Percentage labels
-    ui->labelAGRPercent->setText(sPercentage);
-    ui->labelzAGRPercent->setText(szPercentage);
-
-    const bool showLegacy = hasLegacyZagrBalance();
-    ui->frame_ZerocoinBalances->setVisible(showLegacy);
-    ui->frame_CombinedBalances->setVisible(showLegacy);
+    ui->frame_ZerocoinBalances->setVisible(hasLegacyZagrBalance());
 
     // Only show most balances if they are non-zero for the sake of simplicity
     QSettings settings;
     bool settingShowAllBalances = !settings.value("fHideZeroBalances").toBool();
-
-    bool showSumAvailable = settingShowAllBalances || sumTotalBalance != availableTotalBalance;
-    ui->labelBalanceTextz->setVisible(showSumAvailable);
-    ui->labelBalancez->setVisible(showSumAvailable);
 
     bool showWatchOnly = nTotalWatchBalance != 0;
 
@@ -306,11 +250,6 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelzBalanceUnconfirmedText->setVisible(showzAGRUnconfirmed);
     ui->labelzBalanceImmature->setVisible(showzAGRImmature);
     ui->labelzBalanceImmatureText->setVisible(showzAGRImmature);
-
-    // Percent split
-    bool showPercentages = showLegacy && zerocoinBalance > 0;
-    ui->labelAGRPercent->setVisible(showPercentages);
-    ui->labelzAGRPercent->setVisible(showPercentages);
 
     static int cachedTxLocks = 0;
 

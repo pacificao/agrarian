@@ -63,48 +63,47 @@ background-color:#f2f0f0;
 color:#333;
 }
 
-QToolBar {
-background-color: qlineargradient(y1:0, y2: 1, stop: 0 #372f44, stop: 0.75 #372f44, stop: 0.99 #ffffff, stop: 1 #ffffff);
-border:0px solid #333;
-padding:1;
+QToolBar#Main-Toolbar {
+background-color:#192e28;
+border:0;
+padding:4px 2px;
 margin:0;
-width: 70px;
 }
 
-QToolBar > QToolButton {
-qproperty-alignment: 'AlignLeft';
-background-color: #372f44;
-selection-background-color:transparent;
-border:0.5px solid #888;
-border-left: 0px;
-border-right: 0px;
-border-top: 0px;
-min-height:2.5em;
-padding: 0em 0em;
-font-size: 11px;
-color:#aaa;
-width: 80px;
-height: 60px;
+QToolBar#Main-Toolbar > QToolButton {
+background-color:transparent;
+border:1px solid transparent;
+border-left:3px solid transparent;
+border-radius:5px;
+padding:0 2px 0 0;
+font-size:11px;
+color:#d5e0d9;
+min-width:82px;
+min-height:60px;
 }
 
-QToolBar > QToolButton:checked {
-background-color: qlineargradient(x1:0, x2: 1, stop: 0 #ffffff, stop: 0.07 #ffffff, stop: 0.0701 #372f44, stop: 1 #372f44);
-color:#fff;
+QToolBar#Main-Toolbar > QToolButton:hover {
+background-color:#28463b;
+color:#ffffff;
 }
 
-/* QToolBar > QToolButton:hover:!selected { */
-QToolBar > QToolButton:hover {
-background-color: qlineargradient(x1:0, x2: 1, stop: 0 #ffffff, stop: 0.07 #ffffff, stop: 0.0701 #372f44, stop: 1 #372f44);
-color:#fff;
+QToolBar#Main-Toolbar > QToolButton:checked {
+background-color:#315448;
+border-left-color:#f0ce84;
+color:#ffffff;
 }
 
-QToolBar > QToolButton#ToolbarSpacer:hover:!selected {
-background-color: #372f44; /* Do not highlight placeholder on hover */
+QToolBar#Main-Toolbar > QToolButton:focus {
+border-color:#f0ce84;
 }
 
-QToolBar > QToolButton:pressed {
-background-color: qlineargradient(x1:0, x2: 1, stop: 0 #00a300, stop: 0.07 #00a300, stop: 0.0701 #372f44, stop: 1 #372f44);
-color:#fff;
+QToolBar#Main-Toolbar > QToolButton:pressed {
+background-color:#203a32;
+color:#ffffff;
+}
+
+QToolBar#Main-Toolbar > QToolButton:disabled {
+color:#91a29a;
 }
 
 QMessageBox {
@@ -949,11 +948,6 @@ min-width:400px;
 background-color:#ffffff;
 }
 
-QWidget .QFrame#frame_CombinedBalances { /* Lower left side */
-min-width:400px;
-background-color:#ffffff;
-}
-
 QWidget .QFrame#frame_RecentTransactions { /* Right side */
 min-width:400px;
 background-color:#ffffff;
@@ -1196,69 +1190,6 @@ font-size:12px;
 font-weight:bold;
 color:#5c4c7c;
 margin-left:0px;
-}
-
-QWidget .QFrame#frame_CombinedBalances .QLabel#label_5z { /* Combined Balance Label */
-qproperty-alignment: 'AlignVCenter | AlignLeft';
-min-width:160px;
-background-color:transparent;
-color:#382F44;
-font-weight:bold;
-font-size:14px;
-margin-right:5px;
-padding-right:5px;
-}
-
-QWidget .QFrame#frame_CombinedBalances .QLabel#labelBalanceTextz { /* Available AGR Label */
-qproperty-alignment: 'AlignVCenter | AlignLeft';
-min-width:160px;
-color:#372f44;
-margin-right:5px;
-padding-right:5px;
-font-weight:bold;
-font-size:12px;
-}
-
-QWidget .QFrame#frame_CombinedBalances .QLabel#labelBalancez { /* Available AGR Balance */
-qproperty-alignment: 'AlignVCenter | AlignLeft';
-font-size:26px;
-font-weight:normal;
-color:#372f44;
-}
-
-QWidget .QFrame#frame_CombinedBalances .QLabel#labelzBalanceTextz { /* Available zAGR Label */
-qproperty-alignment: 'AlignVCenter | AlignLeft';
-min-width:160px;
-color:#372f44;
-margin-right:5px;
-padding-right:5px;
-font-weight:bold;
-font-size:12px;
-}
-
-QWidget .QFrame#frame_CombinedBalances .QLabel#labelzBalancez { /* Available zAGR Balance */
-qproperty-alignment: 'AlignVCenter | AlignLeft';
-font-size:12px;
-font-weight:bold;
-color:#5c4c7c;
-margin-left:0px;
-}
-
-QWidget .QFrame#frame_CombinedBalances .QLabel#labelTotalTextz { /* Available total Label */
-qproperty-alignment: 'AlignVCenter | AlignLeft';
-min-width:160px;
-color:#372f44;
-margin-right:5px;
-padding-right:5px;
-font-weight:bold;
-font-size:12px;
-}
-
-QWidget .QFrame#frame_CombinedBalances .QLabel#labelTotalz { /* Available total Balance */
-qproperty-alignment: 'AlignVCenter | AlignLeft';
-font-size:26px;
-font-weight:normal;
-color:#372f44;
 }
 
 /**************************** RECENT TRANSACTIONS ***************************************/

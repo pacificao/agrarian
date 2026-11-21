@@ -17,17 +17,15 @@ private Q_SLOTS:
         OverviewPage page;
         auto* regular = page.findChild<QFrame*>("frame_Balances");
         auto* legacy = page.findChild<QFrame*>("frame_ZerocoinBalances");
-        auto* combined = page.findChild<QFrame*>("frame_CombinedBalances");
         auto* syncWarning = page.findChild<QLabel*>("labelWalletStatus");
         auto* notice = page.findChild<QLabel*>("legacyZagrNotice");
-        QVERIFY(regular && legacy && combined && syncWarning && notice);
+        QVERIFY(regular && legacy && syncWarning && notice);
         page.show();
 
         QVERIFY(!page.hasLegacyZagrBalance());
         QVERIFY(regular->isVisible());
         QVERIFY(syncWarning->isVisible());
         QVERIFY(!legacy->isVisible());
-        QVERIFY(!combined->isVisible());
 
         const CAmount one = COIN;
         page.setBalance(one, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -47,7 +45,6 @@ private Q_SLOTS:
         page.setBalance(one, 0, 0, 0, 0, 0, 0, 0, 0);
         QVERIFY(!page.hasLegacyZagrBalance());
         QVERIFY(!legacy->isVisible());
-        QVERIFY(!combined->isVisible());
         QVERIFY(regular->isVisible());
         QVERIFY(syncWarning->isVisible());
     }
