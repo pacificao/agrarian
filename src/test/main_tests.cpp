@@ -290,4 +290,57 @@ BOOST_AUTO_TEST_CASE(hybrid_stake_origin_comes_from_candidate_utxo_view)
     BOOST_CHECK(ResolveBranchStakeCoin(COutPoint(input.hash, 1), &rightParent, right, output) == nullptr);
 }
 
+BOOST_AUTO_TEST_CASE(public_stake_rehearsal_checks_a_real_kernel_at_the_candidate_bound)
+{
+    BOOST_REQUIRE(Params().NetworkID() == CBaseChainParams::MAIN);
+    const uint256 parentHash(123), otherHash(124);
+    const COutPoint input(uint256(456), 0);
+    CBlockIndex origin, parent, other;
+    origin.nHeight = 8880;
+    origin.nTime = 100000;
+    parent.nHeight = other.nHeight = origin.nHeight + 1;
+    parent.pprev = other.pprev = &origin;
+    parent.nTime = other.nTime = origin.nTime + 7200;
+    parent.phashBlock = &parentHash;
+    other.phashBlock = &otherHash;
+    parent.SetStakeModifier(17, true);
+    other.SetStakeModifier(19, true);
+
+    CCoinsView base;
+    CCoinsViewCache view(&base), otherView(&base);
+    view.SetBestBlock(parentHash);
+    otherView.SetBestBlock(otherHash);
+    for (auto* candidateView : {&view, &otherView}) {
+        auto coins = candidateView->ModifyCoins(input.hash);
+        coins->nHeight = origin.nHeight;
+        coins->vout.emplace_back(10000 * COIN, CScript() << OP_TRUE);
+    }
+
+    CMutableTransaction tx;
+    tx.vin.emplace_back(input);
+    tx.vout.emplace_back(0, CScript());
+    tx.vout.emplace_back(10000 * COIN, CScript() << OP_TRUE);
+    CBlock block;
+    block.vtx.emplace_back();
+    block.vtx.emplace_back(tx);
+    block.nBits = 0x1c010000;
+    BOOST_REQUIRE(block.IsProofOfStake());
+
+    uint256 proof, alternateProof;
+    bool found = false;
+    for (unsigned int offset = 1; offset <= 4096; ++offset) {
+        block.nTime = parent.nTime + offset;
+        if (CheckBranchProofOfStake(block, &parent, view, proof)) {
+            found = true;
+            break;
+        }
+    }
+    BOOST_REQUIRE(found);
+    BOOST_CHECK(!CheckBranchProofOfStake(block, &other, view, alternateProof));
+    // A different branch modifier must produce a different kernel hash even
+    // if the alternate attempt also happens to meet its target.
+    CheckBranchProofOfStake(block, &other, otherView, alternateProof);
+    BOOST_CHECK(alternateProof != 0 && alternateProof != proof);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

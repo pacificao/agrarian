@@ -74,3 +74,10 @@ solely because the arithmetic is valid.
 - Before release, repeat the measurements and exercise both proof streams
   at the reviewed targets. Initial equality of scoring units does not imply
   equal economic cost or a fixed stake/work quota after the retargets move.
+
+The wallet-free `test/functional/mainnet_boundary_shadow.py` rehearsal uses
+the actual mainnet snapshot but a **throwaway** build configured to switch
+one block after that snapshot. Run with only loopback available in a network
+namespace. It compares the exact legacy tip and UTXOs, checks both published
+targets, and attempts a real PoW boundary block. It is not a substitute for a
+PoS peer rehearsal or a signed build that schedules the production height.

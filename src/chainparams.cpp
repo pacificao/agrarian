@@ -269,6 +269,11 @@ public:
     CTestNetParams()
     {
         networkID = CBaseChainParams::TESTNET;
+        // The base constructor also runs when deriving testnet and regtest.
+        // Never inherit a mainnet hard-fork schedule into these networks.
+        nSplitDifficultyHeight = 0;
+        nSplitWorkBootstrapBits = 0;
+        bnSplitStakeLimit = 0;
         strNetworkID = "test";
         pchMessageStart[0] = 0x63;
         pchMessageStart[1] = 0xe3;
@@ -448,6 +453,9 @@ public:
     CUnitTestParams()
     {
         networkID = CBaseChainParams::UNITTEST;
+        nSplitDifficultyHeight = 0;
+        nSplitWorkBootstrapBits = 0;
+        bnSplitStakeLimit = 0;
         strNetworkID = "unittest";
         nDefaultPort = 51478;
         vFixedSeeds.clear(); //! Unit test mode doesn't have any fixed seeds.
