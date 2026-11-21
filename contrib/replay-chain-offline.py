@@ -16,7 +16,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
-def replay(daemon, blocks, height, tip, timeout):
+def replay(daemon, blocks, height, tip, timeout, expected_activation=None):
     with tempfile.TemporaryDirectory(prefix="agrarian-offline-") as directory:
         datadir = Path(directory)
         password = secrets.token_hex(32)
@@ -65,6 +65,13 @@ def replay(daemon, blocks, height, tip, timeout):
                 if not info or (info["chain"], info["blocks"], info["bestblockhash"]) != (
                         "main", height, tip):
                     raise RuntimeError(f"Snapshot did not reach the expected mainnet tip: {info}")
+                if expected_activation is not None:
+                    status = info.get("hybrid", {})
+                    if (status.get("activation_height") != expected_activation or
+                            status.get("normalized_fork_choice_at_tip") is not False or
+                            status.get("split_targets_for_next_block") is not (height + 1 == expected_activation)):
+                        raise RuntimeError(f"Unexpected activation state on the replayed prefix: {status}")
+                    print(f"Verified pending mainnet activation at {expected_activation}", file=sys.stderr)
                 # Agrarian's verifychain takes only depth; it uses level 4 internally.
                 if rpc("getconnectioncount") != 0 or not rpc("verifychain", 0):
                     raise RuntimeError("Offline or full chain verification check failed")
@@ -105,10 +112,14 @@ def main():
     parser.add_argument("--height", type=int, required=True)
     parser.add_argument("--tip", required=True)
     parser.add_argument("--timeout", type=int, default=180)
+    parser.add_argument("--expected-activation", type=int, help="verify the expected non-active schedule on a pre-activation prefix")
     parser.add_argument("blocks", type=Path, nargs="+")
     args = parser.parse_args()
     paths = [path.resolve(strict=True) for path in args.blocks]
-    result = replay(args.daemon.resolve(strict=True), paths, args.height, args.tip, args.timeout)
+    if args.expected_activation is not None and args.expected_activation <= args.height:
+        parser.error("expected activation must be after the replayed prefix")
+    result = replay(args.daemon.resolve(strict=True), paths, args.height, args.tip, args.timeout,
+                    args.expected_activation)
     result["inputs"] = [
         {"name": path.name, "sha256": digest(path)} for path in paths
     ]

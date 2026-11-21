@@ -127,6 +127,10 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 10 * 60;
         nTargetSpacing = 10 * 60;
+        // Scheduled in this release candidate only. No runtime activation knob.
+        nSplitDifficultyHeight = 10000;
+        nSplitWorkBootstrapBits = 0x1d216ade;
+        bnSplitStakeLimit.SetCompact(0x1c010000);
         nMaturity = 20;
         nMasternodeCountDrift = 20;
         // Preserve the historical mainnet cap produced by the old overflowing

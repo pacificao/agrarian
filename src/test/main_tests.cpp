@@ -202,6 +202,35 @@ BOOST_AUTO_TEST_CASE(public_hybrid_bootstrap_ignores_legacy_same_proof_history)
     BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&newWork, BlockProof::Work, workLimit, first, workBits), workBits);
 }
 
+BOOST_AUTO_TEST_CASE(release_candidate_schedules_mainnet_only)
+{
+    struct Restore {
+        CBaseChainParams::Network network = Params().NetworkID();
+        ~Restore() { SelectParams(network); }
+    } restore;
+    SelectParams(CBaseChainParams::MAIN);
+    BOOST_CHECK_EQUAL(HybridConsensusHeight(), 10000);
+    BOOST_CHECK_EQUAL(Params().SplitWorkBootstrapBits(), 0x1d216adeu);
+    BOOST_CHECK_EQUAL(Params().SplitStakeLimit().GetCompact(), 0x1c010000u);
+    CBlockIndex parent, work, stake;
+    parent.nHeight = 9998;
+    BOOST_CHECK(!IsSplitDifficultyActive(&parent));
+    ++parent.nHeight;
+    BOOST_REQUIRE(IsSplitDifficultyActive(&parent));
+    work.nBits = GetNextWorkRequired(&parent, BlockProof::Work);
+    stake.nBits = GetNextWorkRequired(&parent, BlockProof::Stake);
+    BOOST_CHECK_EQUAL(work.nBits, 0x1d216adeu);
+    BOOST_CHECK_EQUAL(stake.nBits, 0x1c010000u);
+    BOOST_CHECK(GetHybridBlockScore(work, BlockProof::Work) == GetHybridBlockScore(stake, BlockProof::Stake));
+    for (auto network : {CBaseChainParams::TESTNET, CBaseChainParams::REGTEST, CBaseChainParams::UNITTEST}) {
+        SelectParams(network);
+        BOOST_CHECK_EQUAL(HybridConsensusHeight(), 0);
+        BOOST_CHECK_EQUAL(Params().SplitDifficultyHeight(), 0);
+        BOOST_CHECK_EQUAL(Params().SplitWorkBootstrapBits(), 0u);
+        BOOST_CHECK(Params().SplitStakeLimit() == 0);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(split_difficulty_stake_weight_is_monotonic_without_rewriting_legacy)
 {
     uint256 target;
