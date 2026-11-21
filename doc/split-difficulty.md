@@ -118,6 +118,14 @@ is not a substitute for appropriate PoS bootstrap bounds: evaluate the
 acceptance rate for realistic input sizes and at the PoW sunset before
 setting public activation.
 
+The shared mainnet compact limit is `0x1e0fffff`. At that limit, wide
+arithmetic covers the entire hash range for a single stake input of
+**1.048578 AGR** or larger. At the captured stake reference `0x1c04bc95`,
+the corresponding input is **232,128.606113 AGR**. These are mathematical
+acceptance thresholds for one otherwise eligible input, not measurements
+of active stake or block frequency. Do not use the PoW limit to bootstrap
+a public PoS stream; specify and validate a separate PoS bootstrap bound.
+
 References for review: [Peercoin RFC 0030](https://github.com/peercoin/rfcs/blob/master/text/0030-PoW-ASERT/0030-PoW-ASERT.md)
 separates retargets but assigns PoW and PoS different security roles;
 [Decred requires stakeholder votes](https://docs.decred.org/proof-of-stake/overview/)
