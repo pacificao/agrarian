@@ -762,7 +762,7 @@ bool AppInit2()
     const auto& consensus = Params();
     if (consensus.NetworkID() != CBaseChainParams::REGTEST &&
         (consensus.SplitDifficultyHeight() != 0 || consensus.SplitStakeLimit() != 0 ||
-         consensus.SplitWorkReference() != 0 || consensus.SplitStakeReference() != 0) &&
+         consensus.SplitWorkBootstrapBits() != 0) &&
         HybridConsensusHeight() == 0)
         return InitError(_("Incomplete or invalid public hybrid consensus parameters."));
     if (mapArgs.count("-regtestbranchstakemodifier") &&

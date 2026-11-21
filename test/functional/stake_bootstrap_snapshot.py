@@ -14,7 +14,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from miningcore_staging import miningcore_quark
-from test_hybrid_branch_model import decode_target
+from test_hybrid_branch_model import decode_target, target_work
 from testnet_hybrid import sha256d
 
 
@@ -80,12 +80,16 @@ def collect(snapshot, multihash, expected_tip):
         branch.append(payload)
         next_hash = payload[4:36]
     utxos = {}
+    histories = {"pow": [], "pos": []}
     for payload in list(reversed(branch))[1:]:  # Genesis coinbase is not in the UTXO view.
         offset = 112 if struct.unpack("<i", payload[:4])[0] > 3 else 80
         block = io.BytesIO(payload)
         block.seek(offset)
-        for _ in range(compact(block)):
+        proof = "pow"
+        for position in range(compact(block)):
             txid, inputs, outputs = transaction(block)
+            if position == 1 and inputs and inputs[0] != (genesis_parent, 0xffffffff) and len(outputs) >= 2 and outputs[0] == (0, b""):
+                proof = "pos"
             for h, n in inputs:
                 if h == genesis_parent and n == 0xffffffff:
                     continue  # Coinbase.
@@ -93,7 +97,34 @@ def collect(snapshot, multihash, expected_tip):
             for n, (value, script) in enumerate(outputs):
                 if script[:1] != b"\x6a":  # OP_RETURN is immediately pruned.
                     utxos[txid, n] = value
-    return len(branch) - 1, Counter(utxos.values())
+        timestamp, bits = struct.unpack("<II", payload[68:76])
+        histories[proof].append((timestamp, bits))
+    return len(branch) - 1, Counter(utxos.values()), histories
+
+
+def encode_target(target):
+    exponent = (target.bit_length() + 7) // 8
+    mantissa = target >> (8 * (exponent - 3)) if exponent > 3 else target << (8 * (3 - exponent))
+    if mantissa & 0x800000:
+        mantissa >>= 8
+        exponent += 1
+    return exponent << 24 | mantissa
+
+
+def projected_target(history, limit_bits):
+    """Mirror the independent 24-block retarget for this snapshot only."""
+    limit = decode_target(limit_bits)
+    samples = [(t, min(decode_target(bits), limit)) for t, bits in history[-24:]]
+    if not samples:
+        return limit_bits
+    newest_time, newest = samples[-1]
+    if len(samples) == 1:
+        return encode_target(newest)
+    nominal = (len(samples) - 1) * 1200  # Mainnet's 20 minutes per proof.
+    elapsed = max(nominal // 3, min(nominal * 3, newest_time - samples[0][0]))
+    average = sum(target for _, target in samples) // len(samples)
+    projected = (average * elapsed) // nominal
+    return encode_target(max(max(1, newest // 3), min(min(limit, newest * 3), projected)))
 
 
 def main():
@@ -104,21 +135,27 @@ def main():
     cli.add_argument("--candidate-bits", nargs="+", default=("1e0fffff", "1c04bc95", "1c023000", "1c010000"))
     args = cli.parse_args()
     ref = json.loads(args.replay.read_text(), parse_float=Decimal)
-    height, distribution = collect(args.snapshot, args.multihash, ref["tip"])
+    height, distribution, histories = collect(args.snapshot, args.multihash, ref["tip"])
     amounts = sum(amount * count for amount, count in distribution.items())
     assert height == ref["height"] and sum(distribution.values()) == ref["utxo"]["txouts"]
     assert amounts == Decimal(ref["utxo"]["total_amount"]) * 100_000_000
     max_output = max(distribution)
     hash_range = 1 << 256
     reports = []
+    work_bits = projected_target(histories["pow"], 0x1e0fffff)
     for raw in args.candidate_bits:
         target = decode_target(int(raw, 16))
         saturated = sum(count for n, count in distribution.items() if (n // 100) * target >= hash_range)
         max_hit = min(hash_range, (max_output // 100) * target)
+        stake_bits = projected_target(histories["pos"], int(raw, 16))
         reports.append({"bits": raw, "saturated_outputs": saturated,
+                        "projected_next_pos_bits": f"{stake_bits:08x}",
+                        "projected_pos_reference": target_work(stake_bits),
                         "largest_output_single_hash_probability": str(Decimal(max_hit) / hash_range)})
     print(json.dumps({"height": height, "outputs": sum(distribution.values()),
                       "largest_output_agr": str(Decimal(max_output) / 100_000_000),
+                      "projected_next_pow_bits": f"{work_bits:08x}",
+                      "projected_pow_reference": target_work(work_bits),
                       "scenarios": reports}, indent=2))
 
 

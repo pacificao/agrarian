@@ -143,10 +143,23 @@ The retarget calculation now accepts a distinct stake bound, uses it when
 there are no same-proof samples, and caps easier historical stake targets
 without discarding their timestamps. The public-network bound is still
 unset. Split retarget and normalized fork choice share an activation gate.
-For public networks the profile must include a valid height, canonical PoS
-limit below the PoW limit, and two nonzero immutable scoring references. The
-daemon rejects partial profiles at startup. Both public profiles are unset;
-only isolated regtest currently activates the new rule.
+For public networks the profile must include a valid height, an explicit PoW
+starting target, and a canonical PoS limit below the PoW limit. The PoS limit
+is also its starting target. The immutable branch score references are the
+inverse-target proof values of these two starting targets, so each first
+post-activation proof contributes the same reference score. Reject partial
+profiles at startup. Both public profiles are unset; only isolated regtest
+currently activates the new rule.
+
+For a public profile, the retarget window starts at the activation height.
+The legacy-window projection changed from PoW `1d173c32` at 8,889 to `1c0dd754`
+at 8,891 (about a 430-fold difference in inverse-target score). It is a
+diagnostic, not a proposed starting target or a safe weighting source.
+Neither public proof inherits those legacy samples. One proof can arrive
+later with its own same configured starting target; subsequent retargets
+sample only its post-activation history. Estimate reasonable initial PoW
+and PoS targets from measured participation and test the bootstrap policy
+as a whole before agreeing to public settings.
 
 The offline `stake_bootstrap_snapshot.py` check reconstructs only the ancestry
 of the independently replayed tip and matches the daemon's total amount and

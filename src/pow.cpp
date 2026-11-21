@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <math.h>
 
+static uint256 ProofFromBits(unsigned int bits);
+
 int RegtestHybridScoreHeight()
 {
     if (Params().NetworkID() != CBaseChainParams::REGTEST)
@@ -39,11 +41,19 @@ int PublicHybridConsensusHeight(const CChainParams& params)
     if (params.NetworkID() == CBaseChainParams::REGTEST)
         return 0;
     const int height = params.SplitDifficultyHeight();
+    if (height < params.FIRST_POS_BLOCK() || height > params.LAST_POW_BLOCK())
+        return 0;
     const uint256& stakeLimit = params.SplitStakeLimit();
-    if (height < params.FIRST_POS_BLOCK() || height > params.LAST_POW_BLOCK() ||
-        stakeLimit == 0 || stakeLimit >= params.ProofOfWorkLimit() ||
+    const unsigned int workBits = params.SplitWorkBootstrapBits();
+    uint256 workBootstrap;
+    bool negative, overflow;
+    workBootstrap.SetCompact(workBits, &negative, &overflow);
+    // Limit initial evidence to 64 bits so cumulative scoring is bounded.
+    const uint256 minBootstrap = uint256(1) << 192;
+    if (stakeLimit < minBootstrap || stakeLimit >= params.ProofOfWorkLimit() ||
         uint256().SetCompact(stakeLimit.GetCompact()) != stakeLimit ||
-        !params.SplitWorkReference() || !params.SplitStakeReference())
+        negative || overflow || workBootstrap < minBootstrap || workBootstrap > params.ProofOfWorkLimit() ||
+        workBootstrap.GetCompact() != workBits)
         return 0;
     return height;
 }
@@ -53,8 +63,8 @@ uint512 GetHybridBlockScore(const CBlockIndex& block, BlockProof proof)
     // Staging fixtures, not mainnet calibration. These are GetBlockProof at
     // compact targets 0x1d173c32 (work) and 0x1c04bc95 (stake).
     const bool publicProfile = Params().NetworkID() != CBaseChainParams::REGTEST && HybridConsensusHeight() != 0;
-    const uint64_t workReference = publicProfile ? Params().SplitWorkReference() : 184847936;
-    const uint64_t stakeReference = publicProfile ? Params().SplitStakeReference() : 232128606112;
+    const uint64_t workReference = publicProfile ? ProofFromBits(Params().SplitWorkBootstrapBits()).Get64() : 184847936;
+    const uint64_t stakeReference = publicProfile ? ProofFromBits(Params().SplitStakeLimit().GetCompact()).Get64() : 232128606112;
     uint512 score(GetBlockProof(block));
     score *= uint512(proof == BlockProof::Stake ? workReference : stakeReference);
     // Even INT_MAX blocks of maximum uint256 work and uint64 references
@@ -76,12 +86,23 @@ bool IsSplitDifficultyActive(const CBlockIndex* previous)
 
 unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof proof)
 {
-    const uint256& limit = proof == BlockProof::Stake && Params().NetworkID() != CBaseChainParams::REGTEST
+    const bool regtest = Params().NetworkID() == CBaseChainParams::REGTEST;
+    const uint256& limit = proof == BlockProof::Stake && !regtest
         ? Params().SplitStakeLimit() : Params().ProofOfWorkLimit();
+    if (!regtest && HybridConsensusHeight() > 0) {
+        const auto bits = proof == BlockProof::Work ? Params().SplitWorkBootstrapBits() : limit.GetCompact();
+        return GetNextSplitWorkRequired(previous, proof, limit, HybridConsensusHeight(), bits);
+    }
     return GetNextSplitWorkRequired(previous, proof, limit);
 }
 
 unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof proof, const uint256& limit)
+{
+    return GetNextSplitWorkRequired(previous, proof, limit, 1, limit.GetCompact());
+}
+
+unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof proof, const uint256& limit,
+                                     int firstSampleHeight, unsigned int bootstrapBits)
 {
     assert(limit > 0);
     constexpr unsigned int window = 24;
@@ -93,7 +114,7 @@ unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof pr
     int64_t oldest = 0;
 
     // Proof type comes from validated full blocks, never from the header alone.
-    for (const CBlockIndex* index = previous; index && index->nHeight > 0 && count < window; index = index->pprev) {
+    for (const CBlockIndex* index = previous; index && index->nHeight >= firstSampleHeight && count < window; index = index->pprev) {
         if (index->IsProofOfStake() != stake)
             continue;
         bool negative, overflow;
@@ -115,7 +136,7 @@ unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof pr
 
     // A dormant/missing stream does not inherit the other proof's difficulty.
     if (count == 0)
-        return limit.GetCompact();
+        return bootstrapBits;
     if (count == 1)
         return lastTarget.trim256().GetCompact();
 
@@ -258,10 +279,15 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 
 uint256 GetBlockProof(const CBlockIndex& block)
 {
+    return ProofFromBits(block.nBits);
+}
+
+static uint256 ProofFromBits(unsigned int bits)
+{
     uint256 bnTarget;
     bool fNegative;
     bool fOverflow;
-    bnTarget.SetCompact(block.nBits, &fNegative, &fOverflow);
+    bnTarget.SetCompact(bits, &fNegative, &fOverflow);
     if (fNegative || fOverflow || bnTarget == 0)
         return 0;
     // We need to compute 2**256 / (bnTarget+1), but we can't represent 2**256

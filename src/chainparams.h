@@ -129,8 +129,7 @@ public:
     int LAST_POW_BLOCK() const { return nLastPOWBlock; }
     int SplitDifficultyHeight() const { return nSplitDifficultyHeight; }
     const uint256& SplitStakeLimit() const { return bnSplitStakeLimit; }
-    uint64_t SplitWorkReference() const { return nSplitWorkReference; }
-    uint64_t SplitStakeReference() const { return nSplitStakeReference; }
+    unsigned int SplitWorkBootstrapBits() const { return nSplitWorkBootstrapBits; }
 
     int Zerocoin_StartHeight() const { return nZerocoinStartHeight; }
     int Zerocoin_Block_EnforceSerialRange() const { return nBlockEnforceSerialRange; }
@@ -174,8 +173,7 @@ protected:
     // Zero leaves historical and future blocks on the existing rules.
     int nSplitDifficultyHeight = 0;
     uint256 bnSplitStakeLimit; // Unset on public networks until independently calibrated.
-    uint64_t nSplitWorkReference = 0;
-    uint64_t nSplitStakeReference = 0;
+    unsigned int nSplitWorkBootstrapBits = 0;
 
     int nMasternodeCountDrift;
     int nMaturity;

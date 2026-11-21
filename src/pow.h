@@ -39,6 +39,8 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, BlockProof proof
 /** Candidate per-proof retarget, exposed for deterministic consensus tests. */
 unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof proof);
 unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof proof, const uint256& limit);
+unsigned int GetNextSplitWorkRequired(const CBlockIndex* previous, BlockProof proof, const uint256& limit,
+                                     int firstSampleHeight, unsigned int bootstrapBits);
 
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);

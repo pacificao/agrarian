@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE(public_hybrid_activation_requires_a_complete_profile)
         const Checkpoints::CCheckpointData& Checkpoints() const override { return Params().Checkpoints(); }
         void Height(int h) { nSplitDifficultyHeight = h; }
         void Bound(const uint256& limit) { bnSplitStakeLimit = limit; }
-        void References(uint64_t work, uint64_t stake) { nSplitWorkReference = work; nSplitStakeReference = stake; }
+        void WorkBootstrap(unsigned int bits) { nSplitWorkBootstrapBits = bits; }
     } fixture;
 
     BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
@@ -163,15 +163,43 @@ BOOST_AUTO_TEST_CASE(public_hybrid_activation_requires_a_complete_profile)
     limit.SetCompact(0x1c010000);
     fixture.Bound(limit);
     BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
-    fixture.References(184847936, 232128606112);
+    fixture.WorkBootstrap(0x1c0dd754);
     fixture.Bound(limit + 1); // Rounded down by the wire's compact representation.
     BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
     fixture.Bound(fixture.ProofOfWorkLimit());
     BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
     fixture.Bound(limit);
     BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 10000);
+    fixture.WorkBootstrap(0x1e8fffff); // Negative compact target.
+    BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
+    fixture.WorkBootstrap(0x1c0dd754);
     fixture.Height(20001);
     BOOST_CHECK_EQUAL(PublicHybridConsensusHeight(fixture), 0);
+}
+
+BOOST_AUTO_TEST_CASE(public_hybrid_bootstrap_ignores_legacy_same_proof_history)
+{
+    constexpr int first = 10000;
+    constexpr unsigned int workBits = 0x1c0dd754;
+    constexpr unsigned int stakeBits = 0x1c010000;
+    uint256 workLimit, stakeLimit;
+    workLimit.SetCompact(0x1e0fffff);
+    stakeLimit.SetCompact(stakeBits);
+    CBlockIndex legacyWork, legacyStake, newWork;
+    legacyWork.nHeight = first - 2;
+    legacyWork.nBits = 0x1d173c32;
+    legacyStake.nHeight = first - 1;
+    legacyStake.nBits = 0x1c04bc95;
+    legacyStake.pprev = &legacyWork;
+    legacyStake.SetProofOfStake();
+    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&legacyStake, BlockProof::Work, workLimit, first, workBits), workBits);
+    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&legacyStake, BlockProof::Stake, stakeLimit, first, stakeBits), stakeBits);
+
+    newWork.nHeight = first;
+    newWork.nBits = workBits;
+    newWork.pprev = &legacyStake;
+    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&newWork, BlockProof::Stake, stakeLimit, first, stakeBits), stakeBits);
+    BOOST_CHECK_EQUAL(GetNextSplitWorkRequired(&newWork, BlockProof::Work, workLimit, first, workBits), workBits);
 }
 
 BOOST_AUTO_TEST_CASE(split_difficulty_stake_weight_is_monotonic_without_rewriting_legacy)

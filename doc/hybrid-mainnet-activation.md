@@ -15,7 +15,9 @@ the version number that a node has activated.
    Mainnet's current accumulator staking context requires the Zerocoin v2
    height (`999999999`); verify a rehearsal at 10,000 cannot bypass that
    independent legacy restriction. This does not authorize enabling zAGR.
-2. Calibrate the PoS bound and the fixed fork-score references independently.
+2. Calibrate the PoW starting target and the separate PoS starting bound
+   against their own participation. Derive the fixed fork-score references
+   from those exact targets; do not freeze a raw mixed-era retarget estimate.
    Run both-only and shared participation, low participation, proof return,
    and PoW sunset cases. Do not treat observed wallet balances as participating
    stake. Compare results to the [offline snapshot report](split-difficulty.md).
