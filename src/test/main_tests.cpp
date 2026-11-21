@@ -140,4 +140,28 @@ BOOST_AUTO_TEST_CASE(hybrid_fork_score_reconciles_reference_units_exactly)
     BOOST_CHECK_EQUAL(RegtestHybridScoreHeight(), 0);
 }
 
+BOOST_AUTO_TEST_CASE(hybrid_stake_modifier_is_relative_to_the_candidate_branch)
+{
+    CBlockIndex origin, left, leftLater, right, rightLater, missing;
+    origin.nHeight = 10;
+    origin.nTime = 1000;
+    const auto set = [](CBlockIndex& block, CBlockIndex& parent, unsigned int time, uint64_t value, bool generated) {
+        block.pprev = &parent;
+        block.nHeight = parent.nHeight + 1;
+        block.nTime = time;
+        block.SetStakeModifier(value, generated);
+    };
+    set(left, origin, 1050, 10, true); // not mature yet
+    set(leftLater, left, 1100, 11, true);
+    set(right, origin, 1110, 21, true);
+    set(rightLater, right, 1120, 22, true);
+    set(missing, origin, 1200, 0, false);
+
+    BOOST_CHECK(FindBranchStakeModifier(&origin, &leftLater, 100) == &leftLater);
+    BOOST_CHECK(FindBranchStakeModifier(&origin, &rightLater, 100) == &right);
+    BOOST_CHECK(FindBranchStakeModifier(&left, &rightLater, 10) == nullptr);
+    BOOST_CHECK(FindBranchStakeModifier(&origin, &missing, 100) == nullptr);
+    BOOST_CHECK(FindBranchStakeModifier(&origin, &left, 100) == nullptr);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

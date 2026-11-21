@@ -240,6 +240,21 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64_t& nStakeMod
     return true;
 }
 
+const CBlockIndex* FindBranchStakeModifier(const CBlockIndex* origin, const CBlockIndex* tip, int64_t selectionInterval)
+{
+    if (!origin || !tip || selectionInterval <= 0 || tip->GetAncestor(origin->nHeight) != origin)
+        return nullptr;
+
+    // Match the legacy first-generated-modifier rule, but bound the search
+    // by the candidate's parent instead of peeking down a different chain.
+    for (int height = origin->nHeight; height < tip->nHeight;) {
+        const CBlockIndex* next = tip->GetAncestor(++height);
+        if (next->GeneratedStakeModifier() && next->GetBlockTime() - origin->GetBlockTime() >= selectionInterval)
+            return next;
+    }
+    return nullptr;
+}
+
 // The stake modifier used to hash for a stake kernel is chosen as the stake
 // modifier about a selection interval later than the coin generating the kernel
 bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int& nStakeModifierHeight, int64_t& nStakeModifierTime, bool fPrintProofOfStake)

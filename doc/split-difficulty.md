@@ -92,6 +92,22 @@ stake validation finds its modifier on a competing branch), sustained
 underparticipation, and the PoW sunset still need independent review. Do not
 set public activation by carrying over these fixture values.
 
+### Mainnet stake-context gate
+
+The candidate's parent must determine both the stake input's origin and its
+modifier. `CPivStake::GetIndexFrom()` currently checks the active chain, and
+the legacy modifier scan reads successors from that same chain. Regtest
+returns a fixed modifier at the origin, so a passing regtest reorg does not
+prove agreement under the public network's modifier-selection rules.
+
+`FindBranchStakeModifier` provides and tests parent-relative modifier
+selection. The remaining activation work is to resolve stake origins on the
+candidate branch, make validation and wallet generation use that same context,
+check legacy zAGR lookups separately, and test real public-network modifier
+timing on competing branches. Do not compensate for missing candidate inputs
+by falling back to the active branch. Do not switch `RegtestHybridScoreHeight`
+to read the public activation height until these checks pass.
+
 **Separate arithmetic gate:** the legacy stake kernel multiplies the base
 target by the input weight in 256 bits. The split retarget can reach high
 bootstrap targets, making wraparound relevant: increasing eligible weight
