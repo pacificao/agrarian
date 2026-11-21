@@ -67,9 +67,17 @@ def run(directory, delayed_modifier=False):
         old_bits = legacy.rpc("getblock", history[-1], "true")["bits"]
         template = miner.rpc("getblocktemplate")
         assert template["height"] == ACTIVATION and template["bits"] != old_bits
+        if delayed_modifier:
+            assert "hybrid" not in legacy.rpc("getblockchaininfo")
+            pending = miner.rpc("getblockchaininfo")["hybrid"]
+            assert pending["activation_height"] == ACTIVATION
+            assert pending["split_targets_for_next_block"] and not pending["normalized_fork_choice_at_tip"]
+            assert pending["next_pow_bits"] == template["bits"]
         activation_block = miner.rpc("generate", 1)[0]
         wait_for(lambda: staker.rpc("getbestblockhash", raw=True) == activation_block)
         assert miner.rpc("getblock", activation_block, "true")["bits"] == template["bits"]
+        if delayed_modifier:
+            assert staker.rpc("getblockchaininfo")["hybrid"]["normalized_fork_choice_at_tip"]
         try:
             legacy.rpc("submitblock", raw_block(miner, activation_block), raw=True)
         except subprocess.CalledProcessError:

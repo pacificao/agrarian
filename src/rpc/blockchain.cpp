@@ -9,6 +9,7 @@
 #include "checkpoints.h"
 #include "clientversion.h"
 #include "main.h"
+#include "pow.h"
 #include "rpc/server.h"
 #include "sync.h"
 #include "txdb.h"
@@ -871,6 +872,7 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
             "  \"difficulty\": xxxxxx,     (numeric) the current difficulty\n"
             "  \"verificationprogress\": xxxx, (numeric) estimate of verification progress [0..1]\n"
             "  \"chainwork\": \"xxxx\"     (string) total amount of work in active chain, in hexadecimal\n"
+            "  \"hybrid\": {...},         (object, when configured) activation and next proof targets\n"
             "  \"softforks\": [            (array) status of softforks in progress\n"
             "     {\n"
             "        \"id\": \"xxxx\",        (string) name of softfork\n"
@@ -900,6 +902,19 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
     obj.push_back(Pair("verificationprogress", Checkpoints::GuessVerificationProgress(chainActive.Tip())));
     obj.push_back(Pair("chainwork", chainActive.Tip()->nChainWork.GetHex()));
     CBlockIndex* tip = chainActive.Tip();
+    const int hybridHeight = RegtestHybridScoreHeight();
+    if (hybridHeight > 0) {
+        UniValue hybrid(UniValue::VOBJ);
+        const bool splitNext = IsSplitDifficultyActive(tip);
+        hybrid.push_back(Pair("activation_height", hybridHeight));
+        hybrid.push_back(Pair("split_targets_for_next_block", splitNext));
+        hybrid.push_back(Pair("normalized_fork_choice_at_tip", tip->nHeight >= hybridHeight));
+        if (splitNext) {
+            hybrid.push_back(Pair("next_pow_bits", strprintf("%08x", GetNextWorkRequired(tip, BlockProof::Work))));
+            hybrid.push_back(Pair("next_pos_bits", strprintf("%08x", GetNextWorkRequired(tip, BlockProof::Stake))));
+        }
+        obj.push_back(Pair("hybrid", hybrid));
+    }
     UniValue softforks(UniValue::VARR);
     softforks.push_back(SoftForkDesc("bip65", 5, tip));
     obj.push_back(Pair("softforks",             softforks));

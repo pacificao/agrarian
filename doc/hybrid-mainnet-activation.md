@@ -12,6 +12,9 @@ the version number that a node has activated.
    and after restart and reindex. Also verify accumulator stake handling and
    modifier metadata reconstruction with public-network rules. No live wallet
    keys are necessary for these tests.
+   Mainnet's current accumulator staking context requires the Zerocoin v2
+   height (`999999999`); verify a rehearsal at 10,000 cannot bypass that
+   independent legacy restriction. This does not authorize enabling zAGR.
 2. Calibrate the PoS bound and the fixed fork-score references independently.
    Run both-only and shared participation, low participation, proof return,
    and PoW sunset cases. Do not treat observed wallet balances as participating
