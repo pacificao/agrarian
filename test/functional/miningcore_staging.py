@@ -158,11 +158,19 @@ def run(args, work):
         node, peer = Node(work / "node", network="regtest"), Node(work / "peer", network="regtest")
         resources.callback(node.stop)
         resources.callback(peer.stop)
-        node.start(staking=False)
-        peer.start(staking=False)
+        flags = ("-regtestsplitdifficultyheight=26",) if args.split_difficulty else ()
+        node.start(staking=False, extra=flags)
+        peer.start(staking=False, extra=flags)
         peer.connect(node)
         node.rpc("generate", 25)
         wait_for(lambda: peer.rpc("getblockcount") == 25)
+        template_bits = None
+        if args.split_difficulty:
+            scheduled = node.rpc("getblockchaininfo")["hybrid"]
+            assert scheduled["activation_height"] == 26 and scheduled["split_targets_for_next_block"]
+            assert not scheduled["normalized_fork_choice_at_tip"]
+            template_bits = node.rpc("getblocktemplate")["bits"]
+            assert template_bits == scheduled["next_pow_bits"]
         pool_address = node.rpc("getnewaddress", raw=True)
         miner_address = peer.rpc("getnewaddress", raw=True)
         helper = work / "pow"
@@ -206,6 +214,9 @@ def run(args, work):
         block = mine_one(stratum_port, miner_address, helper, node, 26,
                          args.miningcore.with_name("libmultihash.so"))
         wait_for(lambda: peer.rpc("getbestblockhash", raw=True) == block)
+        if args.split_difficulty:
+            assert node.rpc("getblock", block, "true")["bits"] == template_bits
+            assert peer.rpc("getblockchaininfo")["hybrid"]["normalized_fork_choice_at_tip"]
         wait_for(lambda: sql("SELECT count(*) FROM shares WHERE blockheight = 26") == "1")
         wait_for(lambda: sql("SELECT hash FROM blocks WHERE blockheight = 26") == block)
         print(f"Miningcore accepted and persisted a Stratum share, and both nodes accepted block 26: {block}", flush=True)
@@ -225,10 +236,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("dotnet", "miningcore", "pg-bin", "schema"):
         parser.add_argument("--" + name, required=True, type=Path)
+    parser.add_argument("--split-difficulty", action="store_true", help="mine and pay out the staged regtest activation block")
     args = parser.parse_args()
     if {name for _, name in socket.if_nameindex()} != {"lo"}:
         parser.error("run this test in a loopback-only network namespace")
-    for key in vars(args):
+    for key in ("dotnet", "miningcore", "pg_bin", "schema"):
         setattr(args, key, getattr(args, key).resolve(strict=True))
     digest = hashlib.sha256(args.miningcore.read_bytes()).hexdigest()
     print(f"Staging Miningcore binary SHA256: {digest}", flush=True)
