@@ -118,6 +118,16 @@ OverviewPage::OverviewPage(QWidget* parent) : QWidget(parent),
 {
     nDisplayUnit = 0; // just make sure it's not unitialized
     ui->setupUi(this);
+    ui->frame_ZerocoinBalances->hide();
+    ui->frame_CombinedBalances->hide();
+    ui->labelAGRPercent->hide();
+    // The sync warning must remain visible even when legacy balances are hidden.
+    ui->horizontalLayout_4->insertWidget(2, ui->labelWalletStatus);
+    auto* legacyNotice = new QLabel(tr("Legacy zAGR only. Creating new zAGR is disabled. This is separate from your regular AGR balance."), ui->frame_ZerocoinBalances);
+    legacyNotice->setObjectName("legacyZagrNotice");
+    legacyNotice->setWordWrap(true);
+    ui->verticalLayout_7->insertWidget(1, legacyNotice);
+    ui->label_5z_3->setText(tr("Legacy zAGR balance"));
 
     // Recent transactions
     ui->listTransactions->setItemDelegate(txdelegate);
@@ -144,6 +154,11 @@ void OverviewPage::handleTransactionClicked(const QModelIndex& index)
 OverviewPage::~OverviewPage()
 {
     delete ui;
+}
+
+bool OverviewPage::hasLegacyZagrBalance() const
+{
+    return currentZerocoinBalance > 0 || currentUnconfirmedZerocoinBalance > 0 || currentimmatureZerocoinBalance > 0;
 }
 
 void OverviewPage::getPercentage(CAmount nUnlockedBalance, CAmount nZerocoinBalance, QString& sAGRPercentage, QString& szAGRPercentage)
@@ -239,17 +254,9 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelAGRPercent->setText(sPercentage);
     ui->labelzAGRPercent->setText(szPercentage);
 
-    // Adjust bubble-help according to AutoMint settings
-    QString automintHelp = tr("Current percentage of zAGR.\nIf AutoMint is enabled this percentage will settle around the configured AutoMint percentage (default = 10%).\n");
-    bool fEnableZeromint = GetBoolArg("-enablezeromint", true);
-    int nZeromintPercentage = GetArg("-zeromintpercentage", 10);
-    if (fEnableZeromint) {
-        automintHelp += tr("AutoMint is currently enabled and set to ") + QString::number(nZeromintPercentage) + "%.\n";
-        automintHelp += tr("To disable AutoMint add 'enablezeromint=0' in agrarian.conf.");
-    }
-    else {
-        automintHelp += tr("AutoMint is currently disabled.\nTo enable AutoMint change 'enablezeromint=0' to 'enablezeromint=1' in agrarian.conf");
-    }
+    const bool showLegacy = hasLegacyZagrBalance();
+    ui->frame_ZerocoinBalances->setVisible(showLegacy);
+    ui->frame_CombinedBalances->setVisible(showLegacy);
 
     // Only show most balances if they are non-zero for the sake of simplicity
     QSettings settings;
@@ -290,7 +297,7 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelWatchLocked->setVisible(showWatchOnlyAGRLocked && showWatchOnly);
 
     // zAGR
-    bool showzAGRAvailable = settingShowAllBalances || zerocoinBalance != matureZerocoinBalance;
+    bool showzAGRAvailable = settingShowAllBalances || matureZerocoinBalance > 0;
     bool showzAGRUnconfirmed = settingShowAllBalances || unconfirmedZerocoinBalance != 0;
     bool showzAGRImmature = settingShowAllBalances || immatureZerocoinBalance != 0;
     ui->labelzBalanceMature->setVisible(showzAGRAvailable);
@@ -301,7 +308,7 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& unconfirmed
     ui->labelzBalanceImmatureText->setVisible(showzAGRImmature);
 
     // Percent split
-    bool showPercentages = ! (zerocoinBalance == 0 && nTotalBalance == 0);
+    bool showPercentages = showLegacy && zerocoinBalance > 0;
     ui->labelAGRPercent->setVisible(showPercentages);
     ui->labelzAGRPercent->setVisible(showPercentages);
 

@@ -55,6 +55,7 @@ public:
         functionality.
     */
     void setWalletModel(WalletModel* walletModel);
+    bool hasLegacyZagrBalance() const;
 
     bool handlePaymentRequest(const SendCoinsRecipient& recipient);
 

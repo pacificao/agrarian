@@ -279,9 +279,16 @@ void WalletView::gotoReceiveCoinsPage()
 
 void WalletView::gotoPrivacyPage()
 {
+    if (!hasLegacyZagrBalance())
+        return;
     setCurrentWidget(privacyPage);
     // Refresh UI-elements in case coins were locked/unlocked in CoinControl
     walletModel->emitBalanceChanged();
+}
+
+bool WalletView::hasLegacyZagrBalance() const
+{
+    return walletModel && overviewPage->hasLegacyZagrBalance();
 }
 
 void WalletView::gotoSendCoinsPage(QString addr)

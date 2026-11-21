@@ -15,7 +15,7 @@
 #include "paymentservertests.h"
 #endif
 
-#include <QCoreApplication>
+#include <QApplication>
 #include <QObject>
 #include <QTest>
 
@@ -36,6 +36,9 @@ Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 #endif
 
 extern void noui_connect();
+#ifdef ENABLE_WALLET
+int runOverviewPageTests();
+#endif
 
 // This is all you need to run all the tests
 int main(int argc, char *argv[])
@@ -43,9 +46,15 @@ int main(int argc, char *argv[])
     SetupEnvironment();
     bool fInvalid = false;
 
-    // Don't remove this, it's needed to access
-    // QCoreApplication:: in the tests
-    QCoreApplication app(argc, argv);
+    // Use the minimal platform for headless Linux test runners.
+#ifdef Q_OS_LINUX
+    if (!qEnvironmentVariableIsSet("QT_QPA_PLATFORM") &&
+        !qEnvironmentVariableIsSet("DISPLAY") &&
+        !qEnvironmentVariableIsSet("WAYLAND_DISPLAY")) {
+        qputenv("QT_QPA_PLATFORM", "minimal");
+    }
+#endif
+    QApplication app(argc, argv);
     app.setApplicationName("Agrarian-Qt-test");
 
     SSL_library_init();
@@ -56,6 +65,8 @@ int main(int argc, char *argv[])
 #ifdef ENABLE_WALLET
     PaymentServerTests test2;
     if (QTest::qExec(&test2) != 0)
+        fInvalid = true;
+    if (runOverviewPageTests() != 0)
         fInvalid = true;
 #endif
 

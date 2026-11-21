@@ -149,9 +149,14 @@ void WalletFrame::gotoReceiveCoinsPage()
 
 void WalletFrame::gotoPrivacyPage()
 {
-    QMap<QString, WalletView*>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
-        i.value()->gotoPrivacyPage();
+    if (auto* view = currentWalletView())
+        view->gotoPrivacyPage();
+}
+
+bool WalletFrame::hasLegacyZagrBalance()
+{
+    auto* view = currentWalletView();
+    return view && view->hasLegacyZagrBalance();
 }
 
 void WalletFrame::gotoSendCoinsPage(QString addr)

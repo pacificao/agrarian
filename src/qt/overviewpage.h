@@ -32,6 +32,7 @@ class OverviewPage : public QWidget
 public:
     explicit OverviewPage(QWidget* parent = 0);
     ~OverviewPage();
+    bool hasLegacyZagrBalance() const;
 
     void setClientModel(ClientModel* clientModel);
     void setWalletModel(WalletModel* walletModel);

@@ -219,10 +219,10 @@
                           </font>
                          </property>
                          <property name="toolTip">
-                          <string>Combined Balance (including unconfirmed and immature coins)</string>
+                          <string>AGR and legacy zAGR, including unconfirmed and immature amounts. This is not a spendable total.</string>
                          </property>
                          <property name="text">
-                          <string>Combined Balance</string>
+                          <string>AGR + legacy zAGR</string>
                          </property>
                         </widget>
                        </item>
@@ -650,7 +650,7 @@
                        <item row="4" column="0">
                         <widget class="QLabel" name="labelLockedBalanceText">
                          <property name="toolTip">
-                          <string>Locked AGR or Masternode collaterals. These are excluded from zAGR minting.</string>
+                          <string>Locked AGR, including any masternode collateral. This amount is not available to send.</string>
                          </property>
                          <property name="text">
                           <string>Locked:</string>
@@ -669,7 +669,7 @@
                           <cursorShape>IBeamCursor</cursorShape>
                          </property>
                          <property name="toolTip">
-                          <string>Locked AGR or Masternode collaterals. These are excluded from zAGR minting.</string>
+                          <string>Locked AGR, including any masternode collateral. This amount is not available to send.</string>
                          </property>
                          <property name="text">
                           <string notr="true">0.000 000 00 AGR</string>
@@ -878,11 +878,10 @@
                        <item row="1" column="0">
                         <widget class="QLabel" name="labelzBalanceMatureText">
                          <property name="toolTip">
-                          <string>Mature: more than 20 confirmation and more than 1 mint of the same denomination after it was minted.
-These zAGR are spendable.</string>
+                          <string>Mature legacy zAGR recorded in this wallet. Spending depends on network rules.</string>
                          </property>
                          <property name="text">
-                          <string>Available:</string>
+                          <string>Mature:</string>
                          </property>
                         </widget>
                        </item>
@@ -895,8 +894,7 @@ These zAGR are spendable.</string>
                           </font>
                          </property>
                          <property name="toolTip">
-                          <string>Mature: more than 20 confirmation and more than 1 mint of the same denomination after it was minted.
-These zAGR are spendable.</string>
+                          <string>Mature legacy zAGR recorded in this wallet. Spending depends on network rules.</string>
                          </property>
                          <property name="text">
                           <string notr="true">0.000 000 00 AGR</string>

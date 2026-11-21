@@ -106,7 +106,6 @@ private slots:
     void on_pasteButton_clicked();
     void minimizeDenomsSection(bool fMinimize);
     void updateDisplayUnit();
-    void updateAutomintStatus();
     void updateSPORK16Status();
 };
 

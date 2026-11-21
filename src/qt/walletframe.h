@@ -34,6 +34,7 @@ public:
 
     bool addWallet(const QString& name, WalletModel* walletModel);
     bool setCurrentWallet(const QString& name);
+    bool hasLegacyZagrBalance();
     bool removeWallet(const QString& name);
     void removeAllWallets();
 
