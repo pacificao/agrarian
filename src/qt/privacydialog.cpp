@@ -43,11 +43,11 @@ PrivacyDialog::PrivacyDialog(QWidget* parent) : QDialog(parent, Qt::WindowSystem
     //ui->labelCoinControlAmount->setText (tr("Coins automatically selected"));         // disable MINT
     ui->labelzAGRSyncStatus->setText("(" + tr("out of sync") + ")");
 
-    // Sunken frame for minting messages
+    // Sunken frame for legacy balance messages
     ui->TEMintStatus->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
     ui->TEMintStatus->setLineWidth (2);
     ui->TEMintStatus->setMidLineWidth (2);
-    ui->TEMintStatus->setPlainText(tr("Mint Status: Okay"));
+    ui->TEMintStatus->setPlainText(tr("Creating new zAGR is disabled. Legacy zAGR spending is not private."));
 
     // Coin Control signals
     /*                                                                            [disable MINT and coinControl]
@@ -345,34 +345,12 @@ void PrivacyDialog::sendzAGR()
         return;
     }
 
-    // Convert change to zAGR
-    bool fMintChange = false;// ui->checkBoxMintChange->isChecked();
+    // Legacy spending never creates new zAGR as change.
+    const bool fMintChange = false;
 
     // Persist minimize change setting
     fMinimizeChange = ui->checkBoxMinimizeChange->isChecked();
     settings.setValue("fMinimizeChange", fMinimizeChange);
-
-    // Warn for additional fees if amount is not an integer and change as zAGR is requested
-    bool fWholeNumber = floor(dAmount) == dAmount;
-    double dzFee = 0.0;
-
-    if(!fWholeNumber)
-        dzFee = 1.0 - (dAmount - floor(dAmount));
-
-    if(!fWholeNumber && fMintChange){
-        QString strFeeWarning = "You've entered an amount with fractional digits and want the change to be converted to Zerocoin.<br /><br /><b>";
-        strFeeWarning += QString::number(dzFee, 'f', 8) + " AGR </b>will be added to the standard transaction fees!<br />";
-        QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm additional Fees"),
-            strFeeWarning,
-            QMessageBox::Yes | QMessageBox::Cancel,
-            QMessageBox::Cancel);
-
-        if (retval != QMessageBox::Yes) {
-            // Sending canceled
-            ui->zAGRpayAmount->setFocus();
-            return;
-        }
-    }
 
     // Spend confirmation message box
 
@@ -389,7 +367,7 @@ void PrivacyDialog::sendzAGR()
 
     if(ui->payTo->text().isEmpty()){
         // No address provided => send to local address
-        strAddress = tr(" to a newly generated (unused and therefore anonymous) local address <br />");
+        strAddress = tr(" to a new receiving address in your own wallet <br />");
     }
 
     strQuestionString += strAmount + strAddress;

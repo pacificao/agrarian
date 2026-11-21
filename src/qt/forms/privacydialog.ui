@@ -821,22 +821,6 @@ zAGR are mature when they have more than 20 confirmations AND more than 2 mints 
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QCheckBox" name="checkBoxMintChange">
-                            <property name="sizePolicy">
-                             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                              <horstretch>0</horstretch>
-                              <verstretch>0</verstretch>
-                             </sizepolicy>
-                            </property>
-                            <property name="layoutDirection">
-                             <enum>Qt::LeftToRight</enum>
-                            </property>
-                            <property name="text">
-                             <string>Convert Change to Zerocoin (might cost additional fees)</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
                            <widget class="QCheckBox" name="checkBoxMinimizeChange">
                             <property name="toolTip">
                              <string>If checked, the wallet tries to minimize the returning change instead of minimizing the number of spent denominations.</string>
