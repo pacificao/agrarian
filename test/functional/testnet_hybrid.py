@@ -34,7 +34,7 @@ def wait_for(fn, timeout=90):
 
 
 class Node:
-    def __init__(self, directory, daemon=None, network="testnet"):
+    def __init__(self, directory, daemon=None, network="testnet", cli=None):
         directory.mkdir()
         with socket.socket() as p2p, socket.socket() as rpc:
             p2p.bind(("127.0.0.1", 0))
@@ -46,6 +46,7 @@ class Node:
         self.chain = "test" if network == "testnet" else network
         self.rpc_port = rpc_port
         self.daemon = daemon or [str(ROOT / "src/agrariand")]
+        self.cli = str(cli or ROOT / "src/agrarian-cli")
         self.legacy = daemon is not None
         self.conf = directory / "agrarian.conf"
         self.rpc_user = "isolated-test"
@@ -74,7 +75,7 @@ class Node:
 
     def rpc(self, method, *args, raw=False, timeout=15):
         completed = subprocess.run([
-            str(ROOT / "src/agrarian-cli"), *self.common, method, *map(str, args),
+            self.cli, *self.common, method, *map(str, args),
         ], capture_output=True, text=True, timeout=timeout)
         if completed.returncode:
             raise subprocess.CalledProcessError(completed.returncode, method, stderr=completed.stderr)

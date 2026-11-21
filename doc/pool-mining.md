@@ -37,6 +37,22 @@ owns the payout address, and verify that configured CPU thread counts and
 resource usage match. Do not override operating system antivirus or execution
 policy. A missing or blocked miner must fail with a visible explanation.
 
+The integration test can drive the real packaged CPU helper:
+
+```sh
+python3 -B test/functional/miningcore_staging.py \
+  --dotnet /path/to/dotnet --miningcore /path/to/Miningcore.dll \
+  --pg-bin /path/to/postgresql/bin --schema /path/to/createdb.sql \
+  --core-bin /path/to/staging/agrarian/bin \
+  --cpuminer /path/to/staging/agrarian/bin/miners/cpuminer --split-difficulty
+```
+
+Run it as an unprivileged user in a network namespace with only loopback.
+It generates disposable wallet data, verifies the worker's accepted share
+and block, stops the worker, and checks that the separate wallet receives
+test AGR. It does not test the Windows installer or the wallet window's
+start/stop buttons.
+
 ## GPU target: 2.1.3
 
 GPU mining is intentionally not included in the CPU preview. Qualify a

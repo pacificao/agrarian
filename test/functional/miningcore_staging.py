@@ -155,7 +155,11 @@ def run(args, work):
         wait_for(ready, timeout=30)
         subprocess.run([*args_psql, "-f", str(args.schema)], check=True, capture_output=True)
 
-        node, peer = Node(work / "node", network="regtest"), Node(work / "peer", network="regtest")
+        binaries = {}
+        if args.core_bin:
+            binaries = {"daemon": [str(args.core_bin / "agrariand")], "cli": args.core_bin / "agrarian-cli"}
+        node = Node(work / "node", network="regtest", **binaries)
+        peer = Node(work / "peer", network="regtest", **binaries)
         resources.callback(node.stop)
         resources.callback(peer.stop)
         flags = ("-regtestsplitdifficultyheight=26",) if args.split_difficulty else ()
@@ -173,8 +177,9 @@ def run(args, work):
             assert template_bits == scheduled["next_pow_bits"]
         pool_address = node.rpc("getnewaddress", raw=True)
         miner_address = peer.rpc("getnewaddress", raw=True)
-        helper = work / "pow"
-        build_solver(helper)
+        if not args.cpuminer:
+            helper = work / "pow"
+            build_solver(helper)
         config = {
             "clusterName": "agrarian-isolated-staging",
             "logging": {"level": "info", "enableConsoleLog": True,
@@ -191,7 +196,8 @@ def run(args, work):
                 "rewardRecipients": [],
                 "blockRefreshInterval": 500, "jobRebroadcastTimeout": 180, "clientConnectionTimeout": 240,
                 "banning": {"enabled": False, "checkThreshold": 50, "invalidPercent": 50, "time": 600},
-                "ports": {str(stratum_port): {"listenAddress": "127.0.0.1", "difficulty": 0.001}},
+                "ports": {str(stratum_port): {"listenAddress": "127.0.0.1",
+                                            "difficulty": 0.0001 if args.cpuminer else 0.001}},
                 "daemons": [{"host": "127.0.0.1", "port": node.rpc_port, "user": node.rpc_user,
                              "password": node.rpc_password, "minimumConfirmations": 22}],
                 "paymentProcessing": {"enabled": True, "minimumPayment": 0.1, "payoutScheme": "PPLNS",
@@ -211,21 +217,47 @@ def run(args, work):
                 return False
 
         wait_for(stratum_ready, timeout=60)
-        block = mine_one(stratum_port, miner_address, helper, node, 26,
-                         args.miningcore.with_name("libmultihash.so"))
-        wait_for(lambda: peer.rpc("getbestblockhash", raw=True) == block)
+        if args.cpuminer:
+            # The real desktop worker is deliberately scoped to a single
+            # local Stratum endpoint in a network namespace with no egress.
+            worker = launch([str(args.cpuminer), "-a", "quark", "-o",
+                             f"stratum+tcp://127.0.0.1:{stratum_port}",
+                             "-u", miner_address + ".agrarian-qt", "-p", "x",
+                             "-t", "1", "-b", "0"], "cpuminer.log")
+            try:
+                def found_block():
+                    assert worker.poll() is None, "Desktop CPU miner stopped before finding a block"
+                    log_tail = (work / "miningcore.log").read_text(errors="replace").splitlines()[-40:]
+                    failures = [line for line in log_tail if "submission failed with:" in line]
+                    assert not failures, failures[-1] if failures else ""
+                    return node.rpc("getblockcount") >= 26
+
+                wait_for(found_block, timeout=600)
+            finally:
+                stop(worker)
+            assert worker.poll() is not None, "Desktop CPU miner did not stop"
+            block = node.rpc("getblockhash", 26, raw=True)
+            wait_for(lambda: int(sql(
+                "SELECT count(*) FROM shares WHERE blockheight = 26 AND worker = 'agrarian-qt'"
+            )) > 0)
+        else:
+            block = mine_one(stratum_port, miner_address, helper, node, 26,
+                             args.miningcore.with_name("libmultihash.so"))
+            wait_for(lambda: sql("SELECT count(*) FROM shares WHERE blockheight = 26") == "1")
+        wait_for(lambda: peer.rpc("getblockcount") >= 26)
+        assert peer.rpc("getblockhash", 26, raw=True) == block
         if args.split_difficulty:
             assert node.rpc("getblock", block, "true")["bits"] == template_bits
             assert peer.rpc("getblockchaininfo")["hybrid"]["normalized_fork_choice_at_tip"]
-        wait_for(lambda: sql("SELECT count(*) FROM shares WHERE blockheight = 26") == "1")
         wait_for(lambda: sql("SELECT hash FROM blocks WHERE blockheight = 26") == block)
         print(f"Miningcore accepted and persisted a Stratum share, and both nodes accepted block 26: {block}", flush=True)
+        tip = node.rpc("getblockcount")
         node.rpc("generate", 25)
-        wait_for(lambda: peer.rpc("getblockcount") == 51)
+        wait_for(lambda: peer.rpc("getblockcount") == tip + 25)
         wait_for(lambda: sql("SELECT status FROM blocks WHERE blockheight = 26") == "confirmed", timeout=100)
         txid = wait_for(lambda: sql("SELECT transactionconfirmationdata FROM payments LIMIT 1"), timeout=90)
         node.rpc("generate", 1)
-        wait_for(lambda: peer.rpc("getblockcount") == 52)
+        wait_for(lambda: peer.rpc("getblockcount") == tip + 26)
         assert peer.rpc("gettransaction", txid)["confirmations"] >= 1
         amount = peer.rpc("getreceivedbyaddress", miner_address, 1)
         assert amount > 0
@@ -237,11 +269,16 @@ def main():
     for name in ("dotnet", "miningcore", "pg-bin", "schema"):
         parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--split-difficulty", action="store_true", help="mine and pay out the staged regtest activation block")
+    parser.add_argument("--cpuminer", type=Path, help="use the bundled desktop CPU miner instead of the test solver")
+    parser.add_argument("--core-bin", type=Path, help="directory containing the daemon and CLI to test")
     args = parser.parse_args()
     if {name for _, name in socket.if_nameindex()} != {"lo"}:
         parser.error("run this test in a loopback-only network namespace")
     for key in ("dotnet", "miningcore", "pg_bin", "schema"):
         setattr(args, key, getattr(args, key).resolve(strict=True))
+    for key in ("cpuminer", "core_bin"):
+        if getattr(args, key):
+            setattr(args, key, getattr(args, key).resolve(strict=True))
     digest = hashlib.sha256(args.miningcore.read_bytes()).hexdigest()
     print(f"Staging Miningcore binary SHA256: {digest}", flush=True)
     with tempfile.TemporaryDirectory(prefix="agrarian-miningcore-") as directory:
@@ -249,7 +286,7 @@ def main():
         try:
             run(args, work)
         except Exception:
-            for name in ("postgres.log", "miningcore.log", "node/regtest/debug.log", "peer/regtest/debug.log"):
+            for name in ("postgres.log", "miningcore.log", "cpuminer.log", "node/regtest/debug.log", "peer/regtest/debug.log"):
                 log = work / name
                 if log.exists():
                     print(f"--- {name} ---")
