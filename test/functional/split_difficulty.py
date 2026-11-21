@@ -34,6 +34,7 @@ def run(directory, delayed_modifier=False):
     staker = Node(directory / "staker", network="regtest")
     legacy = Node(directory / "legacy-rules", network="regtest")
     rival = Node(directory / "rival", network="regtest")
+    detached = Node(directory / "detached", network="regtest") if delayed_modifier else None
     try:
         # The wallet's MintableCoins readiness check still enforces the
         # one-hour age, even though the underlying regtest kernel skips it.
@@ -190,6 +191,29 @@ def run(directory, delayed_modifier=False):
         assert rival.rpc("getbestblockhash", raw=True) == winner
         print("Equal-score forks converged regardless of receipt order and retained their ranking after restart.", flush=True)
         if delayed_modifier:
+            # Fork before the staker was funded. The stronger PoW branch
+            # never sees that funding output in its active UTXO view. Store
+            # the other history first, then switch onto it and check its stake.
+            detached.start(staking=False, extra=rival_flags)
+            for block in first:
+                submit_known_block(detached, miner, block)
+            other = [miner.rpc("getblockhash", height, raw=True)
+                     for height in range(len(first) + 1, pow_tip_height + 3)]
+            other_score = branch_score(miner, other)
+            alternate = []
+            for _ in range(4):
+                alternate.extend(detached.rpc("generate", 30, timeout=90))
+                if branch_score(detached, alternate) > other_score:
+                    break
+            assert branch_score(detached, alternate) > other_score
+            for block in other:
+                submit_known_block(detached, miner, block)
+            assert detached.rpc("getbestblockhash", raw=True) == alternate[-1]
+            detached.rpc("invalidateblock", alternate[0])
+            assert detached.rpc("getbestblockhash", raw=True) == other[-1]
+            assert detached.rpc("getblock", other[-1], "true")["proof"] == "pos"
+            print("Observer connected stake funded only on the competing branch, without a transaction index.", flush=True)
+
             # Reindex the disposable observer, not a production wallet/node.
             rival.stop()
             rival.start(staking=False, extra=rival_flags + ("-reindex",))
@@ -197,14 +221,15 @@ def run(directory, delayed_modifier=False):
             assert rival.rpc("verifychain", 0)
             print("Delayed-modifier observer reproduced the same tip after reindex with no transaction index.", flush=True)
     except Exception:
-        for node in (rival, staker, miner, legacy):
-            if node.log.is_file():
+        for node in (rival, detached, staker, miner, legacy):
+            if node and node.log.is_file():
                 print(f"=== {node.log} ===")
                 print("\n".join(node.log.read_text(errors="replace").splitlines()[-30:]))
         raise
     finally:
-        for node in (rival, staker, miner, legacy):
-            node.stop()
+        for node in (rival, detached, staker, miner, legacy):
+            if node:
+                node.stop()
 
 
 if __name__ == "__main__":
