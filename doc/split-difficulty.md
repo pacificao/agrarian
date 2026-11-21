@@ -139,10 +139,10 @@ acceptance thresholds for one otherwise eligible input, not measurements
 of active stake or block frequency. Do not use the PoW limit to bootstrap
 a public PoS stream; specify and validate a separate PoS bootstrap bound.
 
-The retarget calculation now accepts a distinct stake bound, uses it when
-there are no same-proof samples, and caps easier historical stake targets
-without discarding their timestamps. The public-network bound is still
-unset. Split retarget and normalized fork choice share an activation gate.
+The retarget calculation accepts a distinct stake bound. The historical
+sample mode retained for regtest caps easier targets without dropping their
+timestamps. The public-network bound is still unset. Split retarget
+and normalized fork choice share an activation gate.
 For public networks the profile must include a valid height, an explicit PoW
 starting target, and a canonical PoS limit below the PoW limit. The PoS limit
 is also its starting target. The immutable branch score references are the

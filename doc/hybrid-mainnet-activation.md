@@ -55,3 +55,22 @@ the version number that a node has activated.
    data. After activation, do not revert just one validator to legacy rules.
    If agreement breaks, suspend affected wallet writes and pool submissions,
    retain all state and logs, and coordinate recovery across the network.
+
+## Initial calibration rehearsal
+
+For the next **isolated** rehearsal, try PoW compact target `1d216ade` and PoS
+compact target `1c010000`. Do not commit either as a public chain parameter
+solely because the arithmetic is valid.
+
+- PoW: 25 recent aggregate pool samples had a median of about 107 kH/s.
+  This target represents approximately 128.5 million expected hashes per
+  block (20 minutes at the measured rate). The same rate applied to the
+  legacy-window projection at height 8,891 would imply about 8.6 days.
+  A single pool observation does not establish total network hashrate.
+- PoS: the 8,891 snapshot had no saturated outputs at `1c010000`. Verify
+  actual eligibility, time behavior, very low effective stake, participation
+  return, and long-running fork selection. Offline output-value data does
+  not establish who is online or staking.
+- Before release, repeat the measurements and exercise both proof streams
+  at the reviewed targets. Initial equality of scoring units does not imply
+  equal economic cost or a fixed stake/work quota after the retargets move.
