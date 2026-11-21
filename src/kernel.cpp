@@ -350,6 +350,16 @@ const CBlockIndex* ResolveBranchStakeCoin(const COutPoint& outpoint, const CBloc
     return origin;
 }
 
+static const CBlockIndex* SelectHybridStakeModifier(const CBlockIndex* origin, const CBlockIndex* parent)
+{
+    if (!origin || !parent || origin->nHeight < Params().FIRST_POS_BLOCK() ||
+        parent->GetAncestor(origin->nHeight) != origin)
+        return nullptr;
+    if (Params().NetworkID() == CBaseChainParams::REGTEST && !GetBoolArg("-regtestbranchstakemodifier", false))
+        return origin;
+    return FindBranchStakeModifier(origin, parent, GetStakeModifierSelectionInterval());
+}
+
 bool CheckBranchProofOfStake(const CBlock& block, const CBlockIndex* parent,
                             const CCoinsViewCache& view, uint256& proofHash)
 {
@@ -366,8 +376,7 @@ bool CheckBranchProofOfStake(const CBlock& block, const CBlockIndex* parent,
                       TransactionSignatureChecker(&coinstake, 0)))
         return false;
 
-    const CBlockIndex* modifier = Params().NetworkID() == CBaseChainParams::REGTEST ? origin :
-        FindBranchStakeModifier(origin, parent, GetStakeModifierSelectionInterval());
+    const CBlockIndex* modifier = SelectHybridStakeModifier(origin, parent);
     if (!modifier)
         return false;
 
@@ -412,8 +421,14 @@ bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockF
 
     // Grab stake modifier
     uint64_t nStakeModifier = 0;
-    if (!stakeInput->GetModifier(nStakeModifier))
+    if (wideTarget && !stakeInput->IsZAGR()) {
+        const CBlockIndex* modifier = SelectHybridStakeModifier(stakeInput->GetIndexFrom(), previous);
+        if (!modifier)
+            return false; // This stake input does not yet have a mature modifier.
+        nStakeModifier = modifier->nStakeModifier;
+    } else if (!stakeInput->GetModifier(nStakeModifier)) {
         return error("Stake() : failed to get kernel stake modifier");
+    }
 
     bool fSuccess = false;
     unsigned int nTryTime = 0;

@@ -145,6 +145,18 @@ without discarding their timestamps. The public-network bound is still
 unset. Split retarget and normalized fork choice share the regtest-only
 gate; setting a height on its own cannot enable a partial public rule.
 
+The offline `stake_bootstrap_snapshot.py` check reconstructs only the ancestry
+of the independently replayed tip and matches the daemon's total amount and
+output count. At height 8,889 it found 6,718 outputs, largest 10,504.9834 AGR.
+The shared PoW limit saturated 6,519 outputs; `0x1c04bc95` saturated none, but
+gave the largest output about a 4.53% hit probability per unique timestamp.
+Use `0x1c010000` as the next **calibration fixture**: no saturated outputs and
+about 0.96% for the largest output in this snapshot. It is not a consensus
+recommendation based on wallet holdings. Under an idealized one unique hash
+per second per eligible coin, that harder bound would take roughly 30 hours
+with only 10 effective AGR staking; eligibility, operator participation,
+online time, distribution changes, and public liveness must still be measured.
+
 References for review: [Peercoin RFC 0030](https://github.com/peercoin/rfcs/blob/master/text/0030-PoW-ASERT/0030-PoW-ASERT.md)
 separates retargets but assigns PoW and PoS different security roles;
 [Decred requires stakeholder votes](https://docs.decred.org/proof-of-stake/overview/)
@@ -162,6 +174,7 @@ After building the native daemon, CLI, and unit tests:
 src/test/test_agrarian --run_test=main_tests
 python3 -B test/functional/test_hybrid_branch_model.py -v
 python3 -B test/functional/split_difficulty.py
+python3 -B test/functional/split_difficulty.py --delayed-modifier
 ```
 
 The peer fixture uses fresh disposable regtest wallets, old funding
@@ -170,6 +183,8 @@ wallet is necessary. It covers a peer reorganization after a shared
 mixed-proof prefix, opposite-proof tails against the offline score model, and
 equal-score siblings submitted in different order across two nodes, including
 stopping and reopening a node and invalidating/reconsidering the winner.
+The delayed-modifier run enables public-style modifier selection on disposable
+regtest only, and exercises restart/reindex on an observer without `txindex`.
 
 ### Before changing mainnet
 
@@ -189,6 +204,9 @@ stopping and reopening a node and invalidating/reconsidering the winner.
 4. Set the public activation only in a separately reviewed release commit.
    Agree on the boundary with pool and public node operators and make sure
    it is reachable without assuming the stalled chain will mine promptly.
+   Block 10,000 is a tentative coordination target, not an enabled value.
+   If readiness is not confirmed by the release cutoff, select a later
+   height in source before publishing; do not toggle daemon flags individually.
    Publish signed checksum manifests and tested wallet packages ahead of
    activation. Keep wallet-serving daemons at `-staking=0`.
 5. Upgrade daemons one at a time, verify wallet ownership and failover, and

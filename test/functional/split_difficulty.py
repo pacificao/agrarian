@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Exercise the opt-in split-difficulty activation with actual local peers."""
+import argparse
 import subprocess
 import tempfile
 import time
@@ -26,7 +27,9 @@ def submit_known_block(receiver, source, block_hash):
     assert raw_block(receiver, block_hash) == raw
 
 
-def run(directory):
+def run(directory, delayed_modifier=False):
+    enabled = ENABLED + (("-regtestbranchstakemodifier",) if delayed_modifier else ())
+    rival_flags = enabled + ("-txindex=0",)
     miner = Node(directory / "miner", network="regtest")
     staker = Node(directory / "staker", network="regtest")
     legacy = Node(directory / "legacy-rules", network="regtest")
@@ -35,20 +38,26 @@ def run(directory):
         # The wallet's MintableCoins readiness check still enforces the
         # one-hour age, even though the underlying regtest kernel skips it.
         fixture_clock = int(time.time()) - 7200
-        miner.start(staking=False, extra=ENABLED)
-        staker.start(staking=False, extra=ENABLED)
+        miner.start(staking=False, extra=enabled)
+        staker.start(staking=False, extra=enabled)
         legacy.start(staking=False, extra=("-par=1",))
         for node in (miner, staker, legacy):
             node.rpc("setmocktime", fixture_clock)
-        staker.connect(miner)
         stake_addresses = [staker.rpc("getnewaddress", raw=True) for _ in range(2)]
         first = miner.rpc("generate", 30, timeout=90)
         for address in stake_addresses:
             # Avoid making the fixture depend on the legacy kernel's wrapped
             # multiplication at regtest's very large initial stake target.
             miner.rpc("sendtoaddress", address, 1, raw=True)
-        history = first + miner.rpc("generate", 30, timeout=90)
+        funding = miner.rpc("generate", 1, timeout=90)
+        if delayed_modifier:
+            # Mature the funding coin's future modifier before creating any
+            # peer connections. Socket timeouts also follow mocktime.
+            for node in (miner, staker, legacy):
+                node.rpc("setmocktime", fixture_clock + 3600)
+        history = first + funding + miner.rpc("generate", 29, timeout=90)
         assert len(history) == ACTIVATION - 1
+        staker.connect(miner)
         wait_for(lambda: staker.rpc("getbestblockhash", raw=True) == history[-1])
         for block in history:
             assert not legacy.rpc("submitblock", raw_block(miner, block), raw=True)
@@ -81,7 +90,7 @@ def run(directory):
         stake_payment = miner.rpc("sendtoaddress", payment_address, 2, raw=True)
         payment_raw = miner.rpc("getrawtransaction", stake_payment, raw=True)
         staker.stop()
-        staker.start(staking=True, extra=ENABLED)
+        staker.start(staking=True, extra=enabled)
         assert staker.rpc("getstakingstatus")["mintablecoins"], staker.rpc("getstakingstatus")
         staker.rpc("sendrawtransaction", payment_raw, raw=True)
         staker.connect(miner)
@@ -105,7 +114,7 @@ def run(directory):
         # Advance the miner's fixture clock only after the peer is gone;
         # changing it while connected would also jump socket timeout clocks.
         miner.rpc("setmocktime", int(time.time()))
-        staker.start(staking=False, extra=ENABLED)
+        staker.start(staking=False, extra=enabled)
         assert staker.rpc("getbestblockhash", raw=True) == following_work
         assert not staker.rpc("getpeerinfo")
         short_tip = staker.rpc("generate", 1)[0]
@@ -123,7 +132,7 @@ def run(directory):
         # Make opposite-proof branches off the same pre-stake ancestor.
         # Follow the real proof bits, not an assumed relationship between the
         # test network's easy targets and the fixed calibration fixtures.
-        rival.start(staking=False, extra=ENABLED)
+        rival.start(staking=False, extra=rival_flags)
         branch = miner.rpc("getblockhash", pow_tip_height, raw=True)
         for height in range(1, pow_tip_height + 1):
             block = miner.rpc("getblockhash", height, raw=True)
@@ -160,7 +169,7 @@ def run(directory):
         # nodes opposite arrival order without having to forge a block.
         tie_peer = legacy  # disposable data, containing the legacy prefix only
         tie_peer.stop()
-        tie_peer.start(staking=False, extra=ENABLED)
+        tie_peer.start(staking=False, extra=enabled)
         for height in range(ACTIVATION, pow_tip_height + 1):
             block = miner.rpc("getblockhash", height, raw=True)
             assert not tie_peer.rpc("submitblock", raw_block(miner, block), raw=True)
@@ -173,13 +182,20 @@ def run(directory):
         for node in (rival, tie_peer):
             assert node.rpc("getbestblockhash", raw=True) == winner
         rival.stop()
-        rival.start(staking=False, extra=ENABLED)
+        rival.start(staking=False, extra=rival_flags)
         assert rival.rpc("getbestblockhash", raw=True) == winner
         rival.rpc("invalidateblock", winner)
         assert rival.rpc("getbestblockhash", raw=True) == loser
         rival.rpc("reconsiderblock", winner)
         assert rival.rpc("getbestblockhash", raw=True) == winner
         print("Equal-score forks converged regardless of receipt order and retained their ranking after restart.", flush=True)
+        if delayed_modifier:
+            # Reindex the disposable observer, not a production wallet/node.
+            rival.stop()
+            rival.start(staking=False, extra=rival_flags + ("-reindex",))
+            wait_for(lambda: rival.rpc("getbestblockhash", raw=True) == winner, timeout=120)
+            assert rival.rpc("verifychain", 0)
+            print("Delayed-modifier observer reproduced the same tip after reindex with no transaction index.", flush=True)
     except Exception:
         for node in (rival, staker, miner, legacy):
             if node.log.is_file():
@@ -192,5 +208,8 @@ def run(directory):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--delayed-modifier", action="store_true")
+    args = parser.parse_args()
     with tempfile.TemporaryDirectory(prefix="agrarian-split-difficulty-") as work:
-        run(Path(work))
+        run(Path(work), args.delayed_modifier)

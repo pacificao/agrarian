@@ -581,6 +581,7 @@ std::string HelpMessage(HelpMessageMode mode)
     if (GetBoolArg("-help-debug", false)) {
         strUsage += HelpMessageOpt("-blockversion=<n>", "Override block version to test forking scenarios");
         strUsage += HelpMessageOpt("-regtestsplitdifficultyheight=<n>", "Activate independent PoW/PoS targets on an isolated regtest chain (default: disabled)");
+        strUsage += HelpMessageOpt("-regtestbranchstakemodifier", "Exercise delayed branch-relative stake modifiers with regtest split difficulty (default: disabled)");
     }
 
     strUsage += HelpMessageGroup(_("Block creation options:"));
@@ -757,6 +758,9 @@ bool AppInitServers()
  */
 bool AppInit2()
 {
+    if (mapArgs.count("-regtestbranchstakemodifier") &&
+        (Params().NetworkID() != CBaseChainParams::REGTEST || !mapArgs.count("-regtestsplitdifficultyheight")))
+        return InitError(_("Branch stake modifier override requires isolated regtest split difficulty."));
     if (mapArgs.count("-regtestsplitdifficultyheight")) {
         int32_t height;
         if (Params().NetworkID() != CBaseChainParams::REGTEST ||
