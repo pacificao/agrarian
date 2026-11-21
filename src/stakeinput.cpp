@@ -4,8 +4,10 @@
 
 #include "zagr/accumulators.h"
 #include "chain.h"
+#include "kernel.h"
 #include "zagr/deterministicmint.h"
 #include "main.h"
+#include "pow.h"
 #include "stakeinput.h"
 #include "wallet/wallet.h"
 
@@ -255,6 +257,17 @@ CDataStream CPivStake::GetUniqueness()
 //The block that the UTXO was added to the chain
 CBlockIndex* CPivStake::GetIndexFrom()
 {
+    LOCK(cs_main);
+    if (IsSplitDifficultyActive(chainActive.Tip())) {
+        // The wallet is building on its active parent. Resolve the coin from
+        // that parent's live UTXO view, just as a receiving validator does.
+        CTxOut output;
+        const CBlockIndex* origin = pcoinsTip ? ResolveBranchStakeCoin(
+            COutPoint(txFrom.GetHash(), nPosition), chainActive.Tip(), *pcoinsTip, output) : nullptr;
+        pindexFrom = origin ? chainActive[origin->nHeight] : nullptr;
+        return pindexFrom;
+    }
+
     uint256 hashBlock = 0;
     CTransaction tx;
     if (GetTransaction(txFrom.GetHash(), tx, hashBlock, true)) {

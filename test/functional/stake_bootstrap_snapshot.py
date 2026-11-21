@@ -39,7 +39,7 @@ def transaction(stream):
         h = read(stream, 32)
         n = int.from_bytes(read(stream, 4), "little")
         script = read(stream, compact(stream))
-        if not any(h) and n == 0xffffffff and script[:1] in (b"\xc2", b"\xc3"):
+        if script[:1] in (b"\xc2", b"\xc3"):
             raise ValueError("accumulator spends require independent UTXO treatment")
         read(stream, 4)
         inputs.append((h, n))
