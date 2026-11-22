@@ -80,6 +80,8 @@ if [[ ${HOST:-} == x86_64-w64-mingw32 ]]; then
     # Use the toolchain's winpthreads, not headers and objects bundled
     # in the upstream archive for the older pthreads-win32 toolchain.
     sed -i '/CFLAGS="-Icompat\/pthreads /d; /PTHREAD_LDFLAGS="-Lcompat\/pthreads\//d' "$work/source/configure.ac"
+    # MinGW declares socklen_t in ws2tcpip.h, not winsock2.h.
+    sed -i '/^# include <winsock2\.h>$/a # include <ws2tcpip.h>' "$work/source/api.c"
 elif [[ -n ${HOST:-} ]]; then
     printf 'Unsupported miner target: %s\n' "$HOST" >&2
     exit 2
