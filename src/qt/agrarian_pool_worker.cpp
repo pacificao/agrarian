@@ -100,7 +100,8 @@ bool Advance(QByteArray& extraNonce)
 class Worker {
 public:
     Worker(QString payout, poolopencl::Scanner* gpu)
-        : worker(std::move(payout) + QStringLiteral(".agrarian-qt")), scanner(gpu) {}
+        : worker(std::move(payout) + (gpu ? QStringLiteral(".agrarian-qt-gpu") :
+                                           QStringLiteral(".agrarian-qt-cpu"))), scanner(gpu) {}
 
     void Run(quint16 port)
     {

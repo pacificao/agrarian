@@ -67,7 +67,7 @@ def main(binary):
         conn.sendall(b'"error":null}\n')
         second = read(stream)
         assert second["id"] == 2 and second["method"] == "mining.authorize"
-        assert second["params"] == [FIXTURE + ".agrarian-qt", "x"]
+        assert second["params"] == [FIXTURE + ".agrarian-qt-cpu", "x"]
         send(conn, {"id": 2, "result": False, "error": None})
         stdout, stderr = process.communicate(timeout=5)
         assert process.returncode == 1 and b"rejected authorization" in stderr and not stdout

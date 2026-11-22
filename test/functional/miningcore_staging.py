@@ -335,8 +335,11 @@ def run(args, work):
             else:
                 assert worker.poll() is not None, "Desktop CPU miner did not stop"
             block = node.rpc("getblockhash", 26, raw=True)
+            worker_name = "agrarian-qt"
+            if args.first_party_worker:
+                worker_name += "-gpu" if args.software_opencl_kernel else "-cpu"
             wait_for(lambda: int(sql(
-                "SELECT count(*) FROM shares WHERE blockheight = 26 AND worker = 'agrarian-qt'"
+                f"SELECT count(*) FROM shares WHERE blockheight = 26 AND worker = '{worker_name}'"
             )) > 0)
         else:
             block = mine_one(stratum_port, miner_address, helper, node, 26,

@@ -26,7 +26,7 @@ jobs:
       - name: Install development dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends build-essential pkg-config libboost-dev +            qt6-base-dev opencl-c-headers
+          sudo apt-get install -y --no-install-recommends build-essential pkg-config libboost-dev qt6-base-dev opencl-c-headers
       - name: Build and test the loopback-only worker
         run: |
           bash contrib/build-first-party-pool-qa.sh "$RUNNER_TEMP/first-party-qa"
