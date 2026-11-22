@@ -28,10 +28,10 @@ for hash in blake bmw groestl jh keccak skein; do
 done
 "${CXX:-c++}" -std=c++17 -O2 -I"$root/src" -c "$root/src/crypto/sha256.cpp" -o "$dest/sha256.o"
 objects+=("$dest/sha256.o")
-"${CXX:-c++}" -std=c++17 -O2 -I"$root/src" "${extra[@]}" \
+"${CXX:-c++}" -std=c++17 -O2 -pthread -I"$root/src" "${extra[@]}" \
     "$root/src/qt/agrarian_pool_worker.cpp" "${objects[@]}" "${qt_flags[@]}" \
     -o "$dest/agrarian-pool-worker"
-"${CXX:-c++}" -std=c++17 -O2 -I"$root/src" "${extra[@]}" \
+"${CXX:-c++}" -std=c++17 -O2 -pthread -I"$root/src" "${extra[@]}" \
     "$root/test/functional/poolwork_test.cpp" "${objects[@]}" -o "$dest/poolwork-test"
 "${CXX:-c++}" -std=c++17 -O2 -I"$root/src" \
     "$root/test/functional/poolframes_test.cpp" "${qt_flags[@]}" -o "$dest/poolframes-test"

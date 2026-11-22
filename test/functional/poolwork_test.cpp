@@ -40,9 +40,17 @@ int main()
     assert(!empty.found && empty.tested == 0 && empty.nextNonce == 10);
     auto cap = poolwork::ScanCpu(header, poolwork::Target{}, 10, UINT32_MAX, stop);
     assert(!cap.found && cap.tested == poolwork::kMaxCpuBatch && cap.nextNonce == 10 + poolwork::kMaxCpuBatch);
+    auto parallel = poolwork::ScanCpuParallel(header, poolwork::Target{}, 10, 64, 4, stop);
+    assert(!parallel.found && parallel.tested == 256 && parallel.nextNonce == 266);
+    auto parallelHit = poolwork::ScanCpuParallel(header, all, 10, 64, 4, stop);
+    assert(parallelHit.found && parallelHit.nonce == 10 && parallelHit.tested == 4 && parallelHit.nextNonce == 11);
+    auto parallelEnd = poolwork::ScanCpuParallel(header, poolwork::Target{}, poolwork::kNonceEnd - 23, 8, 4, stop);
+    assert(!parallelEnd.found && parallelEnd.tested == 23 && parallelEnd.nextNonce == poolwork::kNonceEnd);
     stop.store(true);
     auto stopped = poolwork::ScanCpu(header, all, 12, 10, stop);
     assert(!stopped.found && stopped.tested == 0 && stopped.nextNonce == 12);
+    auto parallelStopped = poolwork::ScanCpuParallel(header, all, 12, 64, 4, stop);
+    assert(!parallelStopped.found && parallelStopped.tested == 0 && parallelStopped.nextNonce == 12);
     poolwork::Target previous{}, branch{};
     for (size_t i = 0; i < 32; ++i) {
         previous[i] = static_cast<unsigned char>(i);

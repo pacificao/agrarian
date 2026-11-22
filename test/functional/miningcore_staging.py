@@ -309,10 +309,12 @@ def run(args, work):
                 command = [str(args.first_party_worker), mode, str(stratum_port), miner_address]
                 if kernel := args.hardware_opencl_kernel or args.software_opencl_kernel:
                     command.append(str(kernel))
+                else:
+                    command.append(str(args.cpu_threads))
                 worker = launch(command, "cpuminer.log")
                 if args.simultaneous:
                     second_worker = launch([str(args.first_party_worker), "--regtest-loopback",
-                                            str(stratum_port), miner_address], "cpu-parallel.log")
+                                            str(stratum_port), miner_address, str(args.cpu_threads)], "cpu-parallel.log")
             else:
                 worker = launch([str(args.cpuminer), "-a", "quark", "-o",
                                  f"stratum+tcp://127.0.0.1:{stratum_port}",
@@ -408,6 +410,7 @@ def main():
                          help="require a physical OpenCL GPU; software devices cannot qualify")
     parser.add_argument("--simultaneous", action="store_true",
                         help="run CPU and OpenCL workers against the same regtest pool and wallet")
+    parser.add_argument("--cpu-threads", type=int, default=1, help="first-party CPU hashing threads")
     parser.add_argument("--core-bin", type=Path, help="directory containing the daemon and CLI to test")
     parser.add_argument("--qt-wallet", type=Path, help="start and stop the installed miner through Qt on a private X11 display")
     parser.add_argument("--qt-failure-image", type=Path, help="write an optional screenshot of the disposable wallet if the test fails")

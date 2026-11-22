@@ -20,17 +20,21 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSettings>
+#include <QSpinBox>
 #include <QTextDocument>
+#include <QThread>
 
 #include <algorithm>
 
 namespace {
 constexpr auto addressSetting = "poolMining/payoutAddress";
+constexpr auto threadSetting = "poolMining/cpuThreads";
 }
 
 PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     process(new QProcess(this)), gpuProcess(new QProcess(this)),
     cpuChoice(new QCheckBox(tr("CPU"), this)), gpuChoice(new QCheckBox(tr("GPU"), this)),
+    threadCount(new QSpinBox(this)),
     status(new QLabel(this)), payoutAddress(new QLabel(this)),
     start(new QPushButton(tr("&Start pool mining"), this)),
     stop(new QPushButton(tr("S&top mining"), this)), output(new QPlainTextEdit(this))
@@ -67,6 +71,10 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     modes->addWidget(gpuChoice);
     modes->addStretch();
     form->addRow(tr("Mine with:"), modes);
+    threadCount->setObjectName(QStringLiteral("poolCpuThreads"));
+    threadCount->setRange(1, std::clamp(QThread::idealThreadCount(), 1, pooldestination::kMaxCpuThreads));
+    threadCount->setValue(QSettings().value(threadSetting, 1).toInt());
+    form->addRow(tr("CPU &threads:"), threadCount);
     form->addRow(tr("Payout address:"), payoutAddress);
     form->addRow(support);
     form->addRow(start, stop);
@@ -132,15 +140,15 @@ bool PoolMiningDialog::firstPartyPreview()
            GetBoolArg("-regtestfirstpartypoolminer", false) && !poolEndpoint().isEmpty();
 }
 
-QStringList PoolMiningDialog::firstPartyArguments(const QString& payout, bool gpu, const QString& kernel)
+QStringList PoolMiningDialog::firstPartyArguments(const QString& payout, bool gpu, const QString& kernel, int threads)
 {
     if (gpu && kernel.isEmpty()) return {};
     if (Params().NetworkID() == CBaseChainParams::MAIN)
-        return gpu ? QStringList{"--pool-gpu", payout, kernel} : QStringList{"--pool-cpu", payout};
+        return gpu ? QStringList{"--pool-gpu", payout, kernel} : QStringList{"--pool-cpu", payout, QString::number(threads)};
     if (!firstPartyPreview()) return {};
     QStringList args{gpu ? "--regtest-opencl" : "--regtest-loopback",
                      QString::number(GetArg("-regtestpoolminingport", int64_t{0})), payout};
-    if (gpu) args << kernel;
+    args << (gpu ? kernel : QString::number(threads));
     return args;
 }
 
@@ -198,6 +206,7 @@ void PoolMiningDialog::startMining()
         return;
     }
     settings.setValue(addressSetting, address);
+    settings.setValue(threadSetting, threadCount->value());
     payoutAddress->setText(address);
     output->clear();
     if (missingGpuKernel) appendWorkerLog(true, tr("The bundled GPU kernel is missing. Starting only the selected CPU worker."));
@@ -207,7 +216,7 @@ void PoolMiningDialog::startMining()
     status->setText(tr("Starting selected mining workers…"));
     if (runCpu) {
         process->setWorkingDirectory(miner.absolutePath());
-        process->start(miner.absoluteFilePath(), firstPartyArguments(address, false, {}));
+        process->start(miner.absoluteFilePath(), firstPartyArguments(address, false, {}, threadCount->value()));
     }
     if (runGpu) {
         gpuProcess->setWorkingDirectory(miner.absolutePath());
@@ -248,6 +257,7 @@ void PoolMiningDialog::updateControls()
     stop->setEnabled(running);
     cpuChoice->setEnabled(!running);
     gpuChoice->setEnabled(!running);
+    threadCount->setEnabled(!running && cpuChoice->isChecked());
 }
 
 void PoolMiningDialog::attachWorker(QProcess* worker, bool gpu)

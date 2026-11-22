@@ -13,6 +13,7 @@ class QCheckBox;
 class QPlainTextEdit;
 class QProcess;
 class QPushButton;
+class QSpinBox;
 class WalletModel;
 
 class PoolMiningDialog : public QDialog
@@ -25,7 +26,7 @@ public:
     bool isMining() const;
     static QString poolEndpoint();
     static bool firstPartyPreview();
-    static QStringList firstPartyArguments(const QString& payout, bool gpu, const QString& kernel);
+    static QStringList firstPartyArguments(const QString& payout, bool gpu, const QString& kernel, int threads = 1);
 
 protected:
     void done(int result) override;
@@ -45,6 +46,7 @@ private:
     QProcess* gpuProcess;
     QCheckBox* cpuChoice;
     QCheckBox* gpuChoice;
+    QSpinBox* threadCount;
     QLabel* status;
     QLabel* payoutAddress;
     QPushButton* start;

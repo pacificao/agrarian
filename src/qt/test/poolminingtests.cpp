@@ -9,6 +9,7 @@
 #include <QCheckBox>
 #include <QPushButton>
 #include <QSettings>
+#include <QSpinBox>
 #include <QTest>
 
 class PoolMiningTests : public QObject
@@ -18,8 +19,8 @@ class PoolMiningTests : public QObject
 private Q_SLOTS:
     void fixedPoolAndNoMinerApi()
     {
-        QCOMPARE(PoolMiningDialog::firstPartyArguments("wallet-owned-address", false, {}),
-                 (QStringList{"--pool-cpu", "wallet-owned-address"}));
+        QCOMPARE(PoolMiningDialog::firstPartyArguments("wallet-owned-address", false, {}, 3),
+                 (QStringList{"--pool-cpu", "wallet-owned-address", "3"}));
     }
 
     void testPoolCanOnlyUseLoopbackOnRegtest()
@@ -89,7 +90,7 @@ private Q_SLOTS:
         QVERIFY(independent);
         QVERIFY(!mainnet);
         QCOMPARE(blockedArgs, (QStringList{"--pool-gpu", "payout", "/pinned/quark-screen.cl"}));
-        QCOMPARE(cpuArgs, (QStringList{"--regtest-loopback", "16423", "payout"}));
+        QCOMPARE(cpuArgs, (QStringList{"--regtest-loopback", "16423", "payout", "1"}));
         QCOMPARE(gpuArgs, (QStringList{"--regtest-opencl", "16423", "payout", "/pinned/quark-screen.cl"}));
     }
 };

@@ -20,7 +20,8 @@ This branch prepares a desktop candidate; it is not a published release:
 - `src/qt/agrarian_pool_worker.cpp` subscribes, authorizes, and submits
   Quark work. Regtest uses loopback. Mainnet requires verified TLS 1.2+
   to the fixed All The Acronyms endpoint; there is no plaintext fallback or
-  caller-provided host. CPU work is currently single-threaded.
+  caller-provided host. The CPU worker splits bounded batches among the
+  selected number of logical CPU threads; the default is one.
 - `src/qt/poolopencl.h` loads OpenCL only in an explicitly selected mode,
   verifies the pinned kernel, qualifies devices against Core, then rehashes
   candidates on the CPU before passing them to the same Stratum client.
@@ -71,7 +72,8 @@ receive application messages.
 
 1. Validate the fixed production TLS endpoint and certificate renewal. Leave
    the existing plaintext listener unchanged for other mining clients.
-2. Qualify the integrated OpenCL path on real NVIDIA and AMD hardware. Keep
+2. Qualify the integrated OpenCL path on physical NVIDIA hardware. AMD is
+   unverified in this release and must not be advertised as supported. Keep
    CPU mode available without silently starting it when the GPU cannot run.
 3. Test CPU and GPU shares, block and payout, reconnect and stale work, shutdown,
    and missing drivers. Verify the exact installed Windows and Linux

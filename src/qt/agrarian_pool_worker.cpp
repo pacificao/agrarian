@@ -16,6 +16,7 @@
 #include <QJsonArray>
 #include <QNetworkProxy>
 #include <QSslSocket>
+#include <QThread>
 #if defined(QT_STATICPLUGIN) && defined(QT_TLS_OPENSSL)
 #include <QtPlugin>
 Q_IMPORT_PLUGIN(QTlsBackendOpenSSL);
@@ -105,9 +106,9 @@ bool Advance(QByteArray& extraNonce)
 
 class Worker {
 public:
-    Worker(QString payout, poolopencl::Scanner* gpu)
+    Worker(QString payout, poolopencl::Scanner* gpu, unsigned threads)
         : worker(std::move(payout) + (gpu ? QStringLiteral(".agrarian-qt-gpu") :
-                                           QStringLiteral(".agrarian-qt-cpu"))), scanner(gpu) {}
+                                           QStringLiteral(".agrarian-qt-cpu"))), scanner(gpu), cpuThreads(threads) {}
 
     void Run(quint16 port, bool mainnet)
     {
@@ -135,7 +136,7 @@ public:
             Require(sinceLastFrame.elapsed() < 120000, "Pool no longer responding");
             if (subscribed && authorized && haveWork && !pendingShare) {
                 const auto result = scanner ? scanner->Scan(header, job.target, nextNonce)
-                                            : poolwork::ScanCpu(header, job.target, nextNonce, 1024, runningStop);
+                                            : poolwork::ScanCpuParallel(header, job.target, nextNonce, 1024, cpuThreads, runningStop);
                 nextNonce = result.nextNonce;
                 if (result.found) {
                     Require(nextRequest < 2147483647, "Pool session request limit reached");
@@ -158,6 +159,7 @@ private:
     QSslSocket socket;
     const QString worker;
     poolopencl::Scanner* const scanner;
+    const unsigned cpuThreads;
     QElapsedTimer sinceLastFrame;
     std::atomic<bool> runningStop{false}; // prototype stop uses process termination
     bool subscribed{false}, authorized{false}, haveWork{false}, hasJob{false};
@@ -283,15 +285,16 @@ int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
     const auto args = app.arguments();
-    const bool mainCpu = args.size() == 3 && args[1] == QStringLiteral("--pool-cpu");
+    const bool mainCpu = (args.size() == 3 || args.size() == 4) && args[1] == QStringLiteral("--pool-cpu");
     const bool mainGpu = args.size() == 4 && args[1] == QStringLiteral("--pool-gpu");
     const bool mainnet = mainCpu || mainGpu;
     const bool gpu = mainGpu || (args.size() == 5 && args[1] == QStringLiteral("--regtest-opencl"));
     const bool software = args.size() == 5 && args[1] == QStringLiteral("--regtest-opencl-software");
-    if (!mainnet && !gpu && !software && (args.size() != 4 || args[1] != QStringLiteral("--regtest-loopback"))) {
-        std::fputs("Usage: agrarian-pool-worker --pool-cpu PUBLIC_PAYOUT\n"
+    const bool localCpu = (args.size() == 4 || args.size() == 5) && args[1] == QStringLiteral("--regtest-loopback");
+    if (!mainnet && !gpu && !software && !localCpu) {
+        std::fputs("Usage: agrarian-pool-worker --pool-cpu PUBLIC_PAYOUT [THREADS]\n"
                    "       agrarian-pool-worker --pool-gpu PUBLIC_PAYOUT PINNED_KERNEL\n"
-                   "       agrarian-pool-worker --regtest-loopback PORT PUBLIC_PAYOUT\n"
+                   "       agrarian-pool-worker --regtest-loopback PORT PUBLIC_PAYOUT [THREADS]\n"
                    "       agrarian-pool-worker --regtest-opencl PORT PUBLIC_PAYOUT PINNED_KERNEL\n", stderr);
         return 2;
     }
@@ -302,6 +305,15 @@ int main(int argc, char** argv)
     if (!ok || !port || payout.size() < 26 || payout.size() > 40 ||
         !std::all_of(payout.begin(), payout.end(), [&](QChar c) { return alphabet.contains(c); }))
         return 2;
+    int threads = 1;
+    if ((mainCpu && args.size() == 4) || (localCpu && args.size() == 5)) {
+        threads = args.last().toInt(&ok);
+        const auto maxThreads = std::clamp(QThread::idealThreadCount(), 1, pooldestination::kMaxCpuThreads);
+        if (!ok || threads < 1 || threads > maxThreads) {
+            std::fputs("Invalid CPU thread count\n", stderr);
+            return 2;
+        }
+    }
     try {
         std::unique_ptr<poolopencl::Scanner> scanner;
         if (gpu || software) {
@@ -316,7 +328,11 @@ int main(int argc, char** argv)
             std::puts(software ? "Software OpenCL self-test passed (regtest only)" : "GPU Quark self-test passed");
             std::fflush(stdout);
         }
-        Worker(payout, scanner.get()).Run(port, mainnet);
+        if (!gpu && !software) {
+            std::printf("CPU worker configured for %d threads\n", threads);
+            std::fflush(stdout);
+        }
+        Worker(payout, scanner.get(), threads).Run(port, mainnet);
     } catch (const std::exception& error) {
         std::fprintf(stderr, "%s\n", error.what());
         return 1;

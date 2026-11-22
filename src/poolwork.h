@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <future>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -97,6 +98,37 @@ inline BatchResult ScanCpu(const Header& header, const Target& target, uint64_t 
             result.found = true;
             result.nonce = nonce;
             break;
+        }
+    }
+    return result;
+}
+
+// Every lane owns a disjoint range. Resume at the earliest hit + 1 to
+// preserve any later hits, including those computed by a different lane.
+inline BatchResult ScanCpuParallel(const Header& header, const Target& target, uint64_t first,
+                                   uint32_t perLane, unsigned lanes, const std::atomic<bool>& stop)
+{
+    perLane = std::min(perLane, kMaxCpuBatch);
+    if (lanes <= 1 || !perLane || first >= kNonceEnd || stop.load(std::memory_order_relaxed))
+        return ScanCpu(header, target, first, perLane, stop);
+    std::vector<std::future<BatchResult>> pending;
+    for (unsigned lane = 1; lane < lanes; ++lane) {
+        const auto start = first + uint64_t{lane} * perLane;
+        if (start >= kNonceEnd) break;
+        pending.emplace_back(std::async(std::launch::async, [&header, &target, &stop, start, perLane] {
+            return ScanCpu(header, target, start, perLane, stop);
+        }));
+    }
+    auto result = ScanCpu(header, target, first, perLane, stop);
+    bool contiguous = !result.found && result.tested == perLane;
+    for (auto& item : pending) {
+        const auto lane = item.get();
+        result.tested += lane.tested;
+        if (contiguous) {
+            result.nextNonce = lane.nextNonce;
+            result.found = lane.found;
+            result.nonce = lane.nonce;
+            contiguous = !lane.found && lane.tested == perLane;
         }
     }
     return result;

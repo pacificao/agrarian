@@ -51,7 +51,7 @@ def main(binary):
         assert process.returncode == 2 and b"Usage:" in process.stderr
     process = subprocess.run([str(binary), "--pool-cpu", FIXTURE, "https://invalid.invalid"],
                              capture_output=True, timeout=5)
-    assert process.returncode == 2 and b"Usage:" in process.stderr
+    assert process.returncode == 2 and b"Invalid CPU thread count" in process.stderr
 
     with tempfile.TemporaryDirectory(prefix="agrarian-pool-kernel-") as directory:
         corrupt = Path(directory) / "corrupt.cl"
@@ -73,7 +73,7 @@ def main(binary):
         assert second["params"] == [FIXTURE + ".agrarian-qt-cpu", "x"]
         send(conn, {"id": 2, "result": False, "error": None})
         stdout, stderr = process.communicate(timeout=5)
-        assert process.returncode == 1 and b"rejected authorization" in stderr and not stdout
+        assert process.returncode == 1 and b"rejected authorization" in stderr and b"configured for 1 threads" in stdout
         redirected.settimeout(0.25)
         try:
             unexpected, _ = redirected.accept()
@@ -87,7 +87,7 @@ def main(binary):
         assert read(stream)["method"] == "mining.subscribe"
         conn.sendall(b"x" * (16 * 1024 + 1))
         stdout, stderr = process.communicate(timeout=5)
-        assert process.returncode == 1 and b"Oversized incomplete pool frame" in stderr and not stdout
+        assert process.returncode == 1 and b"Oversized incomplete pool frame" in stderr and b"configured for 1 threads" in stdout
 
     print("First-party worker refused arbitrary endpoints and an altered kernel, "
           "ignored a redirect, rejected unauthorized work, and bounded incomplete packets.")
