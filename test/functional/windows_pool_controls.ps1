@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory)][int]$WalletProcess,
-    [Parameter(Mandatory)][ValidateSet('open', 'start', 'stop', 'close', 'exit', 'child')]$Action
+    [Parameter(Mandatory)][ValidateSet('open', 'start', 'stop', 'close', 'child')]$Action
 )
 $ErrorActionPreference = 'Stop'
 if ($Action -eq 'child') {
@@ -15,6 +15,14 @@ using System.Runtime.InteropServices;
 public static class WalletInput {
     [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
     [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint x, uint y, uint data, System.UIntPtr extra);
+    [DllImport("user32.dll")] public static extern System.IntPtr WindowFromPoint(Point point);
+    [DllImport("user32.dll")] public static extern System.IntPtr GetAncestor(System.IntPtr window, uint flag);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int GetWindowText(System.IntPtr window, System.Text.StringBuilder title, int capacity);
+    [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(System.IntPtr window, out uint process);
+    [DllImport("user32.dll")] public static extern bool PostMessage(System.IntPtr window, uint message, System.IntPtr wparam, System.IntPtr lparam);
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Point { public int X, Y; }
 }
 '@
 $ae = [Windows.Automation.AutomationElement]
@@ -55,35 +63,34 @@ function Click-Control($Element) {
     [WalletInput]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
 }
 
-function Invoke-Control($Element) {
-    $pattern = $null
-    if ($Element.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern, [ref]$pattern)) {
-        $pattern.Invoke()
-    } elseif ($Element.TryGetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern, [ref]$pattern)) {
-        $pattern.Expand()
-    } else {
-        $Element.SetFocus()
-        [Windows.Forms.SendKeys]::SendWait('{ENTER}')
-    }
-}
-
 switch ($Action) {
     open {
         $window = Find-Control '*Agrarian*Windows mining QA*' -Window
         $window.SetFocus()
         Click-Control (Find-Control 'Mining')
         Click-Control (Find-Control 'Mine on All The Acronyms*')
-        $null = Find-Control 'All The Acronyms*Pool mining' -Window
         $null = Find-Control 'Start pool mining'
     }
-    start { Invoke-Control (Find-Control 'Start pool mining') }
-    stop { Invoke-Control (Find-Control 'Stop mining') }
+    start { Click-Control (Find-Control 'Start pool mining') }
+    stop { Click-Control (Find-Control 'Stop mining') }
     close {
-        $dialog = Find-Control 'All The Acronyms*Pool mining' -Window
-        $dialog.GetCurrentPattern([Windows.Automation.WindowPattern]::Pattern).Close()
-    }
-    exit {
-        $window = Find-Control '*Agrarian*Windows mining QA*' -Window
-        $window.GetCurrentPattern([Windows.Automation.WindowPattern]::Pattern).Close()
+        # UI Automation exposes this Qt dialog underneath its owner window.
+        # Resolve and verify its native window before issuing the close event.
+        $button = Find-Control 'Stop mining'
+        $bounds = $button.Current.BoundingRectangle
+        $point = New-Object WalletInput+Point
+        $point.X = [int]($bounds.X + $bounds.Width / 2)
+        $point.Y = [int]($bounds.Y + $bounds.Height / 2)
+        $handle = [WalletInput]::GetAncestor([WalletInput]::WindowFromPoint($point), 2)
+        $title = New-Object System.Text.StringBuilder 256
+        [uint32]$owner = 0
+        $null = [WalletInput]::GetWindowThreadProcessId($handle, [ref]$owner)
+        $null = [WalletInput]::GetWindowText($handle, $title, $title.Capacity)
+        if ($owner -ne $WalletProcess -or $title.ToString() -notlike 'All The Acronyms*Pool mining') {
+            throw "Refusing to close unexpected window: $title"
+        }
+        if (![WalletInput]::PostMessage($handle, 0x0010, [IntPtr]::Zero, [IntPtr]::Zero)) {
+            throw 'Could not close the verified pool dialog'
+        }
     }
 }
