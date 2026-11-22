@@ -40,8 +40,8 @@ def run(binary, listener, context, expected):
                 sock.settimeout(6)
                 if context is None:
                     # A plaintext Stratum server cannot elicit subscription data.
-                    sock.sendall(b'{"id":1,"result":[[],"ab12cd34",4],"error":null}\n')
                     assert sock.recv(1) == b"\x16", "Expected only a TLS handshake, not a Stratum request"
+                    sock.sendall(b'{"id":1,"result":[[],"ab12cd34",4],"error":null}\n')
                 else:
                     try:
                         client = context.wrap_socket(sock, server_side=True)
