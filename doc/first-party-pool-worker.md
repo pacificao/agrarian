@@ -1,10 +1,12 @@
 # First-party Agrarian pool worker (2.1.3 staging)
 
-The wallet will keep one mining dialog. The new bundled worker should run in a
-separate, unprivileged process so a pool or graphics-driver failure cannot
-access the wallet's in-process keys. It receives a public payout address, an
-explicit CPU/GPU choice, a bounded workload and a stop signal. It does not use
-the wallet RPC, read wallet files, or start without the user's action.
+The wallet will keep one mining dialog. Run the bundled worker in a separate,
+unprivileged process to keep crashes and mining logic outside the wallet.
+Process separation alone is not a sandbox: where supported, restrict the
+worker's access to wallet files and the wallet process at the OS level. It
+receives a public payout address, an explicit CPU/GPU choice, a bounded
+workload and a stop signal. It does not use the wallet RPC, read wallet files,
+or start without the user's action.
 
 This branch contains testable building blocks, not a complete miner:
 
