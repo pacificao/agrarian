@@ -1,0 +1,43 @@
+name: First-party pool worker QA
+
+on:
+  push:
+    branches: [review/desktop-opencl-mining]
+    paths:
+      - '.github/workflows/first-party-pool-worker-qa.yml'
+      - 'contrib/build-first-party-pool-qa.sh'
+      - 'src/poolwork.h'
+      - 'src/qt/agrarian_pool_worker.cpp'
+      - 'src/qt/poolframes.h'
+      - 'src/qt/poolopencl.h'
+      - 'test/functional/*pool*'
+
+permissions:
+  contents: read
+
+jobs:
+  build-qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Install development dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential pkg-config libboost-dev +            qt6-base-dev opencl-c-headers
+      - name: Build and test the loopback-only worker
+        run: |
+          bash contrib/build-first-party-pool-qa.sh "$RUNNER_TEMP/first-party-qa"
+          mkdir "$RUNNER_TEMP/first-party-artifact"
+          install -m 755 "$RUNNER_TEMP/first-party-qa/agrarian-pool-worker" "$RUNNER_TEMP/first-party-artifact/"
+          cd "$RUNNER_TEMP/first-party-artifact"
+          sha256sum agrarian-pool-worker > SHA256SUMS
+          printf 'commit=%s\n' "$GITHUB_SHA" > BUILD-INFO.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: first-party-loopback-worker-ubuntu-x64
+          path: ${{ runner.temp }}/first-party-artifact/
+          if-no-files-found: error
+          retention-days: 7

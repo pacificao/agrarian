@@ -244,7 +244,7 @@ def run(args, work):
             assert template_bits == scheduled["next_pow_bits"]
         pool_address = node.rpc("getnewaddress", raw=True)
         miner_address = None if args.qt_wallet else peer.rpc("getnewaddress", raw=True)
-        if not args.cpuminer:
+        if not (args.cpuminer or args.first_party_worker):
             helper = work / "pow"
             build_solver(helper)
         config = {
@@ -264,7 +264,7 @@ def run(args, work):
                 "blockRefreshInterval": 500, "jobRebroadcastTimeout": 180, "clientConnectionTimeout": 240,
                 "banning": {"enabled": False, "checkThreshold": 50, "invalidPercent": 50, "time": 600},
                 "ports": {str(stratum_port): {"listenAddress": "127.0.0.1",
-                                            "difficulty": 0.0001 if args.cpuminer else 0.001}},
+                                            "difficulty": 0.0001 if (args.cpuminer or args.first_party_worker) else 0.001}},
                 "daemons": [{"host": "127.0.0.1", "port": node.rpc_port, "user": node.rpc_user,
                              "password": node.rpc_password, "minimumConfirmations": 22}],
                 "paymentProcessing": {"enabled": True, "minimumPayment": 0.1, "payoutScheme": "PPLNS",
@@ -284,7 +284,7 @@ def run(args, work):
                 return False
 
         wait_for(stratum_ready, timeout=60)
-        if args.cpuminer:
+        if args.cpuminer or args.first_party_worker:
             # The real desktop worker is deliberately scoped to a single
             # local Stratum endpoint in a network namespace with no egress.
             if args.qt_wallet:
@@ -302,6 +302,12 @@ def run(args, work):
                 miner_address, suffix = cmdline[6].split(".")
                 assert suffix == "agrarian-qt"
                 assert peer.rpc("validateaddress", miner_address)["ismine"]
+            elif args.first_party_worker:
+                mode = "--regtest-opencl-software" if args.software_opencl_kernel else "--regtest-loopback"
+                command = [str(args.first_party_worker), mode, str(stratum_port), miner_address]
+                if args.software_opencl_kernel:
+                    command.append(str(args.software_opencl_kernel))
+                worker = launch(command, "cpuminer.log")
             else:
                 worker = launch([str(args.cpuminer), "-a", "quark", "-o",
                                  f"stratum+tcp://127.0.0.1:{stratum_port}",
@@ -361,7 +367,11 @@ def main():
     for name in ("dotnet", "miningcore", "pg-bin", "schema"):
         parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--split-difficulty", action="store_true", help="mine and pay out the staged regtest activation block")
-    parser.add_argument("--cpuminer", type=Path, help="use the bundled desktop CPU miner instead of the test solver")
+    workers = parser.add_mutually_exclusive_group()
+    workers.add_argument("--cpuminer", type=Path, help="use the bundled desktop CPU miner instead of the test solver")
+    workers.add_argument("--first-party-worker", type=Path, help="use the Agrarian loopback-only worker")
+    parser.add_argument("--software-opencl-kernel", type=Path,
+                        help="exercise the first-party worker using a CPU OpenCL driver (QA only)")
     parser.add_argument("--core-bin", type=Path, help="directory containing the daemon and CLI to test")
     parser.add_argument("--qt-wallet", type=Path, help="start and stop the installed miner through Qt on a private X11 display")
     parser.add_argument("--qt-failure-image", type=Path, help="write an optional screenshot of the disposable wallet if the test fails")
@@ -370,13 +380,15 @@ def main():
         parser.error("run this test in a loopback-only network namespace")
     for key in ("dotnet", "miningcore", "pg_bin", "schema"):
         setattr(args, key, getattr(args, key).resolve(strict=True))
-    for key in ("cpuminer", "core_bin", "qt_wallet"):
+    for key in ("cpuminer", "first_party_worker", "software_opencl_kernel", "core_bin", "qt_wallet"):
         if getattr(args, key):
             setattr(args, key, getattr(args, key).resolve(strict=True))
     if args.qt_wallet and (not args.core_bin or not args.cpuminer or not os.environ.get("DISPLAY")):
         parser.error("--qt-wallet requires --core-bin, --cpuminer, and a private X11 display")
     if args.qt_wallet and args.cpuminer != args.qt_wallet.parent / "miners/cpuminer":
         parser.error("--cpuminer must be the Qt wallet's bundled helper")
+    if args.software_opencl_kernel and not args.first_party_worker:
+        parser.error("--software-opencl-kernel requires --first-party-worker")
     digest = hashlib.sha256(args.miningcore.read_bytes()).hexdigest()
     print(f"Staging Miningcore binary SHA256: {digest}", flush=True)
     with tempfile.TemporaryDirectory(prefix="agrarian-miningcore-") as directory:

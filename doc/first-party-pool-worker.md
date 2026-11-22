@@ -8,7 +8,7 @@ receives a public payout address, an explicit CPU/GPU choice, a bounded
 workload and a stop signal. It does not use the wallet RPC, read wallet files,
 or start without the user's action.
 
-This branch contains testable building blocks, not a complete miner:
+This branch has a loopback-only pool client, not a release candidate:
 
 - `src/poolwork.h` builds Agrarian's 80-byte Quark work header from the pool's
   previous hash, coinbase and Merkle branches. It scans bounded CPU batches
@@ -16,9 +16,14 @@ This branch contains testable building blocks, not a complete miner:
   either backend. The negotiated pool share target remains distinct from the
   network target in the block header.
 - `src/qt/poolframes.h` classifies only bounded Stratum frames and ignores
-  server redirects and other unsolicited commands. It does not establish a
-  network connection. The later transport must bound unread data, correlate
-  replies, reject malformed job fields, and distinguish current and stale work.
+  server redirects and other unsolicited commands.
+- `src/qt/agrarian_pool_worker.cpp` subscribes and authorizes against
+  loopback, bounds unread data and job fields, correlates replies and
+  submits Quark work. CPU work is still single-threaded in this prototype.
+  It cannot accept any public pool URL and does not ship in the wallet yet.
+- `src/qt/poolopencl.h` loads OpenCL only in an explicitly selected mode,
+  verifies the pinned kernel, qualifies devices against Core, then rehashes
+  candidates on the CPU before passing them to the same Stratum client.
 - The mining log uses explicit near-white text on a dark background. Its
   Qt regression check exercises the actual widget palette.
 
@@ -35,9 +40,24 @@ c++ -std=c++17 -O2 -I src test/functional/poolframes_test.cpp \
 /tmp/agrarian-poolframes-test
 ```
 
+Alternatively, with C/C++ tools, Boost headers, Qt6 Core/Network headers,
+OpenCL C headers and Python installed, use the standalone loopback build:
+
+```sh
+bash contrib/build-first-party-pool-qa.sh /tmp/agrarian-first-party-qa
+```
+
+The output directory must not exist. The script compiles the needed Core
+hash sources and checks authorization, redirect handling, receive limits,
+kernel pinning and refusal of public endpoints without any pool work.
+For block/payout integration use `test/functional/miningcore_staging.py
+--first-party-worker /path/to/agrarian-pool-worker` in a loopback-only
+network namespace. `--software-opencl-kernel` exercises the same worker
+with a QA-only software driver; it cannot certify real GPUs.
+
 ## Before a release
 
-1. Implement the first-party connection and worker lifecycle, with no redirects,
+1. Implement the production connection and integrate the worker lifecycle, with no redirects,
    no remote control listener, no external configuration or auto-downloads, and
    a fixed production pool destination. Use loopback only for regtest fixtures.
 2. Connect the tested OpenCL kernel to the worker and verify candidates on the
