@@ -103,9 +103,13 @@ def exercise(qt, data, pool):
                 wallet.wait(timeout=45)
             else:
                 control(action)
-            # Consume an optional extranonce subscription sent by the helper.
-            while extra := wire.readline(4096):
-                assert json.loads(extra)["method"] == "mining.extranonce.subscribe"
+            # Windows may reset the TCP socket when Qt terminates the
+            # console helper. Require an exited process independently.
+            try:
+                while extra := wire.readline(4096):
+                    assert json.loads(extra)["method"] == "mining.extranonce.subscribe"
+            except ConnectionResetError:
+                pass
             wait_for(no_worker, timeout=15)
             print(f"Windows Qt {action}: exact miner, owned payout address, and clean disconnect verified", flush=True)
             return address
