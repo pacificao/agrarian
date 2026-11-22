@@ -10,6 +10,13 @@ if ($Action -eq 'child') {
 }
 
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes, System.Windows.Forms
+Add-Type @'
+using System.Runtime.InteropServices;
+public static class WalletInput {
+    [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
+    [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint x, uint y, uint data, System.UIntPtr extra);
+}
+'@
 $ae = [Windows.Automation.AutomationElement]
 $root = $ae::RootElement
 $byPid = [Windows.Automation.PropertyCondition]::new($ae::ProcessIdProperty, [object]$WalletProcess)
@@ -27,7 +34,25 @@ function Find-Control([string]$Name, [switch]$Window) {
         }
         Start-Sleep -Milliseconds 200
     }
-    throw "Could not find visible wallet control: $Name"
+    $labels = foreach ($surface in $root.FindAll($children, $byPid)) {
+        "Window: " + $surface.Current.Name
+        foreach ($item in $surface.FindAll($scope, [Windows.Automation.Condition]::TrueCondition)) {
+            if ($item.Current.Name -and !$item.Current.IsOffscreen) { $item.Current.Name }
+        }
+    }
+    throw "Could not find visible wallet control: $Name. UI labels: $($labels -join ' | ')"
+}
+
+function Click-Control($Element) {
+    $bounds = $Element.Current.BoundingRectangle
+    if ($bounds.IsEmpty -or $bounds.Width -le 0 -or $bounds.Height -le 0) {
+        throw "No visible bounds for $($Element.Current.Name)"
+    }
+    if (![WalletInput]::SetCursorPos([int]($bounds.X + $bounds.Width / 2), [int]($bounds.Y + $bounds.Height / 2))) {
+        throw 'Could not move pointer on the Windows runner'
+    }
+    [WalletInput]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero)
+    [WalletInput]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
 }
 
 function Invoke-Control($Element) {
@@ -46,11 +71,8 @@ switch ($Action) {
     open {
         $window = Find-Control '*Agrarian*Windows mining QA*' -Window
         $window.SetFocus()
-        # Qt's accessible menu-bar item doesn't open the popup via Invoke
-        # on this runner. Use the wallet's actual menu accelerators.
-        [Windows.Forms.SendKeys]::SendWait('%m')
-        Start-Sleep -Milliseconds 300
-        [Windows.Forms.SendKeys]::SendWait('a')
+        Click-Control (Find-Control 'Mining')
+        Click-Control (Find-Control 'Mine on All The Acronyms*')
         $null = Find-Control 'All The Acronyms*Pool mining' -Window
         $null = Find-Control 'Start pool mining'
     }
