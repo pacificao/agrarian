@@ -53,9 +53,8 @@ jobs:
           worker_flags="-I$RUNNER_TEMP/opencl-headers"
           cd "$build_dir"
           if [[ "$PLATFORM" == windows ]]; then
-            ./contrib/build-win64-wallet.sh
+            POOL_MINER_CPPFLAGS="$worker_flags" ./contrib/build-win64-wallet.sh
             mkdir -p release
-            make -C src qt/agrarian-pool-worker.exe POOL_MINER_CPPFLAGS="$worker_flags"
             x86_64-w64-mingw32-strip src/qt/agrarian-pool-worker.exe
             bash contrib/stage-first-party-pool-worker.sh src/qt/agrarian-pool-worker.exe release/miners
             make deploy WITH_POOL_MINER=1
@@ -119,6 +118,7 @@ jobs:
             test -s agrarian/bin/miners/COPYING
             test ! -e agrarian/bin/miners/cpuminer
             test -x agrarian/bin/miners/agrarian-pool-worker
+            runuser -u nobody -- agrarian/bin/miners/agrarian-pool-worker --check-tls-backend
             echo "9387b4e30715e7599843d24bc3bdded5921788d54f2e46dc5cddabf6bc8f5727  agrarian/bin/miners/quark-screen.cl" | sha256sum -c -
             runuser -u nobody -- python3 /guard.py agrarian/bin/miners/agrarian-pool-worker
             runuser -u nobody -- xvfb-run -a python3 /smoke.py --qt agrarian/bin/agrarian-qt --daemon agrarian/bin/agrariand
@@ -156,6 +156,8 @@ jobs:
           if (Test-Path -LiteralPath $legacy) { throw 'Legacy miner is still packaged' }
           $source = Join-Path $destination 'miners/quark-screen.cl'
           if ((Get-FileHash -LiteralPath $source).Hash -ine '9387b4e30715e7599843d24bc3bdded5921788d54f2e46dc5cddabf6bc8f5727') { throw 'GPU kernel hash mismatch' }
+          & $miner --check-tls-backend
+          if ($LASTEXITCODE -ne 0) { throw 'Installed mining worker lacks a TLS backend' }
           python "$env:GITHUB_WORKSPACE/test/functional/first_party_pool_guard.py" "$miner"
           if ($LASTEXITCODE -ne 0) { throw 'First-party worker smoke test failed' }
           Set-Content -LiteralPath $legacy -Value 'Inert fixture representing the old helper'

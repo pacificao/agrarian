@@ -285,6 +285,14 @@ int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
     const auto args = app.arguments();
+    if (args.size() == 2 && args[1] == QStringLiteral("--check-tls-backend")) {
+        if (!QSslSocket::supportsSsl()) {
+            std::fputs("TLS backend unavailable\n", stderr);
+            return 1;
+        }
+        std::puts("TLS backend available");
+        return 0;
+    }
     const bool mainCpu = (args.size() == 3 || args.size() == 4) && args[1] == QStringLiteral("--pool-cpu");
     const bool mainGpu = args.size() == 4 && args[1] == QStringLiteral("--pool-gpu");
     const bool mainnet = mainCpu || mainGpu;

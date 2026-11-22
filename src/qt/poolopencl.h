@@ -2,17 +2,19 @@
 #ifndef AGRARIAN_QT_POOLOPENCL_H
 #define AGRARIAN_QT_POOLOPENCL_H
 
-#include "poolwork.h"
-
 #include <QByteArray>
 #include <QLibrary>
 #include <QString>
 #if defined(Q_OS_WIN)
+// Parse Win32 declarations before poolwork.h pulls in the legacy hash
+// header's global using directive. Otherwise MinGW sees both byte types.
 #include <QtCore/qt_windows.h>
 #endif
 
 #define CL_TARGET_OPENCL_VERSION 120
 #include <CL/cl.h>
+
+#include "poolwork.h"
 
 #include <stdexcept>
 

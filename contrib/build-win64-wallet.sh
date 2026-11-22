@@ -108,6 +108,11 @@ CONFIG_SITE="$PREFIX/share/config.site" ./configure \
 echo "Cleaning stale target objects before compiling..."
 make clean
 
+if [[ -n "${POOL_MINER_CPPFLAGS:-}" ]]; then
+  echo "Building first-party Windows pool worker before the desktop wallet..."
+  make -C src -j"$JOBS" qt/agrarian-pool-worker.exe POOL_MINER_CPPFLAGS="$POOL_MINER_CPPFLAGS"
+fi
+
 echo "Building Win64 Qt6 wallet with JOBS=$JOBS..."
 make -j"$JOBS"
 
