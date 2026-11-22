@@ -1,0 +1,39 @@
+name: Windows 2.1.2 mining controls QA
+
+on:
+  push:
+    branches: [qa/windows-212-mining]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  windows-mining:
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: candidate-windows-x64
+          path: ${{ runner.temp }}/agrarian-candidate
+          run-id: '44977866190'
+          github-token: ${{ github.token }}
+      - name: Verify, install and exercise the exact candidate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $source = Join-Path $env:RUNNER_TEMP 'agrarian-candidate'
+          $installer = Join-Path $source 'agrarian-2.1.2-win64-setup.exe'
+          $destination = Join-Path $env:RUNNER_TEMP 'agrarian-212-mining-qa'
+          if ((Get-FileHash -LiteralPath $installer).Hash -ine '24d4cd72f0bfd245826478c626167d25756586519ffc2dba49445d4577211c42') {
+            throw 'Installer differs from the verified 2.1.2 candidate'
+          }
+          if (Test-Path -LiteralPath $destination) { throw 'Install destination is not clean' }
+          $installed = Start-Process -FilePath $installer -ArgumentList "/S /D=$destination" -Wait -PassThru
+          if ($installed.ExitCode -ne 0) { throw "Setup exited with $($installed.ExitCode)" }
+          python -B test/functional/windows_pool_controls.py (Join-Path $destination 'agrarian-qt.exe')
+          if ($LASTEXITCODE -ne 0) { throw 'Windows mining controls QA failed' }
