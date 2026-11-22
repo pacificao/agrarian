@@ -20,12 +20,14 @@ This branch has a loopback-only pool client, not a release candidate:
 - `src/qt/agrarian_pool_worker.cpp` subscribes and authorizes against
   loopback, bounds unread data and job fields, correlates replies and
   submits Quark work. CPU work is still single-threaded in this prototype.
-  It cannot accept any public pool URL and does not ship in the wallet yet.
+  It cannot accept any public pool URL and does not ship in release packages.
 - `src/qt/poolopencl.h` loads OpenCL only in an explicitly selected mode,
   verifies the pinned kernel, qualifies devices against Core, then rehashes
   candidates on the CPU before passing them to the same Stratum client.
-- The mining log uses explicit near-white text on a dark background. Its
-  Qt regression check exercises the actual widget palette.
+- The regtest-only wallet preview offers independent CPU and GPU switches.
+  Both can run at once using one payout address and separate pool connections
+  and worker names. The shared log uses explicit near-white text on a dark
+  background and labels each line `[CPU]` or `[GPU]`.
 
 ## Local tests
 
@@ -53,16 +55,17 @@ kernel pinning and refusal of public endpoints without any pool work.
 For block/payout integration use `test/functional/miningcore_staging.py
 --first-party-worker /path/to/agrarian-pool-worker` in a loopback-only
 network namespace. `--software-opencl-kernel` exercises the same worker
-with a QA-only software driver; it cannot certify real GPUs.
+with a QA-only software driver; it cannot certify real GPUs. Add
+`--simultaneous` to require accepted shares from both worker names for the
+same payout address, chain agreement, and a confirmed test payout.
 
 ## Before a release
 
 1. Implement the production connection and integrate the worker lifecycle, with no redirects,
    no remote control listener, no external configuration or auto-downloads, and
    a fixed production pool destination. Use loopback only for regtest fixtures.
-2. Connect the tested OpenCL kernel to the worker and verify candidates on the
-   CPU before submission. Keep CPU mode available without silently starting it
-   when the GPU cannot run. Qualify real NVIDIA and AMD hardware.
+2. Qualify the integrated OpenCL path on real NVIDIA and AMD hardware. Keep
+   CPU mode available without silently starting it when the GPU cannot run.
 3. Test CPU and GPU shares, block and payout, reconnect and stale work, shutdown,
    and missing drivers. Verify the exact installed Windows and Linux
    packages, independently rebuild and compare provenance, and scan with

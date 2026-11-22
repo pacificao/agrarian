@@ -4,10 +4,12 @@
 #define AGRARIAN_QT_POOLMININGDIALOG_H
 
 #include <QDialog>
+#include <QByteArray>
 #include <QPointer>
 #include <QStringList>
 
 class QLabel;
+class QCheckBox;
 class QPlainTextEdit;
 class QProcess;
 class QPushButton;
@@ -23,6 +25,8 @@ public:
     void setWallet(WalletModel* model);
     bool isMining() const;
     static QString poolEndpoint();
+    static bool firstPartyPreview();
+    static QStringList firstPartyArguments(const QString& payout, bool gpu, const QString& kernel);
     static QStringList minerArguments(const QString& payout, int threads);
 
 protected:
@@ -32,17 +36,24 @@ private:
     void startMining();
     void stopMining();
     void updateControls();
-    void readOutput();
+    void attachWorker(QProcess* worker, bool gpu);
+    void readOutput(QProcess* worker, bool gpu, bool flush = false);
+    void appendWorkerLog(bool gpu, const QString& line);
     QString minerPath() const;
+    QString kernelPath() const;
 
     QPointer<WalletModel> wallet;
     QProcess* process;
+    QProcess* gpuProcess;
+    QCheckBox* cpuChoice;
+    QCheckBox* gpuChoice;
     QSpinBox* threadCount;
     QLabel* status;
     QLabel* payoutAddress;
     QPushButton* start;
     QPushButton* stop;
     QPlainTextEdit* output;
+    QByteArray cpuPending, gpuPending;
     bool stopping{false};
 };
 

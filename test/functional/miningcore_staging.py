@@ -287,6 +287,7 @@ def run(args, work):
         if args.cpuminer or args.first_party_worker:
             # The real desktop worker is deliberately scoped to a single
             # local Stratum endpoint in a network namespace with no egress.
+            second_worker = None
             if args.qt_wallet:
                 desktop = DesktopMiner(peer, args.cpuminer)
                 try:
@@ -308,6 +309,9 @@ def run(args, work):
                 if args.software_opencl_kernel:
                     command.append(str(args.software_opencl_kernel))
                 worker = launch(command, "cpuminer.log")
+                if args.simultaneous:
+                    second_worker = launch([str(args.first_party_worker), "--regtest-loopback",
+                                            str(stratum_port), miner_address], "cpu-parallel.log")
             else:
                 worker = launch([str(args.cpuminer), "-a", "quark", "-o",
                                  f"stratum+tcp://127.0.0.1:{stratum_port}",
@@ -317,10 +321,19 @@ def run(args, work):
                 def found_block():
                     running = worker in desktop.helpers() if args.qt_wallet else worker.poll() is None
                     assert running, "Desktop CPU miner stopped before finding a block"
+                    if second_worker:
+                        assert second_worker.poll() is None, "Parallel CPU worker stopped unexpectedly"
                     log_tail = (work / "miningcore.log").read_text(errors="replace").splitlines()[-40:]
                     failures = [line for line in log_tail if "submission failed with:" in line]
                     assert not failures, failures[-1] if failures else ""
-                    return node.rpc("getblockcount") >= 26
+                    if node.rpc("getblockcount") < 26:
+                        return False
+                    if not second_worker:
+                        return True
+                    return sql(
+                        "SELECT count(DISTINCT worker) FROM shares "
+                        "WHERE worker IN ('agrarian-qt-cpu', 'agrarian-qt-gpu')"
+                    ) == "2"
 
                 wait_for(found_block, timeout=600)
             finally:
@@ -328,6 +341,8 @@ def run(args, work):
                     desktop.stop()
                 else:
                     stop(worker)
+                    if second_worker:
+                        stop(second_worker)
             if args.qt_wallet:
                 desktop.start()
                 desktop.close()
@@ -338,8 +353,19 @@ def run(args, work):
             worker_name = "agrarian-qt"
             if args.first_party_worker:
                 worker_name += "-gpu" if args.software_opencl_kernel else "-cpu"
+            if args.simultaneous:
+                # Both workers are started with the same disposable payout
+                # address; verify the stored shares reflect that.
+                assert sql(
+                    "SELECT count(DISTINCT miner) FROM shares "
+                    "WHERE worker IN ('agrarian-qt-cpu', 'agrarian-qt-gpu')"
+                ) == "1"
+                print("Simultaneous CPU and software OpenCL sessions both submitted accepted shares "
+                      "to the same disposable payout address.", flush=True)
             wait_for(lambda: int(sql(
-                f"SELECT count(*) FROM shares WHERE blockheight = 26 AND worker = '{worker_name}'"
+                "SELECT count(*) FROM shares WHERE blockheight = 26 AND " +
+                ("worker IN ('agrarian-qt-cpu', 'agrarian-qt-gpu')" if args.simultaneous else
+                 f"worker = '{worker_name}'")
             )) > 0)
         else:
             block = mine_one(stratum_port, miner_address, helper, node, 26,
@@ -375,6 +401,8 @@ def main():
     workers.add_argument("--first-party-worker", type=Path, help="use the Agrarian loopback-only worker")
     parser.add_argument("--software-opencl-kernel", type=Path,
                         help="exercise the first-party worker using a CPU OpenCL driver (QA only)")
+    parser.add_argument("--simultaneous", action="store_true",
+                        help="run CPU and software OpenCL workers against the same regtest pool and wallet")
     parser.add_argument("--core-bin", type=Path, help="directory containing the daemon and CLI to test")
     parser.add_argument("--qt-wallet", type=Path, help="start and stop the installed miner through Qt on a private X11 display")
     parser.add_argument("--qt-failure-image", type=Path, help="write an optional screenshot of the disposable wallet if the test fails")
@@ -392,6 +420,8 @@ def main():
         parser.error("--cpuminer must be the Qt wallet's bundled helper")
     if args.software_opencl_kernel and not args.first_party_worker:
         parser.error("--software-opencl-kernel requires --first-party-worker")
+    if args.simultaneous and (not args.software_opencl_kernel or args.qt_wallet):
+        parser.error("--simultaneous requires the first-party software OpenCL fixture without Qt")
     digest = hashlib.sha256(args.miningcore.read_bytes()).hexdigest()
     print(f"Staging Miningcore binary SHA256: {digest}", flush=True)
     with tempfile.TemporaryDirectory(prefix="agrarian-miningcore-") as directory:
@@ -399,7 +429,8 @@ def main():
         try:
             run(args, work)
         except Exception:
-            for name in ("postgres.log", "miningcore.log", "cpuminer.log", "node/regtest/debug.log", "peer/regtest/debug.log"):
+            for name in ("postgres.log", "miningcore.log", "cpuminer.log", "cpu-parallel.log",
+                         "node/regtest/debug.log", "peer/regtest/debug.log"):
                 log = work / name
                 if log.exists():
                     print(f"--- {name} ---")

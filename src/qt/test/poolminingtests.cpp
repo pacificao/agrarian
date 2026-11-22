@@ -6,6 +6,7 @@
 #include "util.h"
 
 #include <QPlainTextEdit>
+#include <QCheckBox>
 #include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
@@ -67,6 +68,37 @@ private Q_SLOTS:
         log->ensurePolished();
         QCOMPARE(log->palette().color(QPalette::Base), QColor(QStringLiteral("#111827")));
         QCOMPARE(log->palette().color(QPalette::Text), QColor(QStringLiteral("#f3f4f6")));
+    }
+
+    void previewAllowsIndependentCpuAndGpuSelections()
+    {
+        SelectParams(CBaseChainParams::REGTEST);
+        mapArgs["-regtestpoolminingport"] = "16423";
+        mapArgs["-regtestfirstpartypoolminer"] = "1";
+        bool independent = false;
+        QStringList cpuArgs, gpuArgs;
+        {
+            PoolMiningDialog page;
+            page.show();
+            auto* cpu = page.findChild<QCheckBox*>(QStringLiteral("mineWithCpu"));
+            auto* gpu = page.findChild<QCheckBox*>(QStringLiteral("mineWithGpu"));
+            if (cpu && gpu && cpu->isVisible() && gpu->isVisible() && cpu->isChecked() && !gpu->isChecked()) {
+                gpu->setChecked(true);
+                independent = cpu->isChecked() && gpu->isChecked() && !page.isMining();
+            }
+            cpuArgs = PoolMiningDialog::firstPartyArguments("payout", false, {});
+            gpuArgs = PoolMiningDialog::firstPartyArguments("payout", true, "/pinned/quark-screen.cl");
+        }
+        SelectParams(CBaseChainParams::MAIN);
+        const bool mainnet = PoolMiningDialog::firstPartyPreview();
+        const auto blockedArgs = PoolMiningDialog::firstPartyArguments("payout", true, "/pinned/quark-screen.cl");
+        mapArgs.erase("-regtestpoolminingport");
+        mapArgs.erase("-regtestfirstpartypoolminer");
+        QVERIFY(independent);
+        QVERIFY(!mainnet);
+        QVERIFY(blockedArgs.isEmpty());
+        QCOMPARE(cpuArgs, (QStringList{"--regtest-loopback", "16423", "payout"}));
+        QCOMPARE(gpuArgs, (QStringList{"--regtest-opencl", "16423", "payout", "/pinned/quark-screen.cl"}));
     }
 };
 
