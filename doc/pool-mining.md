@@ -13,9 +13,9 @@ quitting Agrarian Core stops the local miner. Accepted shares are not payouts.
 
 ## Packaging and release gates
 
-The preview does not download or install miners. It expects a separately
-reviewed Quark-capable `cpuminer` or `cpuminer.exe` under `miners/` next to
-`agrarian-qt`. The source release does not bundle that helper. For a
+The wallet does not download or install miners at runtime. Desktop candidates
+build a Quark-capable `cpuminer` or `cpuminer.exe` under `miners/` next to
+`agrarian-qt`. The source release does not bundle a compiled helper. For a
 disposable Linux package, install the compiler and development libraries
 (`autoconf automake libtool build-essential pkg-config libcurl4-openssl-dev
 libssl-dev libjansson-dev zlib1g-dev` on Ubuntu), then run:
@@ -25,11 +25,11 @@ bash contrib/build-desktop-pool-miner.sh /path/to/staging/agrarian/bin
 ```
 
 The script checks a pinned archive, builds locally, and keeps the original
-source archive and license beside the helper. It never starts mining. Before a
-one-click release, build it from reviewed, pinned source, include its license
-and corresponding source with any distributed binary, and smoke-test the exact
-Windows and Ubuntu packages. The [pool's current miner](https://github.com/tpruvot/cpuminer-multi)
-is a starting point, not an approval of its existing upstream binaries.
+source archive and license beside the helper. It never starts mining. The
+Windows cross-build uses the existing wallet depends prefix for OpenSSL and
+zlib and a pinned static [curl](https://curl.se/docs/install.html) build.
+Smoke-test the exact Windows and Ubuntu packages before release; do not ship
+precompiled miners from the [upstream project](https://github.com/tpruvot/cpuminer-multi).
 
 Verify startup, disconnect/reconnect, accepted/rejected shares, clean shutdown
 and payout credit on an isolated test pool. Use a disposable wallet, check it
@@ -50,8 +50,11 @@ python3 -B test/functional/miningcore_staging.py \
 Run it as an unprivileged user in a network namespace with only loopback.
 It generates disposable wallet data, verifies the worker's accepted share
 and block, stops the worker, and checks that the separate wallet receives
-test AGR. It does not test the Windows installer or the wallet window's
-start/stop buttons.
+test AGR. On Linux, add `--qt-wallet /path/to/staging/agrarian/bin/agrarian-qt`
+and run under a private X11 display (for example, `xvfb-run -a`) with
+`xdotool` installed to exercise the wallet's start, stop, and close controls.
+This uses a regtest-only pool URL restricted to loopback; the production pool
+address cannot be overridden. The Windows installer is tested separately.
 
 ## GPU target: 2.1.3
 

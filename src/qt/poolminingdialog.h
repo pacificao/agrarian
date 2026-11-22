@@ -22,6 +22,7 @@ public:
 
     void setWallet(WalletModel* model);
     bool isMining() const;
+    static QString poolEndpoint();
     static QStringList minerArguments(const QString& payout, int threads);
 
 protected:

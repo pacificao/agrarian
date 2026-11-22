@@ -547,7 +547,7 @@ void BitcoinGUI::createMenuBar()
 
     if (walletFrame) {
         QMenu* mining = appMenuBar->addMenu(tr("&Mining"));
-        if (Params().NetworkID() == CBaseChainParams::MAIN)
+        if (!PoolMiningDialog::poolEndpoint().isEmpty())
             mining->addAction(poolMiningAction);
         mining->addAction(toggleMiningAction);
         mining->addSeparator();
@@ -866,7 +866,7 @@ void BitcoinGUI::toggleMining()
 
 void BitcoinGUI::showPoolMining()
 {
-    if (!walletFrame || Params().NetworkID() != CBaseChainParams::MAIN)
+    if (!walletFrame || PoolMiningDialog::poolEndpoint().isEmpty())
         return;
     if (!poolMiningDialog)
         poolMiningDialog = new PoolMiningDialog(this);

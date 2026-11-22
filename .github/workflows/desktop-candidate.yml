@@ -29,7 +29,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config autoconf automake libtool bsdmainutils \
-            curl cmake ninja-build unzip xz-utils bzip2 \
+            curl cmake ninja-build unzip xz-utils bzip2 libcurl4-openssl-dev libssl-dev \
             libfontconfig1-dev libfreetype-dev libharfbuzz-dev libbrotli-dev libbz2-dev \
             libexpat1-dev libglib2.0-dev libgraphite2-dev libpng-dev zlib1g-dev \
             libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-icccm4-dev \
@@ -51,7 +51,10 @@ jobs:
           cd "$build_dir"
           if [[ "$PLATFORM" == windows ]]; then
             ./contrib/build-win64-wallet.sh
-            make deploy
+            mkdir -p release
+            HOST=x86_64-w64-mingw32 MINGW_DEPENDS="$PWD/depends/x86_64-w64-mingw32" \
+              MINGW_SOURCES="$PWD/depends/sources" bash contrib/build-desktop-pool-miner.sh release
+            make deploy WITH_POOL_MINER=1
             installers=(agrarian-*-win64-setup.exe)
             [[ ${#installers[@]} == 1 && -s "${installers[0]}" ]]
             install -m 755 "${installers[0]}" "$RUNNER_TEMP/packages/"
@@ -63,6 +66,8 @@ jobs:
             install -m 755 src/agrariand src/agrarian-cli src/agrarian-tx "$stage_dir/agrarian/bin/"
             install -m 644 COPYING "$stage_dir/agrarian/"
             strip "$stage_dir"/agrarian/bin/*
+            bash contrib/build-desktop-pool-miner.sh "$stage_dir/agrarian/bin"
+            strip "$stage_dir/agrarian/bin/miners/cpuminer"
             tar -C "$stage_dir" -czf "$RUNNER_TEMP/packages/agrarian-ubuntu-24.04-x64.tar.gz" agrarian
             file src/qt/agrarian-qt src/agrariand
           fi
@@ -98,13 +103,16 @@ jobs:
             -v "$GITHUB_WORKSPACE/test/functional/desktop_package_smoke.py:/smoke.py:ro" ubuntu:24.04 bash -euxc '
             apt-get update
             apt-get install -y --no-install-recommends python3 xvfb xauth ca-certificates \
-              fonts-dejavu-core libegl1 libgl1 libfontconfig1 libfreetype6 libharfbuzz0b \
+              fonts-dejavu-core libegl1 libgl1 libfontconfig1 libfreetype6 libharfbuzz0b libcurl4t64 \
               libglib2.0-0t64 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
               libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 \
               libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 libx11-xcb1 libxi6 libxrender1
             cd /tmp
             tar -xzf /package/agrarian-ubuntu-24.04-x64.tar.gz
             ldd agrarian/bin/agrarian-qt
+            test -s agrarian/bin/miners/COPYING
+            test -s agrarian/bin/miners/cpuminer-multi-d2927ed23b1d0eacd067c320fce64e6610737adb.tar.gz
+            runuser -u nobody -- agrarian/bin/miners/cpuminer --version
             runuser -u nobody -- xvfb-run -a python3 /smoke.py --qt agrarian/bin/agrarian-qt --daemon agrarian/bin/agrariand
           '
 
@@ -134,6 +142,12 @@ jobs:
           if (Test-Path -LiteralPath $destination) { throw 'Install location is not clean' }
           $result = Start-Process -FilePath $installers[0].FullName -ArgumentList "/S /D=$destination" -Wait -PassThru
           if ($result.ExitCode -ne 0) { throw "Installer exit code $($result.ExitCode)" }
+          $miner = Join-Path $destination 'miners/cpuminer.exe'
+          if (!(Test-Path -LiteralPath $miner -PathType Leaf)) { throw 'Bundled CPU miner missing' }
+          $source = Join-Path $destination 'miners/cpuminer-multi-d2927ed23b1d0eacd067c320fce64e6610737adb.tar.gz'
+          if ((Get-FileHash -LiteralPath $source).Hash -ine '3ab898b2f1c87414e3ec16df7f0a0b53f82d5b11930852c963812c5bd9ff4d48') { throw 'Miner source hash mismatch' }
+          $minerVersion = Start-Process -FilePath $miner -ArgumentList '--version' -Wait -PassThru
+          if ($minerVersion.ExitCode -ne 0) { throw "Bundled CPU miner exit code $($minerVersion.ExitCode)" }
           python "$env:GITHUB_WORKSPACE/test/functional/desktop_package_smoke.py" `
             --qt "$destination/agrarian-qt.exe" --daemon "$destination/daemon/agrariand.exe"
           if ($LASTEXITCODE -ne 0) { throw 'Installed wallet smoke test failed' }

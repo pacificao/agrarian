@@ -84,6 +84,16 @@ Section -Main SEC0000
     SetOutPath $INSTDIR\daemon
     File @abs_top_srcdir@/release/@BITCOIN_DAEMON_NAME@@EXEEXT@
     File @abs_top_srcdir@/release/@BITCOIN_CLI_NAME@@EXEEXT@
+!ifdef WITH_POOL_MINER
+    SetOutPath $INSTDIR\miners
+    File "@abs_top_srcdir@/release/miners/cpuminer.exe"
+    File "@abs_top_srcdir@/release/miners/COPYING"
+    File "@abs_top_srcdir@/release/miners/COPYING-curl"
+    File "@abs_top_srcdir@/release/miners/cpuminer-multi-*.tar.gz"
+    File "@abs_top_srcdir@/release/miners/curl-*.tar.xz"
+    File "@abs_top_srcdir@/release/miners/openssl-*.tar.gz"
+    File "@abs_top_srcdir@/release/miners/zlib-*.tar.gz"
+!endif
     SetOutPath $INSTDIR\doc
     File /r @abs_top_srcdir@/doc\*.*
     SetOutPath $INSTDIR
@@ -134,6 +144,16 @@ Section /o -un.Main UNSEC0000
     Delete /REBOOTOK $INSTDIR\readme.txt
     RMDir /r /REBOOTOK $INSTDIR\daemon
     RMDir /r /REBOOTOK $INSTDIR\doc
+!ifdef WITH_POOL_MINER
+    Delete /REBOOTOK "$INSTDIR\miners\cpuminer.exe"
+    Delete /REBOOTOK "$INSTDIR\miners\COPYING"
+    Delete /REBOOTOK "$INSTDIR\miners\COPYING-curl"
+    Delete /REBOOTOK "$INSTDIR\miners\cpuminer-multi-*.tar.gz"
+    Delete /REBOOTOK "$INSTDIR\miners\curl-*.tar.xz"
+    Delete /REBOOTOK "$INSTDIR\miners\openssl-*.tar.gz"
+    Delete /REBOOTOK "$INSTDIR\miners\zlib-*.tar.gz"
+    RMDir "$INSTDIR\miners"
+!endif
     DeleteRegValue HKCU "${REGKEY}\Components" Main
 SectionEnd
 

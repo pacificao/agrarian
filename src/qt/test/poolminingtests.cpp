@@ -2,6 +2,9 @@
 
 #include "poolminingdialog.h"
 
+#include "chainparams.h"
+#include "util.h"
+
 #include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
@@ -18,6 +21,23 @@ private Q_SLOTS:
         QCOMPARE(args, (QStringList{"-a", "quark", "-o", "stratum+tcp://alltheacronyms.com:3032",
                                     "-u", "wallet-owned-address.agrarian-qt", "-p", "x",
                                     "-t", "3", "-b", "0"}));
+    }
+
+    void testPoolCanOnlyUseLoopbackOnRegtest()
+    {
+        auto endpoint = [](CBaseChainParams::Network network, const char* port) {
+            SelectParams(network);
+            mapArgs["-regtestpoolminingport"] = port;
+            const auto url = PoolMiningDialog::poolEndpoint();
+            mapArgs.erase("-regtestpoolminingport");
+            SelectParams(CBaseChainParams::MAIN);
+            return url;
+        };
+        QCOMPARE(endpoint(CBaseChainParams::REGTEST, "12345"), QString("stratum+tcp://127.0.0.1:12345"));
+        QVERIFY(endpoint(CBaseChainParams::REGTEST, "65536").isEmpty());
+        QVERIFY(endpoint(CBaseChainParams::REGTEST, "https://example.org").isEmpty());
+        QVERIFY(endpoint(CBaseChainParams::TESTNET, "12345").isEmpty());
+        QCOMPARE(endpoint(CBaseChainParams::MAIN, "12345"), QString("stratum+tcp://alltheacronyms.com:3032"));
     }
 
     void nothingStartsWithoutWalletAndExplicitClick()

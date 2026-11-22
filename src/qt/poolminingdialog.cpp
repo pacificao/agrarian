@@ -32,8 +32,8 @@ constexpr auto threadSetting = "poolMining/cpuThreads";
 PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     process(new QProcess(this)), threadCount(new QSpinBox(this)),
     status(new QLabel(this)), payoutAddress(new QLabel(this)),
-    start(new QPushButton(tr("Start pool mining"), this)),
-    stop(new QPushButton(tr("Stop mining"), this)), output(new QPlainTextEdit(this))
+    start(new QPushButton(tr("&Start pool mining"), this)),
+    stop(new QPushButton(tr("S&top mining"), this)), output(new QPlainTextEdit(this))
 {
     setWindowTitle(tr("All The Acronyms · Pool mining"));
     auto* description = new QLabel(tr("Mine AGR with your CPU and receive pool payouts in this wallet. Mining uses power and produces heat. Payouts depend on pool blocks and are not guaranteed."), this);
@@ -52,7 +52,7 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
 
     auto* form = new QFormLayout(this);
     form->addRow(description);
-    form->addRow(tr("Pool:"), new QLabel(poolUrl, this));
+    form->addRow(tr("Pool:"), new QLabel(poolEndpoint(), this));
     form->addRow(tr("CPU &threads:"), threadCount);
     form->addRow(tr("Payout address:"), payoutAddress);
     form->addRow(support);
@@ -127,13 +127,24 @@ QString PoolMiningDialog::minerPath() const
 QStringList PoolMiningDialog::minerArguments(const QString& payout, int threads)
 {
     // No shell, no arbitrary command line, and no local miner API listener.
-    return {"-a", "quark", "-o", poolUrl, "-u", payout + ".agrarian-qt",
+    return {"-a", "quark", "-o", poolEndpoint(), "-u", payout + ".agrarian-qt",
             "-p", "x", "-t", QString::number(threads), "-b", "0"};
+}
+
+QString PoolMiningDialog::poolEndpoint()
+{
+    if (Params().NetworkID() == CBaseChainParams::MAIN) return poolUrl;
+    if (Params().NetworkID() != CBaseChainParams::REGTEST) return {};
+    // Installed wallet lifecycle tests can use a disposable local pool.
+    // This cannot redirect the mainnet wallet or use an external hostname.
+    const int64_t port = GetArg("-regtestpoolminingport", int64_t{0});
+    return port > 0 && port <= 65535
+        ? QStringLiteral("stratum+tcp://127.0.0.1:%1").arg(port) : QString();
 }
 
 void PoolMiningDialog::startMining()
 {
-    if (!wallet || isMining() || Params().NetworkID() != CBaseChainParams::MAIN)
+    if (!wallet || isMining() || poolEndpoint().isEmpty())
         return;
     if (GetBoolArg("-gen", false)) {
         status->setText(tr("Stop solo mining before starting pool mining."));
@@ -188,7 +199,8 @@ void PoolMiningDialog::updateControls()
 {
     const bool running = isMining();
     const QFileInfo miner(minerPath());
-    start->setEnabled(wallet && !running && miner.isFile() && miner.isExecutable() && !miner.isSymLink());
+    start->setEnabled(wallet && !running && !poolEndpoint().isEmpty() &&
+                      miner.isFile() && miner.isExecutable() && !miner.isSymLink());
     stop->setEnabled(running);
     threadCount->setEnabled(!running);
 }

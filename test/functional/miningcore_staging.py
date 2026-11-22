@@ -10,6 +10,8 @@ import ctypes
 import hashlib
 import json
 import os
+import re
+import shutil
 import socket
 import struct
 import subprocess
@@ -36,6 +38,67 @@ def stop(process):
     except subprocess.TimeoutExpired:
         process.kill()
         process.wait(timeout=10)
+
+
+class DesktopMiner:
+    """Operate the installed Qt wallet on the private X11 display."""
+
+    def __init__(self, wallet, binary):
+        self.wallet = wallet
+        self.binary = binary
+        self.pid = wallet.proc.pid
+        self.main = wait_for(lambda: self.window("Agrarian Core - Wallet"))
+        self.dialog = None
+
+    def xdo(self, *args, check=True):
+        return subprocess.run(["xdotool", *map(str, args)], check=check,
+                              capture_output=True, text=True, timeout=5)
+
+    def window(self, title):
+        result = self.xdo("search", "--all", "--onlyvisible", "--pid", self.pid,
+                          "--name", title, check=False)
+        windows = result.stdout.splitlines()
+        return windows[0] if windows else None
+
+    def helpers(self):
+        children = Path(f"/proc/{self.pid}/task/{self.pid}/children").read_text().split()
+        result = []
+        for child in children:
+            try:
+                if Path(f"/proc/{child}/exe").resolve(strict=True) == self.binary:
+                    result.append(int(child))
+            except FileNotFoundError:
+                continue
+        return result
+
+    def keys(self, window, *keys):
+        self.xdo("windowfocus", "--sync", window, "key", "--clearmodifiers", *keys)
+
+    def button(self, x):
+        # The test uses the stock English dialog at 1x scale. Click instead
+        # of sending Alt+S, which the main wallet's Settings menu also uses.
+        geometry = subprocess.check_output(["xwininfo", "-id", self.dialog], text=True, timeout=5)
+        left = int(re.search(r"Absolute upper-left X:\s+(-?\d+)", geometry)[1])
+        top = int(re.search(r"Absolute upper-left Y:\s+(-?\d+)", geometry)[1])
+        self.xdo("windowfocus", "--sync", self.dialog, "mousemove", left + x, top + 162)
+        self.xdo("click", 1)
+
+    def start(self):
+        if not self.dialog:
+            assert not self.helpers(), "Miner started before opening the menu"
+            self.keys(self.main, "alt+m", "a")
+            self.dialog = wait_for(lambda: self.window("All The Acronyms"), timeout=8)
+            assert not self.helpers(), "Opening mining settings auto-started the worker"
+        self.button(100)
+        return wait_for(lambda: next(iter(self.helpers()), None), timeout=15)
+
+    def stop(self):
+        self.button(390)
+        wait_for(lambda: not self.helpers(), timeout=8)
+
+    def close(self):
+        self.keys(self.dialog, "Escape")
+        wait_for(lambda: not self.helpers() and not self.window("All The Acronyms"), timeout=8)
 
 
 def miningcore_quark(multihash, header):
@@ -159,12 +222,16 @@ def run(args, work):
         if args.core_bin:
             binaries = {"daemon": [str(args.core_bin / "agrariand")], "cli": args.core_bin / "agrarian-cli"}
         node = Node(work / "node", network="regtest", **binaries)
-        peer = Node(work / "peer", network="regtest", **binaries)
+        peer_binaries = binaries
+        if args.qt_wallet:
+            peer_binaries = {**binaries, "daemon": [str(args.qt_wallet), "-choosedatadir=0", "-lang=en"]}
+        peer = Node(work / "peer", network="regtest", **peer_binaries)
         resources.callback(node.stop)
         resources.callback(peer.stop)
         flags = ("-regtestsplitdifficultyheight=26",) if args.split_difficulty else ()
         node.start(staking=False, extra=flags)
-        peer.start(staking=False, extra=flags)
+        qt_flags = (f"-regtestpoolminingport={stratum_port}",) if args.qt_wallet else ()
+        peer.start(staking=False, extra=flags + qt_flags)
         peer.connect(node)
         node.rpc("generate", 25)
         wait_for(lambda: peer.rpc("getblockcount") == 25)
@@ -176,7 +243,7 @@ def run(args, work):
             template_bits = node.rpc("getblocktemplate")["bits"]
             assert template_bits == scheduled["next_pow_bits"]
         pool_address = node.rpc("getnewaddress", raw=True)
-        miner_address = peer.rpc("getnewaddress", raw=True)
+        miner_address = None if args.qt_wallet else peer.rpc("getnewaddress", raw=True)
         if not args.cpuminer:
             helper = work / "pow"
             build_solver(helper)
@@ -220,13 +287,30 @@ def run(args, work):
         if args.cpuminer:
             # The real desktop worker is deliberately scoped to a single
             # local Stratum endpoint in a network namespace with no egress.
-            worker = launch([str(args.cpuminer), "-a", "quark", "-o",
-                             f"stratum+tcp://127.0.0.1:{stratum_port}",
-                             "-u", miner_address + ".agrarian-qt", "-p", "x",
-                             "-t", "1", "-b", "0"], "cpuminer.log")
+            if args.qt_wallet:
+                desktop = DesktopMiner(peer, args.cpuminer)
+                try:
+                    worker = desktop.start()
+                except AssertionError:
+                    if args.qt_failure_image and shutil.which("import"):
+                        subprocess.run(["import", "-window", "root", str(args.qt_failure_image)], timeout=8)
+                    raise
+                assert desktop.helpers() == [worker]
+                cmdline = Path(f"/proc/{worker}/cmdline").read_bytes().decode().split("\0")[:-1]
+                assert cmdline[1:6] == ["-a", "quark", "-o", f"stratum+tcp://127.0.0.1:{stratum_port}", "-u"]
+                assert cmdline[7:] == ["-p", "x", "-t", "1", "-b", "0"]
+                miner_address, suffix = cmdline[6].split(".")
+                assert suffix == "agrarian-qt"
+                assert peer.rpc("validateaddress", miner_address)["ismine"]
+            else:
+                worker = launch([str(args.cpuminer), "-a", "quark", "-o",
+                                 f"stratum+tcp://127.0.0.1:{stratum_port}",
+                                 "-u", miner_address + ".agrarian-qt", "-p", "x",
+                                 "-t", "1", "-b", "0"], "cpuminer.log")
             try:
                 def found_block():
-                    assert worker.poll() is None, "Desktop CPU miner stopped before finding a block"
+                    running = worker in desktop.helpers() if args.qt_wallet else worker.poll() is None
+                    assert running, "Desktop CPU miner stopped before finding a block"
                     log_tail = (work / "miningcore.log").read_text(errors="replace").splitlines()[-40:]
                     failures = [line for line in log_tail if "submission failed with:" in line]
                     assert not failures, failures[-1] if failures else ""
@@ -234,8 +318,16 @@ def run(args, work):
 
                 wait_for(found_block, timeout=600)
             finally:
-                stop(worker)
-            assert worker.poll() is not None, "Desktop CPU miner did not stop"
+                if args.qt_wallet:
+                    desktop.stop()
+                else:
+                    stop(worker)
+            if args.qt_wallet:
+                desktop.start()
+                desktop.close()
+                print("Qt start, stop, close, default threads and wallet-owned payout address verified", flush=True)
+            else:
+                assert worker.poll() is not None, "Desktop CPU miner did not stop"
             block = node.rpc("getblockhash", 26, raw=True)
             wait_for(lambda: int(sql(
                 "SELECT count(*) FROM shares WHERE blockheight = 26 AND worker = 'agrarian-qt'"
@@ -271,14 +363,20 @@ def main():
     parser.add_argument("--split-difficulty", action="store_true", help="mine and pay out the staged regtest activation block")
     parser.add_argument("--cpuminer", type=Path, help="use the bundled desktop CPU miner instead of the test solver")
     parser.add_argument("--core-bin", type=Path, help="directory containing the daemon and CLI to test")
+    parser.add_argument("--qt-wallet", type=Path, help="start and stop the installed miner through Qt on a private X11 display")
+    parser.add_argument("--qt-failure-image", type=Path, help="write an optional screenshot of the disposable wallet if the test fails")
     args = parser.parse_args()
     if {name for _, name in socket.if_nameindex()} != {"lo"}:
         parser.error("run this test in a loopback-only network namespace")
     for key in ("dotnet", "miningcore", "pg_bin", "schema"):
         setattr(args, key, getattr(args, key).resolve(strict=True))
-    for key in ("cpuminer", "core_bin"):
+    for key in ("cpuminer", "core_bin", "qt_wallet"):
         if getattr(args, key):
             setattr(args, key, getattr(args, key).resolve(strict=True))
+    if args.qt_wallet and (not args.core_bin or not args.cpuminer or not os.environ.get("DISPLAY")):
+        parser.error("--qt-wallet requires --core-bin, --cpuminer, and a private X11 display")
+    if args.qt_wallet and args.cpuminer != args.qt_wallet.parent / "miners/cpuminer":
+        parser.error("--cpuminer must be the Qt wallet's bundled helper")
     digest = hashlib.sha256(args.miningcore.read_bytes()).hexdigest()
     print(f"Staging Miningcore binary SHA256: {digest}", flush=True)
     with tempfile.TemporaryDirectory(prefix="agrarian-miningcore-") as directory:
