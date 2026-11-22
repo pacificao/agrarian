@@ -67,6 +67,8 @@ def run(binary, listener, context, expected):
 
 def main(binary):
     hostname = "alltheacronyms.com"
+    if not Path("/.dockerenv").exists():
+        raise SystemExit("Refusing to update the CA store outside a disposable Docker container")
     active = {name for _, name in socket.if_nameindex()
               if int((Path("/sys/class/net") / name / "flags").read_text(), 16) & 1}
     if active != {"lo"} or socket.gethostbyname(hostname) != "127.0.0.1":
