@@ -8,7 +8,7 @@ receives a public payout address, an explicit CPU/GPU choice, a bounded
 workload and a stop signal. It does not use the wallet RPC, read wallet files,
 or start without the user's action.
 
-This branch has a loopback-only pool client, not a release candidate:
+This branch prepares a desktop candidate; it is not a published release:
 
 - `src/poolwork.h` builds Agrarian's 80-byte Quark work header from the pool's
   previous hash, coinbase and Merkle branches. It scans bounded CPU batches
@@ -17,14 +17,14 @@ This branch has a loopback-only pool client, not a release candidate:
   network target in the block header.
 - `src/qt/poolframes.h` classifies only bounded Stratum frames and ignores
   server redirects and other unsolicited commands.
-- `src/qt/agrarian_pool_worker.cpp` subscribes and authorizes against
-  loopback, bounds unread data and job fields, correlates replies and
-  submits Quark work. CPU work is still single-threaded in this prototype.
-  It cannot accept any public pool URL and does not ship in release packages.
+- `src/qt/agrarian_pool_worker.cpp` subscribes, authorizes, and submits
+  Quark work. Regtest uses loopback. Mainnet requires verified TLS 1.2+
+  to the fixed All The Acronyms endpoint; there is no plaintext fallback or
+  caller-provided host. CPU work is currently single-threaded.
 - `src/qt/poolopencl.h` loads OpenCL only in an explicitly selected mode,
   verifies the pinned kernel, qualifies devices against Core, then rehashes
   candidates on the CPU before passing them to the same Stratum client.
-- The regtest-only wallet preview offers independent CPU and GPU switches.
+- The wallet offers independent CPU and GPU switches.
   Both can run at once using one payout address and separate pool connections
   and worker names. The shared log uses explicit near-white text on a dark
   background and labels each line `[CPU]` or `[GPU]`.
@@ -57,13 +57,14 @@ For block/payout integration use `test/functional/miningcore_staging.py
 network namespace. `--software-opencl-kernel` exercises the same worker
 with a QA-only software driver; it cannot certify real GPUs. Add
 `--simultaneous` to require accepted shares from both worker names for the
-same payout address, chain agreement, and a confirmed test payout.
+same payout address, chain agreement, and a confirmed test payout. Use
+`--hardware-opencl-kernel` instead of `--software-opencl-kernel` to require
+a physical GPU.
 
 ## Before a release
 
-1. Implement the production connection and integrate the worker lifecycle, with no redirects,
-   no remote control listener, no external configuration or auto-downloads, and
-   a fixed production pool destination. Use loopback only for regtest fixtures.
+1. Validate the fixed production TLS endpoint and certificate renewal. Leave
+   the existing plaintext listener unchanged for other mining clients.
 2. Qualify the integrated OpenCL path on real NVIDIA and AMD hardware. Keep
    CPU mode available without silently starting it when the GPU cannot run.
 3. Test CPU and GPU shares, block and payout, reconnect and stale work, shutdown,

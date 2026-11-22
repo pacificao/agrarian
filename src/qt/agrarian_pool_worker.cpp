@@ -1,7 +1,9 @@
 // Copyright (c) The Agrarian developers
 // Distributed under the MIT software license, see COPYING.
-// First-party pool worker prototype. This executable only connects to regtest
-// loopback; it is not yet installed or exposed by the production wallet.
+#ifdef HAVE_CONFIG_H
+#include "config/agrarian-config.h"
+#endif
+#include "pooldestination.h"
 #include "poolframes.h"
 #include "poolopencl.h"
 #include "poolwork.h"
@@ -13,7 +15,11 @@
 #include <QHostAddress>
 #include <QJsonArray>
 #include <QNetworkProxy>
-#include <QTcpSocket>
+#include <QSslSocket>
+#if defined(QT_STATICPLUGIN) && defined(QT_TLS_OPENSSL)
+#include <QtPlugin>
+Q_IMPORT_PLUGIN(QTlsBackendOpenSSL);
+#endif
 
 #include <boost/multiprecision/cpp_int.hpp>
 #include <cmath>
@@ -103,13 +109,21 @@ public:
         : worker(std::move(payout) + (gpu ? QStringLiteral(".agrarian-qt-gpu") :
                                            QStringLiteral(".agrarian-qt-cpu"))), scanner(gpu) {}
 
-    void Run(quint16 port)
+    void Run(quint16 port, bool mainnet)
     {
         socket.setProxy(QNetworkProxy::NoProxy);
         socket.setReadBufferSize(poolframes::kMaxFrameBytes + 2);
-        socket.connectToHost(QHostAddress::LocalHost, port);
-        Require(socket.waitForConnected(5000), "Cannot connect to the local test pool");
-        Send(1, "mining.subscribe", {"Agrarian-FirstParty/0.1"});
+        if (mainnet) {
+            Require(QSslSocket::supportsSsl(), "TLS backend unavailable; no mining connection was made");
+            socket.setProtocol(QSsl::TlsV1_2OrLater);
+            socket.setPeerVerifyMode(QSslSocket::VerifyPeer);
+            socket.connectToHostEncrypted(QString::fromLatin1(pooldestination::kHost), pooldestination::kTlsPort);
+            Require(socket.waitForEncrypted(10000), "Cannot establish a verified TLS connection to the Agrarian pool");
+        } else {
+            socket.connectToHost(QHostAddress::LocalHost, port);
+            Require(socket.waitForConnected(5000), "Cannot connect to the local test pool");
+        }
+        Send(1, "mining.subscribe", {"Agrarian-FirstParty/2.1.3"});
         sinceLastFrame.start();
 
         while (socket.state() == QAbstractSocket::ConnectedState) {
@@ -137,11 +151,11 @@ public:
                 socket.waitForReadyRead(200);
             }
         }
-        throw std::runtime_error("Local test pool disconnected");
+        throw std::runtime_error("Pool disconnected");
     }
 
 private:
-    QTcpSocket socket;
+    QSslSocket socket;
     const QString worker;
     poolopencl::Scanner* const scanner;
     QElapsedTimer sinceLastFrame;
@@ -269,16 +283,21 @@ int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
     const auto args = app.arguments();
-    const bool gpu = args.size() == 5 && args[1] == QStringLiteral("--regtest-opencl");
+    const bool mainCpu = args.size() == 3 && args[1] == QStringLiteral("--pool-cpu");
+    const bool mainGpu = args.size() == 4 && args[1] == QStringLiteral("--pool-gpu");
+    const bool mainnet = mainCpu || mainGpu;
+    const bool gpu = mainGpu || (args.size() == 5 && args[1] == QStringLiteral("--regtest-opencl"));
     const bool software = args.size() == 5 && args[1] == QStringLiteral("--regtest-opencl-software");
-    if (!gpu && !software && (args.size() != 4 || args[1] != QStringLiteral("--regtest-loopback"))) {
-        std::fputs("Usage: agrarian-pool-worker --regtest-loopback PORT PUBLIC_PAYOUT\n"
+    if (!mainnet && !gpu && !software && (args.size() != 4 || args[1] != QStringLiteral("--regtest-loopback"))) {
+        std::fputs("Usage: agrarian-pool-worker --pool-cpu PUBLIC_PAYOUT\n"
+                   "       agrarian-pool-worker --pool-gpu PUBLIC_PAYOUT PINNED_KERNEL\n"
+                   "       agrarian-pool-worker --regtest-loopback PORT PUBLIC_PAYOUT\n"
                    "       agrarian-pool-worker --regtest-opencl PORT PUBLIC_PAYOUT PINNED_KERNEL\n", stderr);
         return 2;
     }
-    bool ok = false;
-    const auto port = args[2].toUShort(&ok);
-    const auto payout = args[3];
+    bool ok = mainnet;
+    const auto port = mainnet ? quint16(pooldestination::kTlsPort) : args[2].toUShort(&ok);
+    const auto payout = args[mainnet ? 2 : 3];
     const QString alphabet = QStringLiteral("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz");
     if (!ok || !port || payout.size() < 26 || payout.size() > 40 ||
         !std::all_of(payout.begin(), payout.end(), [&](QChar c) { return alphabet.contains(c); }))
@@ -286,7 +305,7 @@ int main(int argc, char** argv)
     try {
         std::unique_ptr<poolopencl::Scanner> scanner;
         if (gpu || software) {
-            QFile kernel(args[4]);
+            QFile kernel(args[mainnet ? 3 : 4]);
             Require(kernel.open(QIODevice::ReadOnly), "Cannot read the staged OpenCL kernel");
             Require(kernel.size() == 186550, "Unexpected OpenCL kernel size");
             const auto data = kernel.read(186551);
@@ -297,7 +316,7 @@ int main(int argc, char** argv)
             std::puts(software ? "Software OpenCL self-test passed (regtest only)" : "GPU Quark self-test passed");
             std::fflush(stdout);
         }
-        Worker(payout, scanner.get()).Run(port);
+        Worker(payout, scanner.get()).Run(port, mainnet);
     } catch (const std::exception& error) {
         std::fprintf(stderr, "%s\n", error.what());
         return 1;

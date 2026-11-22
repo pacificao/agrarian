@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify security boundaries of the first-party loopback-only Stratum worker."""
+"""Verify fixed-destination and loopback Stratum security boundaries."""
 
 import json
 import socket
@@ -49,6 +49,9 @@ def main(binary):
     for mode in ("--mainnet", "--url", "--connect"):
         process = subprocess.run([str(binary), mode, "3032", FIXTURE], capture_output=True, timeout=5)
         assert process.returncode == 2 and b"Usage:" in process.stderr
+    process = subprocess.run([str(binary), "--pool-cpu", FIXTURE, "https://invalid.invalid"],
+                             capture_output=True, timeout=5)
+    assert process.returncode == 2 and b"Usage:" in process.stderr
 
     with tempfile.TemporaryDirectory(prefix="agrarian-pool-kernel-") as directory:
         corrupt = Path(directory) / "corrupt.cl"
@@ -86,7 +89,7 @@ def main(binary):
         stdout, stderr = process.communicate(timeout=5)
         assert process.returncode == 1 and b"Oversized incomplete pool frame" in stderr and not stdout
 
-    print("First-party worker refused production arguments and an altered kernel, "
+    print("First-party worker refused arbitrary endpoints and an altered kernel, "
           "ignored a redirect, rejected unauthorized work, and bounded incomplete packets.")
 
 

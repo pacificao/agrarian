@@ -9,7 +9,6 @@
 #include <QCheckBox>
 #include <QPushButton>
 #include <QSettings>
-#include <QSpinBox>
 #include <QTest>
 
 class PoolMiningTests : public QObject
@@ -19,10 +18,8 @@ class PoolMiningTests : public QObject
 private Q_SLOTS:
     void fixedPoolAndNoMinerApi()
     {
-        const auto args = PoolMiningDialog::minerArguments("wallet-owned-address", 3);
-        QCOMPARE(args, (QStringList{"-a", "quark", "-o", "stratum+tcp://alltheacronyms.com:3032",
-                                    "-u", "wallet-owned-address.agrarian-qt", "-p", "x",
-                                    "-t", "3", "-b", "0"}));
+        QCOMPARE(PoolMiningDialog::firstPartyArguments("wallet-owned-address", false, {}),
+                 (QStringList{"--pool-cpu", "wallet-owned-address"}));
     }
 
     void testPoolCanOnlyUseLoopbackOnRegtest()
@@ -39,18 +36,13 @@ private Q_SLOTS:
         QVERIFY(endpoint(CBaseChainParams::REGTEST, "65536").isEmpty());
         QVERIFY(endpoint(CBaseChainParams::REGTEST, "https://example.org").isEmpty());
         QVERIFY(endpoint(CBaseChainParams::TESTNET, "12345").isEmpty());
-        QCOMPARE(endpoint(CBaseChainParams::MAIN, "12345"), QString("stratum+tcp://alltheacronyms.com:3032"));
+        QCOMPARE(endpoint(CBaseChainParams::MAIN, "12345"), QString("stratum+tls://alltheacronyms.com:3033"));
     }
 
     void nothingStartsWithoutWalletAndExplicitClick()
     {
-        QSettings settings;
-        settings.remove("poolMining/cpuThreads");
         PoolMiningDialog page;
         page.show();
-        const auto* threads = page.findChild<QSpinBox*>();
-        QVERIFY(threads);
-        QCOMPARE(threads->value(), 1);
         QVERIFY(!page.isMining());
         for (const auto* button : page.findChildren<QPushButton*>())
             QVERIFY(!button->isEnabled());
@@ -96,7 +88,7 @@ private Q_SLOTS:
         mapArgs.erase("-regtestfirstpartypoolminer");
         QVERIFY(independent);
         QVERIFY(!mainnet);
-        QVERIFY(blockedArgs.isEmpty());
+        QCOMPARE(blockedArgs, (QStringList{"--pool-gpu", "payout", "/pinned/quark-screen.cl"}));
         QCOMPARE(cpuArgs, (QStringList{"--regtest-loopback", "16423", "payout"}));
         QCOMPARE(gpuArgs, (QStringList{"--regtest-opencl", "16423", "payout", "/pinned/quark-screen.cl"}));
     }

@@ -304,10 +304,11 @@ def run(args, work):
                 assert suffix == "agrarian-qt"
                 assert peer.rpc("validateaddress", miner_address)["ismine"]
             elif args.first_party_worker:
-                mode = "--regtest-opencl-software" if args.software_opencl_kernel else "--regtest-loopback"
+                mode = ("--regtest-opencl" if args.hardware_opencl_kernel else
+                        "--regtest-opencl-software" if args.software_opencl_kernel else "--regtest-loopback")
                 command = [str(args.first_party_worker), mode, str(stratum_port), miner_address]
-                if args.software_opencl_kernel:
-                    command.append(str(args.software_opencl_kernel))
+                if kernel := args.hardware_opencl_kernel or args.software_opencl_kernel:
+                    command.append(str(kernel))
                 worker = launch(command, "cpuminer.log")
                 if args.simultaneous:
                     second_worker = launch([str(args.first_party_worker), "--regtest-loopback",
@@ -352,7 +353,7 @@ def run(args, work):
             block = node.rpc("getblockhash", 26, raw=True)
             worker_name = "agrarian-qt"
             if args.first_party_worker:
-                worker_name += "-gpu" if args.software_opencl_kernel else "-cpu"
+                worker_name += "-gpu" if args.hardware_opencl_kernel or args.software_opencl_kernel else "-cpu"
             if args.simultaneous:
                 # Both workers are started with the same disposable payout
                 # address; verify the stored shares reflect that.
@@ -360,7 +361,8 @@ def run(args, work):
                     "SELECT count(DISTINCT miner) FROM shares "
                     "WHERE worker IN ('agrarian-qt-cpu', 'agrarian-qt-gpu')"
                 ) == "1"
-                print("Simultaneous CPU and software OpenCL sessions both submitted accepted shares "
+                driver = "hardware" if args.hardware_opencl_kernel else "software"
+                print(f"Simultaneous CPU and {driver} OpenCL sessions both submitted accepted shares "
                       "to the same disposable payout address.", flush=True)
             wait_for(lambda: int(sql(
                 "SELECT count(*) FROM shares WHERE blockheight = 26 AND " +
@@ -399,10 +401,13 @@ def main():
     workers = parser.add_mutually_exclusive_group()
     workers.add_argument("--cpuminer", type=Path, help="use the bundled desktop CPU miner instead of the test solver")
     workers.add_argument("--first-party-worker", type=Path, help="use the Agrarian loopback-only worker")
-    parser.add_argument("--software-opencl-kernel", type=Path,
-                        help="exercise the first-party worker using a CPU OpenCL driver (QA only)")
+    kernels = parser.add_mutually_exclusive_group()
+    kernels.add_argument("--software-opencl-kernel", type=Path,
+                         help="exercise the first-party worker using a CPU OpenCL driver (QA only)")
+    kernels.add_argument("--hardware-opencl-kernel", type=Path,
+                         help="require a physical OpenCL GPU; software devices cannot qualify")
     parser.add_argument("--simultaneous", action="store_true",
-                        help="run CPU and software OpenCL workers against the same regtest pool and wallet")
+                        help="run CPU and OpenCL workers against the same regtest pool and wallet")
     parser.add_argument("--core-bin", type=Path, help="directory containing the daemon and CLI to test")
     parser.add_argument("--qt-wallet", type=Path, help="start and stop the installed miner through Qt on a private X11 display")
     parser.add_argument("--qt-failure-image", type=Path, help="write an optional screenshot of the disposable wallet if the test fails")
@@ -411,17 +416,18 @@ def main():
         parser.error("run this test in a loopback-only network namespace")
     for key in ("dotnet", "miningcore", "pg_bin", "schema"):
         setattr(args, key, getattr(args, key).resolve(strict=True))
-    for key in ("cpuminer", "first_party_worker", "software_opencl_kernel", "core_bin", "qt_wallet"):
+    for key in ("cpuminer", "first_party_worker", "software_opencl_kernel", "hardware_opencl_kernel", "core_bin", "qt_wallet"):
         if getattr(args, key):
             setattr(args, key, getattr(args, key).resolve(strict=True))
     if args.qt_wallet and (not args.core_bin or not args.cpuminer or not os.environ.get("DISPLAY")):
         parser.error("--qt-wallet requires --core-bin, --cpuminer, and a private X11 display")
     if args.qt_wallet and args.cpuminer != args.qt_wallet.parent / "miners/cpuminer":
         parser.error("--cpuminer must be the Qt wallet's bundled helper")
-    if args.software_opencl_kernel and not args.first_party_worker:
-        parser.error("--software-opencl-kernel requires --first-party-worker")
-    if args.simultaneous and (not args.software_opencl_kernel or args.qt_wallet):
-        parser.error("--simultaneous requires the first-party software OpenCL fixture without Qt")
+    kernel = args.hardware_opencl_kernel or args.software_opencl_kernel
+    if kernel and not args.first_party_worker:
+        parser.error("an OpenCL kernel requires --first-party-worker")
+    if args.simultaneous and (not kernel or args.qt_wallet):
+        parser.error("--simultaneous requires the first-party OpenCL fixture without Qt")
     digest = hashlib.sha256(args.miningcore.read_bytes()).hexdigest()
     print(f"Staging Miningcore binary SHA256: {digest}", flush=True)
     with tempfile.TemporaryDirectory(prefix="agrarian-miningcore-") as directory:

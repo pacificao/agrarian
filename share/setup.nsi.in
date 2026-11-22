@@ -86,13 +86,15 @@ Section -Main SEC0000
     File @abs_top_srcdir@/release/@BITCOIN_CLI_NAME@@EXEEXT@
 !ifdef WITH_POOL_MINER
     SetOutPath $INSTDIR\miners
-    File "@abs_top_srcdir@/release/miners/cpuminer.exe"
+    # Retire the exact legacy executable before installing the new worker.
+    Delete "$INSTDIR\miners\cpuminer.exe"
+    IfFileExists "$INSTDIR\miners\cpuminer.exe" 0 +3
+        SetErrorLevel 3
+        Quit
+    File "@abs_top_srcdir@/release/miners/agrarian-pool-worker.exe"
     File "@abs_top_srcdir@/release/miners/COPYING"
-    File "@abs_top_srcdir@/release/miners/COPYING-curl"
-    File "@abs_top_srcdir@/release/miners/cpuminer-multi-*.tar.gz"
-    File "@abs_top_srcdir@/release/miners/curl-*.tar.xz"
-    File "@abs_top_srcdir@/release/miners/openssl-*.tar.gz"
-    File "@abs_top_srcdir@/release/miners/zlib-*.tar.gz"
+    File "@abs_top_srcdir@/release/miners/quark-screen.cl"
+    File "@abs_top_srcdir@/release/miners/quark-source.tar.gz"
 !endif
     SetOutPath $INSTDIR\doc
     File /r @abs_top_srcdir@/doc\*.*
@@ -145,6 +147,9 @@ Section /o -un.Main UNSEC0000
     RMDir /r /REBOOTOK $INSTDIR\daemon
     RMDir /r /REBOOTOK $INSTDIR\doc
 !ifdef WITH_POOL_MINER
+    Delete /REBOOTOK "$INSTDIR\miners\agrarian-pool-worker.exe"
+    Delete /REBOOTOK "$INSTDIR\miners\quark-screen.cl"
+    Delete /REBOOTOK "$INSTDIR\miners\quark-source.tar.gz"
     Delete /REBOOTOK "$INSTDIR\miners\cpuminer.exe"
     Delete /REBOOTOK "$INSTDIR\miners\COPYING"
     Delete /REBOOTOK "$INSTDIR\miners\COPYING-curl"

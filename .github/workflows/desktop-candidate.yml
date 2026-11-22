@@ -3,7 +3,7 @@ name: Desktop wallet candidate
 on:
   workflow_dispatch:
   push:
-    branches: [review/hybrid-stability]
+    branches: [review/desktop-opencl-mining]
 
 permissions:
   contents: read
@@ -29,7 +29,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config autoconf automake libtool bsdmainutils \
-            curl cmake ninja-build unzip xz-utils bzip2 libcurl4-openssl-dev libssl-dev \
+            curl cmake ninja-build unzip xz-utils bzip2 libcurl4-openssl-dev libssl-dev opencl-c-headers \
             libfontconfig1-dev libfreetype-dev libharfbuzz-dev libbrotli-dev libbz2-dev \
             libexpat1-dev libglib2.0-dev libgraphite2-dev libpng-dev zlib1g-dev \
             libx11-xcb-dev libxcb1-dev libxcb-cursor-dev libxcb-icccm4-dev \
@@ -48,12 +48,16 @@ jobs:
           build_dir=$(mktemp -d "$RUNNER_TEMP/agrarian-source.XXXXXX")
           bash contrib/export-release-source.sh "$GITHUB_SHA" "$build_dir"
           mkdir "$RUNNER_TEMP/packages"
+          mkdir "$RUNNER_TEMP/opencl-headers"
+          cp -r /usr/include/CL "$RUNNER_TEMP/opencl-headers/"
+          worker_flags="-I$RUNNER_TEMP/opencl-headers"
           cd "$build_dir"
           if [[ "$PLATFORM" == windows ]]; then
             ./contrib/build-win64-wallet.sh
             mkdir -p release
-            HOST=x86_64-w64-mingw32 MINGW_DEPENDS="$PWD/depends/x86_64-w64-mingw32" \
-              MINGW_SOURCES="$PWD/depends/sources" bash contrib/build-desktop-pool-miner.sh release
+            make -C src qt/agrarian-pool-worker.exe POOL_MINER_CPPFLAGS="$worker_flags"
+            x86_64-w64-mingw32-strip src/qt/agrarian-pool-worker.exe
+            bash contrib/stage-first-party-pool-worker.sh src/qt/agrarian-pool-worker.exe release/miners
             make deploy WITH_POOL_MINER=1
             installers=(agrarian-*-win64-setup.exe)
             [[ ${#installers[@]} == 1 && -s "${installers[0]}" ]]
@@ -66,8 +70,9 @@ jobs:
             install -m 755 src/agrariand src/agrarian-cli src/agrarian-tx "$stage_dir/agrarian/bin/"
             install -m 644 COPYING "$stage_dir/agrarian/"
             strip "$stage_dir"/agrarian/bin/*
-            bash contrib/build-desktop-pool-miner.sh "$stage_dir/agrarian/bin"
-            strip "$stage_dir/agrarian/bin/miners/cpuminer"
+            make -C src qt/agrarian-pool-worker POOL_MINER_CPPFLAGS="$worker_flags"
+            strip src/qt/agrarian-pool-worker
+            bash contrib/stage-first-party-pool-worker.sh src/qt/agrarian-pool-worker "$stage_dir/agrarian/bin/miners"
             tar -C "$stage_dir" -czf "$RUNNER_TEMP/packages/agrarian-ubuntu-24.04-x64.tar.gz" agrarian
             file src/qt/agrarian-qt src/agrariand
           fi
@@ -100,7 +105,8 @@ jobs:
           cd "$RUNNER_TEMP/wallet-candidate"
           sha256sum -c SHA256SUMS
           docker run --rm -v "$PWD:/package:ro" \
-            -v "$GITHUB_WORKSPACE/test/functional/desktop_package_smoke.py:/smoke.py:ro" ubuntu:24.04 bash -euxc '
+            -v "$GITHUB_WORKSPACE/test/functional/desktop_package_smoke.py:/smoke.py:ro" \
+            -v "$GITHUB_WORKSPACE/test/functional/first_party_pool_guard.py:/guard.py:ro" ubuntu:24.04 bash -euxc '
             apt-get update
             apt-get install -y --no-install-recommends python3 xvfb xauth ca-certificates \
               fonts-dejavu-core libegl1 libgl1 libfontconfig1 libfreetype6 libharfbuzz0b libcurl4t64 \
@@ -111,8 +117,10 @@ jobs:
             tar -xzf /package/agrarian-ubuntu-24.04-x64.tar.gz
             ldd agrarian/bin/agrarian-qt
             test -s agrarian/bin/miners/COPYING
-            test -s agrarian/bin/miners/cpuminer-multi-d2927ed23b1d0eacd067c320fce64e6610737adb.tar.gz
-            runuser -u nobody -- agrarian/bin/miners/cpuminer --version
+            test ! -e agrarian/bin/miners/cpuminer
+            test -x agrarian/bin/miners/agrarian-pool-worker
+            echo "9387b4e30715e7599843d24bc3bdded5921788d54f2e46dc5cddabf6bc8f5727  agrarian/bin/miners/quark-screen.cl" | sha256sum -c -
+            runuser -u nobody -- python3 /guard.py agrarian/bin/miners/agrarian-pool-worker
             runuser -u nobody -- xvfb-run -a python3 /smoke.py --qt agrarian/bin/agrarian-qt --daemon agrarian/bin/agrariand
           '
 
@@ -142,12 +150,16 @@ jobs:
           if (Test-Path -LiteralPath $destination) { throw 'Install location is not clean' }
           $result = Start-Process -FilePath $installers[0].FullName -ArgumentList "/S /D=$destination" -Wait -PassThru
           if ($result.ExitCode -ne 0) { throw "Installer exit code $($result.ExitCode)" }
-          $miner = Join-Path $destination 'miners/cpuminer.exe'
-          if (!(Test-Path -LiteralPath $miner -PathType Leaf)) { throw 'Bundled CPU miner missing' }
-          $source = Join-Path $destination 'miners/cpuminer-multi-d2927ed23b1d0eacd067c320fce64e6610737adb.tar.gz'
-          if ((Get-FileHash -LiteralPath $source).Hash -ine '3ab898b2f1c87414e3ec16df7f0a0b53f82d5b11930852c963812c5bd9ff4d48') { throw 'Miner source hash mismatch' }
-          $minerVersion = Start-Process -FilePath $miner -ArgumentList '--version' -Wait -PassThru
-          if ($minerVersion.ExitCode -ne 0) { throw "Bundled CPU miner exit code $($minerVersion.ExitCode)" }
+          $miner = Join-Path $destination 'miners/agrarian-pool-worker.exe'
+          if (!(Test-Path -LiteralPath $miner -PathType Leaf)) { throw 'First-party worker missing' }
+          $legacy = Join-Path $destination 'miners/cpuminer.exe'
+          if (Test-Path -LiteralPath $legacy) { throw 'Legacy miner is still packaged' }
+          $source = Join-Path $destination 'miners/quark-screen.cl'
+          if ((Get-FileHash -LiteralPath $source).Hash -ine '9387b4e30715e7599843d24bc3bdded5921788d54f2e46dc5cddabf6bc8f5727') { throw 'GPU kernel hash mismatch' }
+          python "$env:GITHUB_WORKSPACE/test/functional/first_party_pool_guard.py" "$miner"
+          if ($LASTEXITCODE -ne 0) { throw 'First-party worker smoke test failed' }
+          Set-Content -LiteralPath $legacy -Value 'Inert fixture representing the old helper'
           python "$env:GITHUB_WORKSPACE/test/functional/desktop_package_smoke.py" `
-            --qt "$destination/agrarian-qt.exe" --daemon "$destination/daemon/agrariand.exe"
+            --qt "$destination/agrarian-qt.exe" --daemon "$destination/daemon/agrariand.exe" --installer $installers[0].FullName
           if ($LASTEXITCODE -ne 0) { throw 'Installed wallet smoke test failed' }
+          if (Test-Path -LiteralPath $legacy) { throw 'Upgrade did not remove the inert legacy helper fixture' }

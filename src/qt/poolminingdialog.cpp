@@ -1,6 +1,7 @@
 // Distributed under the MIT software license, see the accompanying file COPYING.
 
 #include "poolminingdialog.h"
+#include "pooldestination.h"
 
 #include "addresstablemodel.h"
 #include "chainparams.h"
@@ -19,22 +20,17 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSettings>
-#include <QSpinBox>
 #include <QTextDocument>
-#include <QThread>
 
 #include <algorithm>
 
 namespace {
-constexpr auto poolUrl = "stratum+tcp://alltheacronyms.com:3032";
 constexpr auto addressSetting = "poolMining/payoutAddress";
-constexpr auto threadSetting = "poolMining/cpuThreads";
 }
 
 PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     process(new QProcess(this)), gpuProcess(new QProcess(this)),
     cpuChoice(new QCheckBox(tr("CPU"), this)), gpuChoice(new QCheckBox(tr("GPU"), this)),
-    threadCount(new QSpinBox(this)),
     status(new QLabel(this)), payoutAddress(new QLabel(this)),
     start(new QPushButton(tr("&Start pool mining"), this)),
     stop(new QPushButton(tr("S&top mining"), this)), output(new QPlainTextEdit(this))
@@ -44,11 +40,9 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     description->setWordWrap(true);
     auto* support = new QLabel(firstPartyPreview()
         ? tr("Test mode: choose CPU, GPU, or both. Mining stops when you close this window or quit Agrarian Core.")
-        : tr("CPU only in this build. Mining stops when you close this window or quit Agrarian Core."), this);
+        : tr("Choose CPU, GPU, or both. Mining stops when you close this window or quit Agrarian Core."), this);
     support->setWordWrap(true);
 
-    threadCount->setRange(1, std::max(1, QThread::idealThreadCount()));
-    threadCount->setValue(QSettings().value(threadSetting, 1).toInt());
     payoutAddress->setTextFormat(Qt::PlainText);
     payoutAddress->setTextInteractionFlags(Qt::TextSelectableByMouse);
     status->setTextFormat(Qt::PlainText);
@@ -68,18 +62,11 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     cpuChoice->setObjectName(QStringLiteral("mineWithCpu"));
     gpuChoice->setObjectName(QStringLiteral("mineWithGpu"));
     cpuChoice->setChecked(true);
-    if (firstPartyPreview()) {
-        auto* modes = new QHBoxLayout();
-        modes->addWidget(cpuChoice);
-        modes->addWidget(gpuChoice);
-        modes->addStretch();
-        form->addRow(tr("Mine with:"), modes);
-        threadCount->hide(); // the staging CPU worker currently uses one thread
-    } else {
-        cpuChoice->hide();
-        gpuChoice->hide();
-        form->addRow(tr("CPU &threads:"), threadCount);
-    }
+    auto* modes = new QHBoxLayout();
+    modes->addWidget(cpuChoice);
+    modes->addWidget(gpuChoice);
+    modes->addStretch();
+    form->addRow(tr("Mine with:"), modes);
     form->addRow(tr("Payout address:"), payoutAddress);
     form->addRow(support);
     form->addRow(start, stop);
@@ -127,9 +114,9 @@ bool PoolMiningDialog::isMining() const
 QString PoolMiningDialog::minerPath() const
 {
 #ifdef Q_OS_WIN
-    auto executable = firstPartyPreview() ? "agrarian-pool-worker.exe" : "cpuminer.exe";
+    constexpr auto executable = "agrarian-pool-worker.exe";
 #else
-    auto executable = firstPartyPreview() ? "agrarian-pool-worker" : "cpuminer";
+    constexpr auto executable = "agrarian-pool-worker";
 #endif
     return QDir(QCoreApplication::applicationDirPath()).absoluteFilePath(QStringLiteral("miners/") + executable);
 }
@@ -147,23 +134,21 @@ bool PoolMiningDialog::firstPartyPreview()
 
 QStringList PoolMiningDialog::firstPartyArguments(const QString& payout, bool gpu, const QString& kernel)
 {
-    if (!firstPartyPreview() || (gpu && kernel.isEmpty())) return {};
+    if (gpu && kernel.isEmpty()) return {};
+    if (Params().NetworkID() == CBaseChainParams::MAIN)
+        return gpu ? QStringList{"--pool-gpu", payout, kernel} : QStringList{"--pool-cpu", payout};
+    if (!firstPartyPreview()) return {};
     QStringList args{gpu ? "--regtest-opencl" : "--regtest-loopback",
                      QString::number(GetArg("-regtestpoolminingport", int64_t{0})), payout};
     if (gpu) args << kernel;
     return args;
 }
 
-QStringList PoolMiningDialog::minerArguments(const QString& payout, int threads)
-{
-    // No shell, no arbitrary command line, and no local miner API listener.
-    return {"-a", "quark", "-o", poolEndpoint(), "-u", payout + ".agrarian-qt",
-            "-p", "x", "-t", QString::number(threads), "-b", "0"};
-}
-
 QString PoolMiningDialog::poolEndpoint()
 {
-    if (Params().NetworkID() == CBaseChainParams::MAIN) return poolUrl;
+    if (Params().NetworkID() == CBaseChainParams::MAIN)
+        return QStringLiteral("stratum+tls://%1:%2").arg(QString::fromLatin1(pooldestination::kHost))
+            .arg(pooldestination::kTlsPort);
     if (Params().NetworkID() != CBaseChainParams::REGTEST) return {};
     // Installed wallet lifecycle tests can use a disposable local pool.
     // This cannot redirect the mainnet wallet or use an external hostname.
@@ -174,7 +159,8 @@ QString PoolMiningDialog::poolEndpoint()
 
 void PoolMiningDialog::startMining()
 {
-    if (!wallet || isMining() || poolEndpoint().isEmpty())
+    if (!wallet || isMining() || poolEndpoint().isEmpty() ||
+        (Params().NetworkID() != CBaseChainParams::MAIN && !firstPartyPreview()))
         return;
     if (GetBoolArg("-gen", false)) {
         status->setText(tr("Stop solo mining before starting pool mining."));
@@ -186,15 +172,19 @@ void PoolMiningDialog::startMining()
         updateControls();
         return;
     }
-    const bool preview = firstPartyPreview();
-    const bool runCpu = !preview || cpuChoice->isChecked();
-    const bool runGpu = preview && gpuChoice->isChecked();
+    const bool runCpu = cpuChoice->isChecked();
+    bool runGpu = gpuChoice->isChecked();
     if (!runCpu && !runGpu) return;
+    bool missingGpuKernel = false;
     if (runGpu) {
         const QFileInfo kernel(kernelPath());
         if (!kernel.isFile() || !kernel.isReadable() || kernel.isSymLink()) {
-            status->setText(tr("The bundled GPU kernel is missing. CPU mining is still available."));
-            return;
+            if (!runCpu) {
+                status->setText(tr("The bundled GPU kernel is missing. CPU mining is still available."));
+                return;
+            }
+            missingGpuKernel = true;
+            runGpu = false;
         }
     }
 
@@ -208,17 +198,16 @@ void PoolMiningDialog::startMining()
         return;
     }
     settings.setValue(addressSetting, address);
-    settings.setValue(threadSetting, threadCount->value());
     payoutAddress->setText(address);
     output->clear();
+    if (missingGpuKernel) appendWorkerLog(true, tr("The bundled GPU kernel is missing. Starting only the selected CPU worker."));
     cpuPending.clear();
     gpuPending.clear();
     stopping = false;
     status->setText(tr("Starting selected mining workers…"));
     if (runCpu) {
         process->setWorkingDirectory(miner.absolutePath());
-        process->start(miner.absoluteFilePath(), preview ? firstPartyArguments(address, false, {})
-                                                         : minerArguments(address, threadCount->value()));
+        process->start(miner.absoluteFilePath(), firstPartyArguments(address, false, {}));
     }
     if (runGpu) {
         gpuProcess->setWorkingDirectory(miner.absolutePath());
@@ -253,10 +242,10 @@ void PoolMiningDialog::updateControls()
     const bool running = isMining();
     const QFileInfo miner(minerPath());
     start->setEnabled(wallet && !running && !poolEndpoint().isEmpty() &&
-                      (!firstPartyPreview() || cpuChoice->isChecked() || gpuChoice->isChecked()) &&
+                      (Params().NetworkID() == CBaseChainParams::MAIN || firstPartyPreview()) &&
+                      (cpuChoice->isChecked() || gpuChoice->isChecked()) &&
                       miner.isFile() && miner.isExecutable() && !miner.isSymLink());
     stop->setEnabled(running);
-    threadCount->setEnabled(!running);
     cpuChoice->setEnabled(!running);
     gpuChoice->setEnabled(!running);
 }
@@ -305,10 +294,7 @@ void PoolMiningDialog::readOutput(QProcess* worker, bool gpu, bool flush)
         line = line.trimmed();
         if (line.isEmpty()) continue;
         appendWorkerLog(gpu, line);
-        if (!stopping && isMining() &&
-            (line == QStringLiteral("Share accepted") ||
-             line.contains(QRegularExpression(QStringLiteral("accepted:.*(?:yes!|yay!!!)"),
-                                              QRegularExpression::CaseInsensitiveOption))))
+        if (!stopping && isMining() && line == QStringLiteral("Share accepted"))
             status->setText(tr("The pool accepted a share. Mining is running."));
     }
 }
