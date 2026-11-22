@@ -1,0 +1,33 @@
+name: Windows desktop package recheck
+
+on:
+  push:
+    branches: [review/desktop-win-retest]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  recheck:
+    runs-on: windows-2022
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: candidate-windows-x64
+          run-id: 45063650855
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/wallet-candidate
+      - name: Verify existing 2.1.3 installer
+        shell: pwsh
+        run: |
+          $parameters = @{
+            ArtifactDirectory = Join-Path $env:RUNNER_TEMP 'wallet-candidate'
+            Destination = Join-Path $env:RUNNER_TEMP 'agrarian-installed'
+            ExpectedCommit = 'c1dea6ba6a58b11fbfa3a5f3949c040b4fcb9636'
+          }
+          & ./test/functional/windows_package_smoke.ps1 @parameters

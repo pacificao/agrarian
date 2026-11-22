@@ -140,28 +140,9 @@ jobs:
       - name: Install and exercise the downloaded package on Windows
         shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
-          Set-Location (Join-Path $env:RUNNER_TEMP 'wallet-candidate')
-          $installers = @(Get-ChildItem -File -Filter '*-win64-setup.exe')
-          if ($installers.Count -ne 1) { throw 'Expected one installer' }
-          $expected = ((Get-Content SHA256SUMS -Raw).Trim() -split '\s+', 2)[0]
-          if ((Get-FileHash $installers[0].FullName).Hash -ine $expected) { throw 'Installer hash mismatch' }
-          $destination = Join-Path $env:RUNNER_TEMP 'agrarian-installed'
-          if (Test-Path -LiteralPath $destination) { throw 'Install location is not clean' }
-          $result = Start-Process -FilePath $installers[0].FullName -ArgumentList "/S /D=$destination" -Wait -PassThru
-          if ($result.ExitCode -ne 0) { throw "Installer exit code $($result.ExitCode)" }
-          $miner = Join-Path $destination 'miners/agrarian-pool-worker.exe'
-          if (!(Test-Path -LiteralPath $miner -PathType Leaf)) { throw 'First-party worker missing' }
-          $legacy = Join-Path $destination 'miners/cpuminer.exe'
-          if (Test-Path -LiteralPath $legacy) { throw 'Legacy miner is still packaged' }
-          $source = Join-Path $destination 'miners/quark-screen.cl'
-          if ((Get-FileHash -LiteralPath $source).Hash -ine '9387b4e30715e7599843d24bc3bdded5921788d54f2e46dc5cddabf6bc8f5727') { throw 'GPU kernel hash mismatch' }
-          & $miner --check-tls-backend
-          if ($LASTEXITCODE -ne 0) { throw 'Installed mining worker lacks a TLS backend' }
-          python "$env:GITHUB_WORKSPACE/test/functional/first_party_pool_guard.py" "$miner"
-          if ($LASTEXITCODE -ne 0) { throw 'First-party worker smoke test failed' }
-          Set-Content -LiteralPath $legacy -Value 'Inert fixture representing the old helper'
-          python "$env:GITHUB_WORKSPACE/test/functional/desktop_package_smoke.py" `
-            --qt "$destination/agrarian-qt.exe" --daemon "$destination/daemon/agrariand.exe" --installer $installers[0].FullName
-          if ($LASTEXITCODE -ne 0) { throw 'Installed wallet smoke test failed' }
-          if (Test-Path -LiteralPath $legacy) { throw 'Upgrade did not remove the inert legacy helper fixture' }
+          $parameters = @{
+            ArtifactDirectory = Join-Path $env:RUNNER_TEMP 'wallet-candidate'
+            Destination = Join-Path $env:RUNNER_TEMP 'agrarian-installed'
+            ExpectedCommit = $env:GITHUB_SHA
+          }
+          & ./test/functional/windows_package_smoke.ps1 @parameters
