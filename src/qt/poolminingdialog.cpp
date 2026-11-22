@@ -49,6 +49,12 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     status->setWordWrap(true);
     output->setReadOnly(true);
     output->setMaximumBlockCount(200);
+    // Set both colors locally: the shared theme only styles the editor's
+    // background, so some desktop palettes otherwise render pale text.
+    output->setObjectName(QStringLiteral("poolMiningLog"));
+    output->setStyleSheet(QStringLiteral(
+        "QPlainTextEdit#poolMiningLog { background-color: #111827; color: #f3f4f6;"
+        " selection-background-color: #1d4ed8; selection-color: #ffffff; }"));
 
     auto* form = new QFormLayout(this);
     form->addRow(description);

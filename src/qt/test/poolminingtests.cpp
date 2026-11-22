@@ -5,6 +5,7 @@
 #include "chainparams.h"
 #include "util.h"
 
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
@@ -54,6 +55,18 @@ private Q_SLOTS:
             QVERIFY(!button->isEnabled());
         page.close();
         QVERIFY(!page.isMining());
+    }
+
+    void miningLogSetsForegroundAndBackground()
+    {
+        PoolMiningDialog page;
+        page.show();
+        auto* log = page.findChild<QPlainTextEdit*>(QStringLiteral("poolMiningLog"));
+        QVERIFY(log);
+        QVERIFY(log->isReadOnly());
+        log->ensurePolished();
+        QCOMPARE(log->palette().color(QPalette::Base), QColor(QStringLiteral("#111827")));
+        QCOMPARE(log->palette().color(QPalette::Text), QColor(QStringLiteral("#f3f4f6")));
     }
 };
 
