@@ -46,8 +46,12 @@ switch ($Action) {
     open {
         $window = Find-Control '*Agrarian*Windows mining QA*' -Window
         $window.SetFocus()
-        Invoke-Control (Find-Control 'Mining')
-        Invoke-Control (Find-Control 'Mine on All The Acronyms*')
+        # Qt's accessible menu-bar item doesn't open the popup via Invoke
+        # on this runner. Use the wallet's actual menu accelerators.
+        [Windows.Forms.SendKeys]::SendWait('%m')
+        Start-Sleep -Milliseconds 300
+        [Windows.Forms.SendKeys]::SendWait('a')
+        $null = Find-Control 'All The Acronyms*Pool mining' -Window
         $null = Find-Control 'Start pool mining'
     }
     start { Invoke-Control (Find-Control 'Start pool mining') }
