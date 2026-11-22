@@ -412,7 +412,10 @@ def main():
     parser.add_argument("--qt-wallet", type=Path, help="start and stop the installed miner through Qt on a private X11 display")
     parser.add_argument("--qt-failure-image", type=Path, help="write an optional screenshot of the disposable wallet if the test fails")
     args = parser.parse_args()
-    if {name for _, name in socket.if_nameindex()} != {"lo"}:
+    # Some Linux hosts create an inert, down tunl0 even in Docker --network none.
+    active = {name for _, name in socket.if_nameindex()
+              if int((Path("/sys/class/net") / name / "flags").read_text(), 16) & 1}
+    if active != {"lo"}:
         parser.error("run this test in a loopback-only network namespace")
     for key in ("dotnet", "miningcore", "pg_bin", "schema"):
         setattr(args, key, getattr(args, key).resolve(strict=True))

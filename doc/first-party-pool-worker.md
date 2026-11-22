@@ -61,6 +61,12 @@ same payout address, chain agreement, and a confirmed test payout. Use
 `--hardware-opencl-kernel` instead of `--software-opencl-kernel` to require
 a physical GPU.
 
+`test/functional/first_party_pool_tls.py` tests the fixed production client
+against disposable loopback listeners, not the public pool. It requires a
+network-disabled Linux container with the pool hostname mapped to loopback
+and verifies that plaintext, an untrusted CA and a wrong hostname cannot
+receive application messages.
+
 ## Before a release
 
 1. Validate the fixed production TLS endpoint and certificate renewal. Leave
@@ -75,3 +81,20 @@ a physical GPU.
    test a normal upgrade from 2.1.2 without altering wallet data. Keep the old
    sample quarantined and submit only the official release copy for Microsoft's
    adjudication. Do not recommend antivirus exclusions.
+
+## Pool rollout
+
+Port 3032 is the legacy plaintext listener. Keep it unchanged. Prepare 3033
+with the existing All The Acronyms certificate and a verified renewal/reload
+path; do not reuse the HTTPS web port. Test against a disposable pool first,
+including a client reconnect and a certificate refresh. Use a native
+Miningcore listener or preserve each client's source address through an
+explicitly trusted PROXY listener; a generic loopback TCP forward collapses
+all miners to one IP and can affect banning and statistics.
+
+Before promoting a build, verify that both 3032 and 3033 work externally,
+the 3033 hostname and chain verify without exclusions, and the exact packaged
+wallet's opt-in workers can submit shares. Rollback is to remove the newly
+added TLS listener and firewall rule, without changing 3032, wallet files,
+or chain settings. Do not publish an installer that points to a disabled
+endpoint.
