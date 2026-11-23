@@ -15,6 +15,7 @@
 #include <QHostAddress>
 #include <QJsonArray>
 #include <QNetworkProxy>
+#include <QRandomGenerator>
 #include <QSslSocket>
 #include <QThread>
 #if defined(QT_STATICPLUGIN) && defined(QT_TLS_OPENSSL)
@@ -32,6 +33,11 @@ namespace {
 using poolframes::Kind;
 using WideInteger = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<
     1536, 1536, boost::multiprecision::unsigned_magnitude, boost::multiprecision::checked, void>>;
+
+class RetryablePoolError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
 
 void Require(bool valid, const char* error)
 {
@@ -118,13 +124,22 @@ public:
             Require(QSslSocket::supportsSsl(), "TLS backend unavailable; no mining connection was made");
             socket.setProtocol(QSsl::TlsV1_2OrLater);
             socket.setPeerVerifyMode(QSslSocket::VerifyPeer);
+            // No verification exception or downgrade is allowed on any retry.
+            bool certificateError = false;
+            const auto verification = QObject::connect(&socket, &QSslSocket::sslErrors, &socket,
+                [&](const QList<QSslError>&) { certificateError = true; }, Qt::DirectConnection);
             socket.connectToHostEncrypted(QString::fromLatin1(pooldestination::kHost), pooldestination::kTlsPort);
-            Require(socket.waitForEncrypted(10000), "Cannot establish a verified TLS connection to the Agrarian pool");
+            const bool encrypted = socket.waitForEncrypted(10000);
+            QObject::disconnect(verification);
+            Require(!certificateError && socket.error() != QAbstractSocket::SslHandshakeFailedError,
+                    "Cannot establish a verified TLS connection to the Agrarian pool");
+            if (!encrypted) throw RetryablePoolError("Pool TLS connection timed out or was interrupted");
         } else {
             socket.connectToHost(QHostAddress::LocalHost, port);
-            Require(socket.waitForConnected(5000), "Cannot connect to the local test pool");
+            if (!socket.waitForConnected(5000)) throw RetryablePoolError("Cannot connect to the local test pool");
         }
         Send(1, "mining.subscribe", {"Agrarian-FirstParty/2.1.3"});
+        handshake.start();
         sinceLastFrame.start();
 
         while (socket.state() == QAbstractSocket::ConnectedState) {
@@ -133,7 +148,12 @@ public:
             QCoreApplication::processEvents();
             while (socket.canReadLine()) ReadFrame();
             Require(socket.bytesAvailable() <= poolframes::kMaxFrameBytes, "Oversized incomplete pool frame");
-            Require(sinceLastFrame.elapsed() < 120000, "Pool no longer responding");
+            if (!authorized && handshake.elapsed() >= 15000)
+                throw RetryablePoolError("Pool subscription or authorization timed out");
+            if (sinceLastFrame.elapsed() >= 120000)
+                throw RetryablePoolError("Pool no longer responding");
+            if (pendingShare && sinceSubmission.elapsed() >= 30000)
+                throw RetryablePoolError("Pool did not acknowledge the last share");
             if (subscribed && authorized && haveWork && !pendingShare) {
                 const auto result = scanner ? scanner->Scan(header, job.target, nextNonce)
                                             : poolwork::ScanCpuParallel(header, job.target, nextNonce, 1024, cpuThreads, runningStop);
@@ -141,6 +161,7 @@ public:
                 if (result.found) {
                     Require(nextRequest < 2147483647, "Pool session request limit reached");
                     pendingShare = nextRequest++;
+                    sinceSubmission.start();
                     Send(pendingShare, "mining.submit", {worker, job.id, QString::fromLatin1(extraNonce.toHex()),
                                               QString::fromLatin1(job.time),
                                               QStringLiteral("%1").arg(result.nonce, 8, 16, QLatin1Char('0'))});
@@ -152,15 +173,17 @@ public:
                 socket.waitForReadyRead(200);
             }
         }
-        throw std::runtime_error("Pool disconnected");
+        throw RetryablePoolError("Pool disconnected");
     }
+
+    bool HadStableSession() const { return connectedWork.isValid() && connectedWork.elapsed() >= 60000; }
 
 private:
     QSslSocket socket;
     const QString worker;
     poolopencl::Scanner* const scanner;
     const unsigned cpuThreads;
-    QElapsedTimer sinceLastFrame;
+    QElapsedTimer handshake, sinceLastFrame, sinceSubmission, connectedWork;
     std::atomic<bool> runningStop{false}; // prototype stop uses process termination
     bool subscribed{false}, authorized{false}, haveWork{false}, hasJob{false};
     int nextRequest{3}, pendingShare{0};
@@ -174,8 +197,9 @@ private:
     {
         const auto body = QJsonDocument(QJsonObject{{"id", id}, {"method", method}, {"params", parameters}})
                               .toJson(QJsonDocument::Compact) + '\n';
-        Require(socket.write(body) == body.size(), "Pool write did not queue");
-        if (socket.bytesToWrite()) Require(socket.waitForBytesWritten(5000), "Pool write failed");
+        if (socket.write(body) != body.size() ||
+            (socket.bytesToWrite() && !socket.waitForBytesWritten(5000)))
+            throw RetryablePoolError("Pool write failed");
     }
 
     void ReadFrame()
@@ -231,7 +255,10 @@ private:
         } else if (id == 2 && subscribed && !authorized) {
             Require(good && result.isBool() && result.toBool(), "Pool rejected authorization");
             authorized = true;
-        } else if (id == pendingShare) {
+            if (haveWork) connectedWork.start();
+            std::puts("Pool authorized; waiting for shares");
+            std::fflush(stdout);
+        } else if (pendingShare && id == pendingShare) {
             pendingShare = 0;
             std::puts(good && result.isBool() && result.toBool() ? "Share accepted" : "Share rejected");
             std::fflush(stdout);
@@ -277,8 +304,39 @@ private:
                                       job.time.toUInt(nullptr, 16), job.bits, header), "Invalid coinbase or Merkle branch");
         nextNonce = 0;
         haveWork = true;
+        if (authorized && !connectedWork.isValid()) connectedWork.start();
     }
 };
+
+void RunWithReconnect(quint16 port, bool mainnet, const QString& payout, poolopencl::Scanner* scanner,
+                      unsigned threads)
+{
+    unsigned delay = 1;
+    for (;;) {
+        // Use a fresh Stratum session each time. In particular, never carry
+        // over the last job, nonce, authorization, or unacknowledged share.
+        bool stable = false;
+        try {
+            Worker session(payout, scanner, threads);
+            try {
+                session.Run(port, mainnet);
+                return;
+            } catch (const RetryablePoolError&) {
+                stable = session.HadStableSession();
+                throw;
+            }
+        } catch (const RetryablePoolError& error) {
+            if (stable) delay = 1;
+            const unsigned wait = delay * 1000 + QRandomGenerator::global()->bounded(250u);
+            std::printf("Pool reconnecting in %.1f seconds: %s\n", wait / 1000.0, error.what());
+            std::fflush(stdout);
+            // This worker process belongs to one opt-in CPU or GPU session.
+            // Stop/close terminates it even when it is asleep between retries.
+            QThread::msleep(wait);
+            delay = std::min(delay * 2, 60u);
+        }
+    }
+}
 } // namespace
 
 int main(int argc, char** argv)
@@ -340,7 +398,7 @@ int main(int argc, char** argv)
             std::printf("CPU worker configured for %d threads\n", threads);
             std::fflush(stdout);
         }
-        Worker(payout, scanner.get(), threads).Run(port, mainnet);
+        RunWithReconnect(port, mainnet, payout, scanner.get(), threads);
     } catch (const std::exception& error) {
         std::fprintf(stderr, "%s\n", error.what());
         return 1;

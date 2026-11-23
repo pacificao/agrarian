@@ -229,13 +229,12 @@ void PoolMiningDialog::stopMining()
 {
     if (!isMining()) return;
     stopping = true;
+    // Workers do not write wallet data and can be stopped even during backoff.
     for (auto* worker : {process, gpuProcess})
-        if (worker->state() != QProcess::NotRunning) worker->terminate();
+        if (worker->state() != QProcess::NotRunning) worker->kill();
     for (auto* worker : {process, gpuProcess}) {
-        if (worker->state() != QProcess::NotRunning && !worker->waitForFinished(350)) {
-            worker->kill();
+        if (worker->state() != QProcess::NotRunning)
             worker->waitForFinished(1000);
-        }
     }
     updateControls();
 }
@@ -304,7 +303,12 @@ void PoolMiningDialog::readOutput(QProcess* worker, bool gpu, bool flush)
         line = line.trimmed();
         if (line.isEmpty()) continue;
         appendWorkerLog(gpu, line);
-        if (!stopping && isMining() && line == QStringLiteral("Share accepted"))
+        if (stopping || !isMining()) continue;
+        if (line.startsWith(QStringLiteral("Pool reconnecting in ")))
+            status->setText(gpu ? tr("GPU miner reconnecting to the pool…") : tr("CPU miner reconnecting to the pool…"));
+        else if (line == QStringLiteral("Pool authorized; waiting for shares"))
+            status->setText(gpu ? tr("GPU miner connected; waiting for shares.") : tr("CPU miner connected; waiting for shares."));
+        else if (line == QStringLiteral("Share accepted"))
             status->setText(tr("The pool accepted a share. Mining is running."));
     }
 }

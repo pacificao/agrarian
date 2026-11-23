@@ -35,28 +35,39 @@ def run(binary, listener, context, expected):
     with subprocess.Popen([binary, "--pool-cpu", fixture],
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE) as worker:
         try:
-            sock, _ = listener.accept()
-            with sock:
-                sock.settimeout(6)
-                if context is None:
-                    # A plaintext Stratum server cannot elicit subscription data.
-                    assert sock.recv(1) == b"\x16", "Expected only a TLS handshake, not a Stratum request"
-                    sock.sendall(b'{"id":1,"result":[[],"ab12cd34",4],"error":null}\n')
-                else:
-                    try:
-                        client = context.wrap_socket(sock, server_side=True)
-                    except ssl.SSLError:
-                        if expected:
-                            raise
+            # Drop the trusted connection once: recovery must perform TLS
+            # and subscribe/authorize again, never fall back to plaintext.
+            for attempt in range(2 if expected else 1):
+                sock, _ = listener.accept()
+                with sock:
+                    sock.settimeout(6)
+                    if context is None:
+                        assert sock.recv(1) == b"\x16", "Expected only a TLS handshake, not a Stratum request"
+                        sock.sendall(b'{"id":1,"result":[[],"ab12cd34",4],"error":null}\n')
+                        # Let TLS process the invalid record. Closing here
+                        # with unread ClientHello bytes can send a TCP reset
+                        # instead, which is correctly treated as retryable.
+                        _, stderr = worker.communicate(timeout=12)
+                        assert worker.returncode == 1 and b"verified TLS connection" in stderr, stderr
+                        return
                     else:
-                        with client, client.makefile("rb") as stream:
-                            assert expected, "Worker accepted a wrong or untrusted certificate"
-                            request = json.loads(stream.readline(4096))
-                            assert request["method"] == "mining.subscribe"
-                            client.sendall(b'{"id":1,"result":[[],"ab12cd34",4],"error":null}\n')
-                            request = json.loads(stream.readline(4096))
-                            assert request["method"] == "mining.authorize"
-                            assert request["params"] == [fixture + ".agrarian-qt-cpu", "x"]
+                        try:
+                            client = context.wrap_socket(sock, server_side=True)
+                        except ssl.SSLError:
+                            if expected:
+                                raise
+                        else:
+                            with client, client.makefile("rb") as stream:
+                                assert expected, "Worker accepted a wrong or untrusted certificate"
+                                request = json.loads(stream.readline(4096))
+                                assert request["method"] == "mining.subscribe"
+                                client.sendall(b'{"id":1,"result":[[],"ab12cd34",4],"error":null}\n')
+                                request = json.loads(stream.readline(4096))
+                                assert request["method"] == "mining.authorize"
+                                assert request["params"] == [fixture + ".agrarian-qt-cpu", "x"]
+                                client.sendall(b'{"id":2,"result":true,"error":null}\n')
+                                if attempt == 1:
+                                    worker.terminate()
             _, stderr = worker.communicate(timeout=12)
             if not expected:
                 assert worker.returncode == 1 and b"verified TLS connection" in stderr, stderr
@@ -94,7 +105,7 @@ def main(binary):
         wrong.load_cert_chain(certificate(work, "wrong.example", server_key, ca, ca_key), server_key)
         run(binary, listener, wrong, False)
         run(binary, listener, right, True)
-    print("Fixed pool TLS: plaintext, untrusted CA and wrong hostname rejected; verified connection authorized.")
+    print("Fixed pool TLS: plaintext, untrusted CA and wrong hostname rejected; verified reconnect authorized.")
 
 
 if __name__ == "__main__":

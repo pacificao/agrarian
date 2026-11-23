@@ -27,8 +27,11 @@ This branch prepares a desktop candidate; it is not a published release:
   candidates on the CPU before passing them to the same Stratum client.
 - The wallet offers independent CPU and GPU switches.
   Both can run at once using one payout address and separate pool connections
-  and worker names. The shared log uses explicit near-white text on a dark
-  background and labels each line `[CPU]` or `[GPU]`.
+  and worker names. Each worker retries temporary connection failures with
+  exponential backoff from one to 60 seconds plus small jitter, starts a
+  fresh session without resending old shares, and can be stopped while waiting.
+  TLS verification, malformed messages, and denied authorization remain
+  hard failures. The shared log labels each line `[CPU]` or `[GPU]`.
 
 ## Local tests
 

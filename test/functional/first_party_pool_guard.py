@@ -6,6 +6,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import time
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -43,6 +44,82 @@ def send(conn, message):
 
 def read(stream):
     return json.loads(stream.readline(4096))
+
+
+def authorize(conn, stream, nonce):
+    assert read(stream)["method"] == "mining.subscribe"
+    send(conn, {"id": 1, "result": [[], nonce, 4], "error": None})
+    request = read(stream)
+    assert request["method"] == "mining.authorize"
+    assert request["params"] == [FIXTURE + ".agrarian-qt-cpu", "x"]
+    send(conn, {"id": 2, "result": True, "error": None})
+
+
+def send_work(conn, job):
+    # Make a share deterministic without contacting a live pool or wallet.
+    send(conn, {"id": None, "method": "mining.set_difficulty", "params": [1e-12]})
+    send(conn, {"id": None, "method": "mining.notify",
+                "params": [job, "0" * 64, "01", "02", [], "00000001", "1d00ffff", "65432100", True]})
+
+
+def test_reconnect(binary):
+    with listener() as pool, worker(binary, pool) as (process, first, first_stream):
+        authorize(first, first_stream, "ab12cd34")
+        send_work(first, "old-job")
+        old_share = read(first_stream)
+        assert old_share["method"] == "mining.submit" and old_share["params"][1] == "old-job"
+        # Drop the socket before acknowledging the share.
+        began = time.monotonic()
+        first.shutdown(socket.SHUT_RDWR)
+
+        second, _ = pool.accept()
+        with second, second.makefile("rb") as stream:
+            assert time.monotonic() - began >= 0.85, "Missing first reconnect backoff"
+            second.settimeout(5)
+            authorize(second, stream, "1234abcd")
+            second.settimeout(0.25)
+            try:
+                unexpected = second.recv(4096)
+            except TimeoutError:
+                pass
+            else:
+                raise AssertionError(f"Unexpected traffic before receiving new work: {unexpected!r}")
+            second.settimeout(5)
+            send_work(second, "new-job")
+            new_share = read(stream)
+            assert new_share["method"] == "mining.submit" and new_share["params"][1] == "new-job"
+            assert new_share["id"] == old_share["id"], "Request IDs should restart with the session"
+            began = time.monotonic()
+            second.shutdown(socket.SHUT_RDWR)
+
+        third, _ = pool.accept()
+        with third, third.makefile("rb") as stream:
+            assert time.monotonic() - began >= 1.85, "A brief reconnect should not reset backoff"
+            third.settimeout(5)
+            assert read(stream)["method"] == "mining.subscribe"
+            third.shutdown(socket.SHUT_RDWR)
+
+        # The dialog's Stop action kills this process rather than waiting for backoff.
+        pool.settimeout(0.5)
+        try:
+            unexpected, _ = pool.accept()
+        except TimeoutError:
+            pass
+        else:
+            unexpected.close()
+            raise AssertionError("Missing backoff before third retry")
+        assert process.poll() is None
+        process.kill()
+        stdout, _ = process.communicate(timeout=2)
+        assert b"Pool reconnecting in 4." in stdout
+        pool.settimeout(4.5)
+        try:
+            unexpected, _ = pool.accept()
+        except TimeoutError:
+            pass
+        else:
+            unexpected.close()
+            raise AssertionError("Worker reconnected after Stop")
 
 
 def main(binary):
@@ -89,8 +166,10 @@ def main(binary):
         stdout, stderr = process.communicate(timeout=5)
         assert process.returncode == 1 and b"Oversized incomplete pool frame" in stderr and b"configured for 1 threads" in stdout
 
+    test_reconnect(binary)
     print("First-party worker refused arbitrary endpoints and an altered kernel, "
           "ignored a redirect, rejected unauthorized work, and bounded incomplete packets.")
+    print("Temporary disconnects used increasing backoff and fresh Stratum state; Stop canceled retry.")
 
 
 if __name__ == "__main__":
