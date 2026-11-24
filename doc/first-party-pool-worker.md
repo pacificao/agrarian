@@ -1,4 +1,4 @@
-# First-party Agrarian pool worker (2.1.3 staging)
+# First-party Agrarian pool worker
 
 The wallet will keep one mining dialog. Run the bundled worker in a separate,
 unprivileged process to keep crashes and mining logic outside the wallet.

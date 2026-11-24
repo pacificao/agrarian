@@ -138,7 +138,7 @@ public:
             socket.connectToHost(QHostAddress::LocalHost, port);
             if (!socket.waitForConnected(5000)) throw RetryablePoolError("Cannot connect to the local test pool");
         }
-        Send(1, "mining.subscribe", {"Agrarian-FirstParty/2.1.3"});
+        Send(1, "mining.subscribe", {"Agrarian-FirstParty/2.1.4"});
         handshake.start();
         sinceLastFrame.start();
 
