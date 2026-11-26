@@ -414,7 +414,7 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord* wtx, b
 
     switch (wtx->type) {
     case TransactionRecord::StakeMint:
-        return stakingactivity::ReceivingAddress(lookupAddress(wtx->address, tooltip)) + watchAddress;
+        return stakingactivity::ReceivingAddress(wtx->address) + watchAddress;
     case TransactionRecord::RecvFromOther:
         return QString::fromStdString(wtx->address) + watchAddress;
     case TransactionRecord::RecvWithAddress:
@@ -622,6 +622,8 @@ QVariant TransactionTableModel::data(const QModelIndex& index, int role) const
     case AddressRole:
         return QString::fromStdString(rec->address);
     case LabelRole:
+        if (rec->type == TransactionRecord::StakeMint)
+            return QString();
         return walletModel->getAddressTableModel()->labelForAddress(QString::fromStdString(rec->address));
     case AmountRole:
         return qint64(rec->credit + rec->debit);

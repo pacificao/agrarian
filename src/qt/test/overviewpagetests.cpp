@@ -16,10 +16,9 @@ private Q_SLOTS:
     void stakeNicknameIsNotThePaymentSource()
     {
         QCOMPARE(stakingactivity::Type(), QStringLiteral("Staking reward"));
-        QCOMPARE(stakingactivity::ReceivingAddress(QStringLiteral("Pool mining payouts")),
-                 QStringLiteral("Receiving address: Pool mining payouts"));
-        QCOMPARE(stakingactivity::ReceivingAddress(QStringLiteral("AGRaddress")),
-                 QStringLiteral("Receiving address: AGRaddress"));
+        const auto receiving = stakingactivity::ReceivingAddress("AQoxZJ1rKxzf6knQFweMdk6S8EaSziWgXu");
+        QCOMPARE(receiving, QStringLiteral("Receiving address: AQoxZJ1rKxzf6knQFweMdk6S8EaSziWgXu"));
+        QVERIFY(!receiving.contains(QStringLiteral("Pool mining payouts")));
     }
 
     void legacyBalanceVisibility()

@@ -4,6 +4,7 @@
 
 #include <QCoreApplication>
 #include <QString>
+#include <string>
 
 namespace stakingactivity {
 inline QString Type()
@@ -11,9 +12,12 @@ inline QString Type()
     return QCoreApplication::translate("TransactionTableModel", "Staking reward");
 }
 
-inline QString ReceivingAddress(const QString& addressOrLabel)
+// Stake activity should never pass an address-book nickname here. A payout
+// nickname identifies a wallet address, not the source of the stake reward.
+inline QString ReceivingAddress(const std::string& address)
 {
-    return QCoreApplication::translate("TransactionTableModel", "Receiving address: %1").arg(addressOrLabel);
+    return QCoreApplication::translate("TransactionTableModel", "Receiving address: %1")
+        .arg(QString::fromStdString(address));
 }
 } // namespace stakingactivity
 

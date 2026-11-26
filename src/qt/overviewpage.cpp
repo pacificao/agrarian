@@ -14,6 +14,7 @@
 #include "init.h"
 #include "obfuscation.h"
 #include "optionsmodel.h"
+#include "stakingactivity.h"
 #include "transactionfilterproxy.h"
 #include "transactionrecord.h"
 #include "transactiontablemodel.h"
@@ -54,7 +55,8 @@ public:
         icon.paint(painter, decorationRect);
 
         QDateTime date = index.data(TransactionTableModel::DateRole).toDateTime();
-        QString address = index.data(Qt::DisplayRole).toString();
+        const QString address = index.data(TransactionTableModel::TypeRole).toInt() == TransactionRecord::StakeMint
+            ? stakingactivity::Type() : index.data(Qt::DisplayRole).toString();
         qint64 amount = index.data(TransactionTableModel::AmountRole).toLongLong();
         bool confirmed = index.data(TransactionTableModel::ConfirmedRole).toBool();
 

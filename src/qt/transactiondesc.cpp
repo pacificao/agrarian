@@ -113,13 +113,8 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
     if (stakeReward) {
         strHTML += "<b>" + tr("Source") + ":</b> " + tr("Proof-of-stake reward") + "<br>";
         const CBitcoinAddress receiving(rec->address);
-        if (receiving.IsValid()) {
-            strHTML += "<b>" + tr("Receiving address") + ":</b> " + GUIUtil::HtmlEscape(rec->address);
-            const auto found = wallet->mapAddressBook.find(receiving.Get());
-            if (found != wallet->mapAddressBook.end() && !found->second.name.empty())
-                strHTML += " (" + tr("address label") + ": " + GUIUtil::HtmlEscape(found->second.name) + ")";
-            strHTML += "<br>";
-        }
+        if (receiving.IsValid())
+            strHTML += "<b>" + tr("Receiving address") + ":</b> " + GUIUtil::HtmlEscape(rec->address) + "<br>";
     } else if (wtx.IsCoinBase()) {
         strHTML += "<b>" + tr("Source") + ":</b> " + tr("Generated") + "<br>";
     } else if (wtx.mapValue.count("from") && !wtx.mapValue["from"].empty()) {
@@ -211,7 +206,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
                     CTxDestination address;
                     if (ExtractDestination(txout.scriptPubKey, address)) {
                         strHTML += "<b>" + tr("To") + ":</b> ";
-                        if (wallet->mapAddressBook.count(address) && !wallet->mapAddressBook[address].name.empty())
+                        if (!stakeReward && wallet->mapAddressBook.count(address) && !wallet->mapAddressBook[address].name.empty())
                             strHTML += GUIUtil::HtmlEscape(wallet->mapAddressBook[address].name) + " ";
                         strHTML += GUIUtil::HtmlEscape(CBitcoinAddress(address).ToString());
                         if (toSelf == ISMINE_SPENDABLE)
@@ -302,7 +297,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
                     const CTxOut& vout = prev.vout[prevout.n];
                     CTxDestination address;
                     if (ExtractDestination(vout.scriptPubKey, address)) {
-                        if (wallet->mapAddressBook.count(address) && !wallet->mapAddressBook[address].name.empty())
+                        if (!stakeReward && wallet->mapAddressBook.count(address) && !wallet->mapAddressBook[address].name.empty())
                             strHTML += GUIUtil::HtmlEscape(wallet->mapAddressBook[address].name) + " ";
                         strHTML += QString::fromStdString(CBitcoinAddress(address).ToString());
                     }
