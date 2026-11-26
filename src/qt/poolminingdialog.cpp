@@ -45,6 +45,8 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     unmonitored(new QCheckBox(tr("Allow low-load mining if a temperature sensor is unavailable"), this)),
     windowsProxy(new QCheckBox(tr("Use Windows system temperature as a CPU estimate"), this)),
     windowsProxyOverride(new QCheckBox(tr("Override the one-thread limit for this run"), this)),
+    disableCpuThermal(new QCheckBox(tr("Disable CPU Thermal Guard for this run"), this)),
+    disableGpuThermal(new QCheckBox(tr("Disable GPU Thermal Guard for this run"), this)),
     cpuThermal(new QLabel(this)), gpuThermal(new QLabel(this)),
     status(new QLabel(this)), payoutAddress(new QLabel(this)),
     start(new QPushButton(tr("&Start pool mining"), this)),
@@ -118,6 +120,13 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     windowsProxy->hide();
     windowsProxyOverride->hide();
 #endif
+    disableCpuThermal->setObjectName(QStringLiteral("disableCpuThermalGuard"));
+    disableGpuThermal->setObjectName(QStringLiteral("disableGpuThermalGuard"));
+    const auto disableHint = tr("The wallet will not check temperatures, throttle, or pause this device for heat. Operating-system, driver, and hardware limits still apply.");
+    disableCpuThermal->setToolTip(disableHint);
+    disableGpuThermal->setToolTip(disableHint);
+    form->addRow(disableCpuThermal);
+    form->addRow(disableGpuThermal);
     form->addRow(tr("CPU Thermal Guard:"), cpuThermal);
     form->addRow(tr("GPU Thermal Guard:"), gpuThermal);
     form->addRow(tr("Payout address:"), payoutAddress);
@@ -125,7 +134,7 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     form->addRow(start, stop);
     form->addRow(status);
     form->addRow(output);
-    resize(620, 590);
+    resize(620, 635);
 
     start->setAutoDefault(false);
     stop->setAutoDefault(false);
@@ -137,6 +146,11 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
         if (!checked) windowsProxyOverride->setChecked(false);
         updateControls();
     });
+    connect(disableCpuThermal, &QCheckBox::toggled, this, [this](bool checked) {
+        if (checked) windowsProxyOverride->setChecked(false);
+        updateControls();
+    });
+    connect(disableGpuThermal, &QCheckBox::toggled, this, &PoolMiningDialog::updateControls);
     attachWorker(process, false);
     attachWorker(gpuProcess, true);
     updateControls();
@@ -232,11 +246,6 @@ void PoolMiningDialog::startMining()
     const bool runCpu = cpuChoice->isChecked();
     bool runGpu = gpuChoice->isChecked();
     if (!runCpu && !runGpu) return;
-    const bool overrideProxy = runCpu && windowsProxy->isChecked() && windowsProxyOverride->isChecked()
-        && Params().NetworkID() == CBaseChainParams::MAIN;
-    if (overrideProxy && QMessageBox::warning(this, tr("Override CPU low-load limit?"),
-            tr("A Windows system temperature estimate can miss CPU overheating. Only continue if you can monitor your CPU temperature separately. Thermal Guard will still pause if the estimate is missing or too warm. This override lasts for this mining run only."),
-            QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel) != QMessageBox::Yes) return;
     bool missingGpuKernel = false;
     if (runGpu) {
         const QFileInfo kernel(kernelPath());
@@ -249,6 +258,20 @@ void PoolMiningDialog::startMining()
             runGpu = false;
         }
     }
+
+    const bool mainnet = Params().NetworkID() == CBaseChainParams::MAIN;
+    const bool bypassCpu = mainnet && runCpu && disableCpuThermal->isChecked();
+    const bool bypassGpu = mainnet && runGpu && disableGpuThermal->isChecked();
+    const bool overrideProxy = mainnet && runCpu && !bypassCpu && windowsProxy->isChecked() && windowsProxyOverride->isChecked();
+    if (bypassCpu || bypassGpu) {
+        const auto devices = bypassCpu && bypassGpu ? tr("CPU and GPU") : bypassCpu ? tr("CPU") : tr("GPU");
+        if (QMessageBox::warning(this, tr("Disable Thermal Guard for this run?"),
+                tr("The wallet will not monitor temperature, throttle, or pause the %1 for heat. This can cause overheating, instability, or hardware damage. Use independent temperature monitoring and adequate cooling. Operating-system, driver, and hardware limits still apply.").arg(devices),
+                QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel) != QMessageBox::Yes) return;
+    }
+    if (overrideProxy && QMessageBox::warning(this, tr("Override CPU low-load limit?"),
+            tr("A Windows system temperature estimate can miss CPU overheating. Only continue if you can monitor your CPU temperature separately. Thermal Guard will still pause if the estimate is missing or too warm. This override lasts for this mining run only."),
+            QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel) != QMessageBox::Yes) return;
 
     QSettings settings;
     QString address = settings.value(addressSetting).toString();
@@ -268,14 +291,17 @@ void PoolMiningDialog::startMining()
     payoutAddress->setText(address);
     output->clear();
     if (missingGpuKernel) appendWorkerLog(true, tr("The bundled GPU kernel is missing. Starting only the selected CPU worker."));
+    if (!runCpu) disableCpuThermal->setChecked(false);
+    if (!runGpu) disableGpuThermal->setChecked(false);
     cpuPending.clear();
     gpuPending.clear();
     stopping = false;
     status->setText(tr("Starting selected mining workers…"));
     auto withThermal = [&](QStringList arguments, int limit, bool cpu) {
-        // Regtest preview has no sensor requirement unless the worker test
-        // explicitly supplies one. This never applies to mainnet mining.
-        if (Params().NetworkID() == CBaseChainParams::MAIN) {
+        // Mainnet is guarded unless the user confirmed a per-device override.
+        // Regtest preview uses loopback and does not require real sensors.
+        if (mainnet) {
+            if (cpu ? bypassCpu : bypassGpu) return arguments << QStringLiteral("--disable-thermal-guard");
             arguments << QStringLiteral("--temperature-limit") << QString::number(limit);
             if (unmonitored->isChecked()) arguments << QStringLiteral("--allow-unmonitored-low-load");
             if (cpu && windowsProxy->isChecked()) arguments << QStringLiteral("--allow-windows-thermal-proxy");
@@ -284,13 +310,13 @@ void PoolMiningDialog::startMining()
         return arguments;
     };
     if (runCpu) {
-        cpuThermal->setText(tr("Waiting for temperature…"));
+        cpuThermal->setText(bypassCpu ? tr("Off for this run") : tr("Waiting for temperature…"));
         if (overrideProxy) appendWorkerLog(false, tr("One-thread limit overridden for this run; monitor CPU temperature separately."));
         process->setWorkingDirectory(miner.absolutePath());
         process->start(miner.absoluteFilePath(), withThermal(firstPartyArguments(address, false, {}, threadCount->value()), cpuLimit->value(), true));
     }
     if (runGpu) {
-        gpuThermal->setText(tr("Waiting for temperature…"));
+        gpuThermal->setText(bypassGpu ? tr("Off for this run") : tr("Waiting for temperature…"));
         gpuProcess->setWorkingDirectory(miner.absolutePath());
         gpuProcess->start(miner.absoluteFilePath(), withThermal(firstPartyArguments(address, true, kernelPath()), gpuLimit->value(), false));
     }
@@ -320,6 +346,7 @@ void PoolMiningDialog::done(int result)
 void PoolMiningDialog::updateControls()
 {
     const bool running = isMining();
+    const bool mainnet = Params().NetworkID() == CBaseChainParams::MAIN;
     const QFileInfo miner(minerPath());
     start->setEnabled(wallet && !running && !poolEndpoint().isEmpty() &&
                       (Params().NetworkID() == CBaseChainParams::MAIN || firstPartyPreview()) &&
@@ -329,16 +356,24 @@ void PoolMiningDialog::updateControls()
     cpuChoice->setEnabled(!running);
     gpuChoice->setEnabled(!running);
     threadCount->setEnabled(!running && cpuChoice->isChecked());
-    cpuLimit->setEnabled(!running && cpuChoice->isChecked());
-    gpuLimit->setEnabled(!running && gpuChoice->isChecked());
-    unmonitored->setEnabled(!running);
-    windowsProxy->setEnabled(!running && cpuChoice->isChecked());
-    windowsProxyOverride->setEnabled(!running && cpuChoice->isChecked() && windowsProxy->isChecked()
-                                     && Params().NetworkID() == CBaseChainParams::MAIN);
+    const bool cpuGuard = cpuChoice->isChecked() && !disableCpuThermal->isChecked();
+    const bool gpuGuard = gpuChoice->isChecked() && !disableGpuThermal->isChecked();
+    cpuLimit->setEnabled(!running && cpuGuard);
+    gpuLimit->setEnabled(!running && gpuGuard);
+    unmonitored->setEnabled(!running && (cpuGuard || gpuGuard));
+    windowsProxy->setEnabled(!running && cpuGuard);
+    windowsProxyOverride->setEnabled(!running && mainnet && cpuGuard && windowsProxy->isChecked());
+    disableCpuThermal->setEnabled(!running && mainnet && cpuChoice->isChecked());
+    disableGpuThermal->setEnabled(!running && mainnet && gpuChoice->isChecked());
 }
 
 void PoolMiningDialog::attachWorker(QProcess* worker, bool gpu)
 {
+    const auto resetThermal = [this, gpu] {
+        (gpu ? gpuThermal : cpuThermal)->setText(tr("Not running"));
+        (gpu ? disableGpuThermal : disableCpuThermal)->setChecked(false);
+        if (!gpu) windowsProxyOverride->setChecked(false);
+    };
     worker->setProcessChannelMode(QProcess::MergedChannels);
     worker->setStandardInputFile(QProcess::nullDevice());
     connect(worker, &QProcess::readyReadStandardOutput, this, [this, worker, gpu] { readOutput(worker, gpu); });
@@ -347,17 +382,17 @@ void PoolMiningDialog::attachWorker(QProcess* worker, bool gpu)
         appendWorkerLog(gpu, tr("Worker started."));
         status->setText(gpu ? tr("GPU worker started; connecting to the pool…") : tr("CPU worker started; connecting to the pool…"));
     });
-    connect(worker, &QProcess::errorOccurred, this, [this, worker, gpu](QProcess::ProcessError error) {
+    connect(worker, &QProcess::errorOccurred, this, [this, worker, gpu, resetThermal](QProcess::ProcessError error) {
         if (error == QProcess::FailedToStart) {
+            resetThermal();
             appendWorkerLog(gpu, tr("Could not start: %1").arg(worker->errorString()));
             if (!isMining()) status->setText(tr("Mining could not start. See the log."));
         }
     });
     connect(worker, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
-            [this, worker, gpu](int code, QProcess::ExitStatus) {
+            [this, worker, gpu, resetThermal](int code, QProcess::ExitStatus) {
         readOutput(worker, gpu, true);
-        (gpu ? gpuThermal : cpuThermal)->setText(tr("Not running"));
-        if (!gpu) windowsProxyOverride->setChecked(false);
+        resetThermal();
         appendWorkerLog(gpu, stopping ? tr("Worker stopped.") : tr("Worker exited (code %1).").arg(code));
         if (!isMining()) status->setText(stopping ? tr("Mining stopped.") : tr("Mining ended. See the log."));
         updateControls();
@@ -404,6 +439,11 @@ void PoolMiningDialog::readOutput(QProcess* worker, bool gpu, bool flush)
             continue;
         }
         if (line.startsWith(QStringLiteral("MINING "))) {
+            if (line == QStringLiteral("MINING thermal-guard-disabled")) {
+                (gpu ? gpuThermal : cpuThermal)->setText(tr("Off for this run"));
+                appendWorkerLog(gpu, tr("Thermal Guard is off for this run. Monitor this device's temperature separately."));
+                continue;
+            }
             const auto parts = line.split(QLatin1Char(' '));
             QString activity;
             if (line == QStringLiteral("MINING awaiting-job")) activity = tr("Connected; waiting for a pool job.");

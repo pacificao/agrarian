@@ -143,6 +143,14 @@ while mining. Cached Windows samples never count toward the five cooldown
 samples. AMD Windows GPU sensors are not yet supported. Thermal Guard
 affects wallet pool mining, not daemon solo mining.
 
+Advanced users may disable the wallet's Thermal Guard independently for CPU
+or GPU pool mining for one run. Both switches default to off and require
+confirmation. The selected device runs without wallet temperature checks,
+throttling, or thermal pauses; CPU mining uses the selected thread count.
+Operating-system, driver, and hardware protections remain in effect. Use
+adequate cooling and monitor the device independently. The wallet does not
+save this setting between runs.
+
 The mining log distinguishes pool authorization, waiting for a job, actual
 hashing (including effective vs. selected CPU threads), and a thermal pause.
 A share is found by the miner and submitted to the pool; no accepted share yet

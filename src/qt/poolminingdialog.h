@@ -52,6 +52,8 @@ private:
     QCheckBox* unmonitored;
     QCheckBox* windowsProxy;
     QCheckBox* windowsProxyOverride;
+    QCheckBox* disableCpuThermal;
+    QCheckBox* disableGpuThermal;
     QLabel* cpuThermal;
     QLabel* gpuThermal;
     QLabel* status;

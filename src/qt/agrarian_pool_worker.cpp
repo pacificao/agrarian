@@ -223,7 +223,7 @@ public:
             }
             if (subscribed && authorized && haveWork && !pendingShare && activeThreads) {
                 ReportMining(scanner ? QByteArray("hashing") : QByteArray("hashing ") + QByteArray::number(activeThreads) +
-                    ' ' + QByteArray::number(cpuThreads) + ' ' + (thermal ? thermal->Reading() : "test"));
+                    ' ' + QByteArray::number(cpuThreads) + ' ' + (thermal ? thermal->Reading() : "unrestricted"));
                 const auto result = scanner ? scanner->Scan(header, job.target, nextNonce)
                                             : poolwork::ScanCpuParallel(header, job.target, nextNonce,
                                                                         thermal ? thermal->CpuBatch() : 1024, activeThreads, runningStop);
@@ -452,10 +452,15 @@ int main(int argc, char** argv)
     }
     int thermalLimit = 0;
     bool overrideLimit = false, allowFallback = false, allowProxy = false, overrideProxyCap = false, proxyFixture = false;
+    bool disableThermalGuard = false;
     QString fixture;
     for (int i = 2; i < args.size();) {
         const auto option = args[i];
-        if (option == QStringLiteral("--allow-unmonitored-low-load")) {
+        if (option == QStringLiteral("--disable-thermal-guard")) {
+            if (disableThermalGuard) return 2;
+            disableThermalGuard = true;
+            args.removeAt(i);
+        } else if (option == QStringLiteral("--allow-unmonitored-low-load")) {
             if (allowFallback) return 2;
             allowFallback = true;
             args.removeAt(i);
@@ -497,12 +502,16 @@ int main(int argc, char** argv)
     if ((mainnet && (!fixture.isEmpty() || proxyFixture)) || (!mainnet && !fixture.isEmpty() && !overrideLimit)
         || (proxyFixture && (fixture.isEmpty() || !allowProxy)) || (allowProxy && !(mainCpu || localCpu))
         || (overrideProxyCap && (!allowProxy || !(mainCpu || (localCpu && proxyFixture))))) return 2;
+    // Only loopback tests may supply a temperature fixture alongside the
+    // bypass, to prove identical hot input is ignored in that mode.
+    if (disableThermalGuard && (allowFallback || allowProxy || overrideProxyCap || proxyFixture || software ||
+        (overrideLimit && (mainnet || fixture.isEmpty())))) return 2;
 #ifndef Q_OS_WIN
     if (mainnet && overrideProxyCap) return 2;
 #endif
     if (!mainnet && !gpu && !software && !localCpu) {
-        std::fputs("Usage: agrarian-pool-worker --pool-cpu PUBLIC_PAYOUT [THREADS]\n"
-                   "       agrarian-pool-worker --pool-gpu PUBLIC_PAYOUT PINNED_KERNEL\n"
+        std::fputs("Usage: agrarian-pool-worker --pool-cpu PUBLIC_PAYOUT [THREADS] [--disable-thermal-guard]\n"
+                   "       agrarian-pool-worker --pool-gpu PUBLIC_PAYOUT PINNED_KERNEL [--disable-thermal-guard]\n"
                    "       agrarian-pool-worker --regtest-loopback PORT PUBLIC_PAYOUT [THREADS]\n"
                    "       agrarian-pool-worker --regtest-opencl PORT PUBLIC_PAYOUT PINNED_KERNEL\n", stderr);
         return 2;
@@ -549,8 +558,12 @@ int main(int argc, char** argv)
             std::fflush(stdout);
         }
         std::unique_ptr<ThermalControl> thermal;
-        if (mainnet || overrideLimit)
+        if (!disableThermalGuard && (mainnet || overrideLimit))
             thermal = std::make_unique<ThermalControl>(thermalLimit, allowFallback, allowProxy, overrideProxyCap, scanner.get(), threads, fixture, proxyFixture);
+        if (disableThermalGuard) {
+            std::puts("MINING thermal-guard-disabled");
+            std::fflush(stdout);
+        }
         RunWithReconnect(port, mainnet, payout, scanner.get(), threads, thermal.get());
     } catch (const std::exception& error) {
         std::fprintf(stderr, "%s\n", error.what());

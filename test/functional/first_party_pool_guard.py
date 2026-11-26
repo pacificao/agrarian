@@ -154,6 +154,39 @@ def test_windows_proxy_load_override(binary):
                 assert status in stdout, stdout
 
 
+def test_thermal_guard_disabled(binary):
+    with tempfile.TemporaryDirectory(prefix="agr-thermal-disabled-") as directory:
+        sensor = Path(directory) / "temperature"
+        sensor.write_text("95000\n")
+        with listener() as pool, worker(binary, pool, "2", "--temperature-limit", "75",
+                                       "--regtest-thermal-sensor", str(sensor),
+                                       "--disable-thermal-guard") as (process, conn, stream):
+            authorize(conn, stream, "ab12cd34")
+            send_work(conn, "over-cutoff")
+            share = read(stream)
+            assert share["method"] == "mining.submit" and share["params"][1] == "over-cutoff"
+            sensor.unlink()
+            time.sleep(1.2)
+            send(conn, {"id": share["id"], "result": True, "error": None})
+            send_work(conn, "sensor-missing")
+            share = read(stream)
+            assert share["method"] == "mining.submit" and share["params"][1] == "sensor-missing"
+            process.terminate()
+            stdout, _ = process.communicate(timeout=5)
+            assert b"MINING thermal-guard-disabled" in stdout and b"MINING hashing 2 2 unrestricted" in stdout, stdout
+            assert b"MINING paused" not in stdout and b"THERMAL " not in stdout, stdout
+
+        # The mainnet GPU flag reaches normal kernel validation, before any
+        # network connection or actual OpenCL device is required.
+        gpu = ("--pool-gpu", FIXTURE, str(Path(directory) / "missing.cl"))
+        process = subprocess.run([str(binary), *gpu, "--disable-thermal-guard"], capture_output=True, timeout=5)
+        assert process.returncode == 1 and b"Cannot read the staged OpenCL kernel" in process.stderr
+        for args in (gpu, ("--pool-cpu", FIXTURE, "2")):
+            for invalid in (("--temperature-limit", "75"), ("--allow-unmonitored-low-load",), ("--disable-thermal-guard",)):
+                process = subprocess.run([str(binary), *args, "--disable-thermal-guard", *invalid], capture_output=True, timeout=5)
+                assert process.returncode == 2, (args, invalid)
+
+
 def test_reconnect(binary):
     with listener() as pool, worker(binary, pool) as (process, first, first_stream):
         authorize(first, first_stream, "ab12cd34")
@@ -221,6 +254,7 @@ def main(binary):
     test_thermal_pause(binary)
     test_windows_thermal_proxy_policy(binary)
     test_windows_proxy_load_override(binary)
+    test_thermal_guard_disabled(binary)
     for args in (("--regtest-loopback", "3032", FIXTURE, "--allow-windows-thermal-proxy"),
                  ("--regtest-opencl", "3032", FIXTURE, "unused.cl", "--allow-windows-thermal-proxy"),
                  ("--pool-cpu", FIXTURE)):
