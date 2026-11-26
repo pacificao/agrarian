@@ -3,7 +3,7 @@ name: Desktop wallet candidate
 on:
   workflow_dispatch:
   push:
-    branches: [review/desktop-opencl-mining, release/2.1.5-thermal, release/2.1.6-stake-label, release/2.1.7-stake-display, fix/cpu-mining-status]
+    branches: [review/desktop-opencl-mining, release/2.1.5-thermal, release/2.1.6-stake-label, release/2.1.7-stake-display, fix/cpu-mining-status, release/2.1.8-mining]
 
 permissions:
   contents: read
