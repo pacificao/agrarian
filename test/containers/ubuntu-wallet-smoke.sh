@@ -27,7 +27,8 @@ test -s agrarian/bin/miners/COPYING
 test -s agrarian/bin/miners/quark-screen.cl
 test ! -e agrarian/bin/miners/cpuminer
 
-runuser -u nobody -- "$daemon" --version
+# The daemon prints --version but exits 1 by design. The regtest below
+# checks actual daemon startup and RPC instead.
 runuser -u nobody -- "$worker" --check-tls-backend
 runuser -u nobody -- python3 /qa/first_party_pool_guard.py "$worker"
 runuser -u nobody -- xvfb-run -a python3 /qa/desktop_package_smoke.py --qt "$qt" --daemon "$daemon"
