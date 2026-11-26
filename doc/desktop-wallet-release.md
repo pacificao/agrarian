@@ -69,7 +69,33 @@ Use an x64 Docker host, or a Docker host with x64 emulation. The
 `qa/ubuntu-26.04-wallet` branch downloads the published package and verifies
 its signed SHA-256 checksum before running these commands on an x64 runner.
 This test exercises 26.04 userspace, not its kernel, physical GPU or sensors,
-or live mainnet/pool connectivity. No production wallets are used.
+or live mainnet/pool connectivity. No production wallets are used. Use test
+fixtures from the same release when testing a published binary.
+
+### NVIDIA GPU check on Unraid
+
+Use the `qa/ubuntu-26.04-gpu` branch with the matching, checksum-verified
+[desktop candidate](https://github.com/pacificao/agrarian-core/actions/runs/45863543925),
+which includes the per-run Thermal Guard bypass. Build the image as above on
+the x64 Unraid host. Check that `nvidia-smi` works on the host, the selected GPU
+is idle, and Docker already has the NVIDIA runtime configured. Use one GPU,
+not all GPUs, and do not change any driver or production container settings.
+
+```sh
+nvidia-smi --query-gpu=uuid,name,temperature.gpu --format=csv
+# Replace the placeholder with the UUID of the idle NVIDIA GPU.
+docker run --rm --network none --platform linux/amd64 --runtime=nvidia \
+  -e NVIDIA_VISIBLE_DEVICES=GPU-REPLACE-WITH-UUID \
+  -e NVIDIA_DRIVER_CAPABILITIES=compute,utility \
+  -v "$PWD/agrarian-ubuntu-24.04-x64.tar.gz:/package/wallet.tar.gz:ro" \
+  agrarian-ubuntu-26.04-smoke --gpu
+```
+
+The GPU check is time-bounded and only starts with a single reported NVIDIA
+GPU at or below 60 °C. It checks the real sensor, kernel self-test and shares
+against a loopback-only pool. It then supplies a **simulated** hot sensor to
+verify the guarded and bypassed paths; it does not heat the card to a cutoff.
+The container is removed on exit. It has no access to a live wallet or pool.
 
 Local release-preparation regression: the wallet smoke test found an RPC
 startup race during wallet encryption. The RPC table now returns the existing

@@ -24,11 +24,17 @@ def listener():
 
 
 @contextmanager
-def worker(binary, pool, *options):
-    process = subprocess.Popen([str(binary), "--regtest-loopback", str(pool.getsockname()[1]), FIXTURE, *options],
+def worker(binary, pool, *options, mode="--regtest-loopback"):
+    process = subprocess.Popen([str(binary), mode, str(pool.getsockname()[1]), FIXTURE, *options],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
-        conn, _ = pool.accept()
+        try:
+            conn, _ = pool.accept()
+        except TimeoutError:
+            if process.poll() is not None:
+                stdout, stderr = process.communicate()
+                raise RuntimeError(f"Worker exited before connecting: {stdout!r} {stderr!r}") from None
+            raise
         with conn, conn.makefile("rb") as stream:
             conn.settimeout(5)
             yield process, conn, stream
@@ -46,12 +52,12 @@ def read(stream):
     return json.loads(stream.readline(4096))
 
 
-def authorize(conn, stream, nonce):
+def authorize(conn, stream, nonce, suffix=".agrarian-qt-cpu"):
     assert read(stream)["method"] == "mining.subscribe"
     send(conn, {"id": 1, "result": [[], nonce, 4], "error": None})
     request = read(stream)
     assert request["method"] == "mining.authorize"
-    assert request["params"] == [FIXTURE + ".agrarian-qt-cpu", "x"]
+    assert request["params"] == [FIXTURE + suffix, "x"]
     send(conn, {"id": 2, "result": True, "error": None})
 
 

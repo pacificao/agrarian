@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+gpu=0
+if [[ ${1:-} == --gpu ]]; then
+    gpu=1
+    shift
+fi
 package=${1:-/package/wallet.tar.gz}
 scratch=$(mktemp -d)
 chmod 755 "$scratch"
@@ -32,3 +37,13 @@ test ! -e agrarian/bin/miners/cpuminer
 runuser -u nobody -- "$worker" --check-tls-backend
 runuser -u nobody -- python3 /qa/first_party_pool_guard.py "$worker"
 runuser -u nobody -- xvfb-run -a python3 /qa/desktop_package_smoke.py --qt "$qt" --daemon "$daemon"
+
+if (( gpu )); then
+    runuser -u nobody -- nvidia-smi --query-gpu=name,driver_version,temperature.gpu --format=csv,noheader
+    temperature=$(runuser -u nobody -- nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits)
+    if [[ ! $temperature =~ ^[0-9]{1,2}$ ]] || (( 10#$temperature > 60 )); then
+        printf 'GPU QA requires exactly one accessible NVIDIA GPU at 60 C or below.\n' >&2
+        exit 1
+    fi
+    timeout --kill-after=5s 165s runuser -u nobody -- python3 -B /qa/gpu_pool_smoke.py "$worker" "$scratch/agrarian/bin/miners/quark-screen.cl"
+fi

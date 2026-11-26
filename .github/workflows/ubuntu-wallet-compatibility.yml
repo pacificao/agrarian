@@ -2,7 +2,7 @@ name: Published Ubuntu Wallet Compatibility
 
 on:
   push:
-    branches: [qa/ubuntu-26.04-wallet]
+    branches: [qa/ubuntu-26.04-wallet, qa/ubuntu-26.04-gpu]
   workflow_dispatch:
     inputs:
       release:
@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   ubuntu-wallet:
@@ -22,7 +23,9 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - name: Download and verify the published wallet
+        if: ${{ github.ref_name != 'qa/ubuntu-26.04-gpu' }}
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE: ${{ inputs.release || 'v2.1.7' }}
@@ -44,6 +47,20 @@ jobs:
           gpg --batch --verify SHA256SUMS.asc SHA256SUMS
           checksum=$(awk -v asset="$asset" '$2 == asset { print; count++ } END { if (count != 1) exit 1 }' SHA256SUMS)
           printf '%s\n' "$checksum" | sha256sum --check --strict
+      - name: Download and verify the matching desktop candidate
+        if: ${{ github.ref_name == 'qa/ubuntu-26.04-gpu' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_RUN: '45863543925'
+        run: |
+          set -euo pipefail
+          candidate_sha=$(gh run view "$CANDIDATE_RUN" --repo "$GITHUB_REPOSITORY" --json headSha --jq .headSha)
+          [[ $candidate_sha =~ ^[a-f0-9]{40}$ ]]
+          git merge-base --is-ancestor "$candidate_sha" HEAD
+          gh run download "$CANDIDATE_RUN" --repo "$GITHUB_REPOSITORY" --name candidate-ubuntu-x64 --dir "$RUNNER_TEMP/wallet-release"
+          cd "$RUNNER_TEMP/wallet-release"
+          grep -Fx "commit=$candidate_sha" BUILD-INFO.txt
+          sha256sum --check --strict SHA256SUMS
       - name: Build the clean Ubuntu 26.04 QA image
         run: docker build --pull --platform linux/amd64 -f test/containers/ubuntu-wallet.Dockerfile -t agrarian-ubuntu-26.04-smoke .
       - name: Exercise the wallet and worker without external network access
