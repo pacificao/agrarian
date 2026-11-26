@@ -9,7 +9,19 @@ permissions:
   contents: read
 
 jobs:
+  windows-temperature-fixtures:
+    runs-on: windows-2022
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Exercise the worker's PowerShell sensor selection
+        shell: pwsh
+        run: ./test/functional/windows_cpu_temperature_fixtures.ps1
+
   build:
+    needs: windows-temperature-fixtures
     name: Build ${{ matrix.platform }} x64
     runs-on: ubuntu-24.04
     timeout-minutes: 150

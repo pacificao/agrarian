@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $source = Get-Content -Raw (Join-Path $repo 'src/qt/pooltemperatures.h')
 $parts = [regex]::Matches($source, '(?s)R"PS\((.*?)\)PS"')
-if ($parts.Count -ne 2) { throw 'Could not extract the worker’s actual PowerShell probe' }
+if ($parts.Count -ne 2) { throw 'Could not extract the sensor probe from the worker source' }
 $fixture = @'
 function Get-CimInstance {
     param([string]$Namespace, [string]$ClassName, [int]$OperationTimeoutSec)
