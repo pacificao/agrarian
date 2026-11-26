@@ -2,6 +2,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "overviewpage.h"
+#include "stakingactivity.h"
 
 #include <QFrame>
 #include <QLabel>
@@ -12,6 +13,15 @@ class OverviewPageTests : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void stakeNicknameIsNotThePaymentSource()
+    {
+        QCOMPARE(stakingactivity::Type(), QStringLiteral("Staking reward"));
+        QCOMPARE(stakingactivity::ReceivingAddress(QStringLiteral("Pool mining payouts")),
+                 QStringLiteral("Receiving address: Pool mining payouts"));
+        QCOMPARE(stakingactivity::ReceivingAddress(QStringLiteral("AGRaddress")),
+                 QStringLiteral("Receiving address: AGRaddress"));
+    }
+
     void legacyBalanceVisibility()
     {
         OverviewPage page;

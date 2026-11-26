@@ -10,6 +10,7 @@
 #include "guiconstants.h"
 #include "guiutil.h"
 #include "optionsmodel.h"
+#include "stakingactivity.h"
 #include "transactiondesc.h"
 #include "transactionrecord.h"
 #include "walletmodel.h"
@@ -350,7 +351,7 @@ QString TransactionTableModel::formatTxType(const TransactionRecord* wtx) const
     case TransactionRecord::SendToSelf:
         return tr("Payment to yourself");
     case TransactionRecord::StakeMint:
-        return tr("AGR Stake");
+        return stakingactivity::Type();
     case TransactionRecord::StakeZAGR:
         return tr("zAGR Stake");
     case TransactionRecord::Generated:
@@ -412,6 +413,8 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord* wtx, b
     }
 
     switch (wtx->type) {
+    case TransactionRecord::StakeMint:
+        return stakingactivity::ReceivingAddress(lookupAddress(wtx->address, tooltip)) + watchAddress;
     case TransactionRecord::RecvFromOther:
         return QString::fromStdString(wtx->address) + watchAddress;
     case TransactionRecord::RecvWithAddress:
@@ -419,7 +422,6 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord* wtx, b
     case TransactionRecord::RecvWithObfuscation:
     case TransactionRecord::SendToAddress:
     case TransactionRecord::Generated:
-    case TransactionRecord::StakeMint:
     case TransactionRecord::ZerocoinSpend:
     case TransactionRecord::ZerocoinSpend_FromMe:
     case TransactionRecord::RecvFromZerocoinSpend:
@@ -521,6 +523,8 @@ QVariant TransactionTableModel::txWatchonlyDecoration(const TransactionRecord* w
 QString TransactionTableModel::formatTooltip(const TransactionRecord* rec) const
 {
     QString tooltip = formatTxStatus(rec) + QString("\n") + formatTxType(rec);
+    if (rec->type == TransactionRecord::StakeMint)
+        return tooltip + QString("\n") + formatTxToAddress(rec, true);
     if (rec->type == TransactionRecord::RecvFromOther || rec->type == TransactionRecord::SendToOther ||
         rec->type == TransactionRecord::SendToAddress || rec->type == TransactionRecord::RecvWithAddress || rec->type == TransactionRecord::MNReward) {
         tooltip += QString(" ") + formatTxToAddress(rec, true);

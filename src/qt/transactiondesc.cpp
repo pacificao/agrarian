@@ -109,7 +109,18 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
     //
     // From
     //
-    if (wtx.IsCoinBase()) {
+    const bool stakeReward = rec->type == TransactionRecord::StakeMint;
+    if (stakeReward) {
+        strHTML += "<b>" + tr("Source") + ":</b> " + tr("Proof-of-stake reward") + "<br>";
+        const CBitcoinAddress receiving(rec->address);
+        if (receiving.IsValid()) {
+            strHTML += "<b>" + tr("Receiving address") + ":</b> " + GUIUtil::HtmlEscape(rec->address);
+            const auto found = wallet->mapAddressBook.find(receiving.Get());
+            if (found != wallet->mapAddressBook.end() && !found->second.name.empty())
+                strHTML += " (" + tr("address label") + ": " + GUIUtil::HtmlEscape(found->second.name) + ")";
+            strHTML += "<br>";
+        }
+    } else if (wtx.IsCoinBase()) {
         strHTML += "<b>" + tr("Source") + ":</b> " + tr("Generated") + "<br>";
     } else if (wtx.mapValue.count("from") && !wtx.mapValue["from"].empty()) {
         // Online transaction
@@ -138,7 +149,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
     //
     // To
     //
-    if (wtx.mapValue.count("to") && !wtx.mapValue["to"].empty()) {
+    if (!stakeReward && wtx.mapValue.count("to") && !wtx.mapValue["to"].empty()) {
         // Online transaction
         std::string strAddress = wtx.mapValue["to"];
         strHTML += "<b>" + tr("To") + ":</b> ";

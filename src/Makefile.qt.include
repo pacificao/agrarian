@@ -192,6 +192,7 @@ BITCOIN_QT_H = \
   qt/transactiondescdialog.h \
   qt/transactionfilterproxy.h \
   qt/transactionrecord.h \
+  qt/stakingactivity.h \
   qt/transactiontablemodel.h \
   qt/transactionview.h \
   qt/utilitydialog.h \
