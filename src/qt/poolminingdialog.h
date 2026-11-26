@@ -47,6 +47,11 @@ private:
     QCheckBox* cpuChoice;
     QCheckBox* gpuChoice;
     QSpinBox* threadCount;
+    QSpinBox* cpuLimit;
+    QSpinBox* gpuLimit;
+    QCheckBox* unmonitored;
+    QLabel* cpuThermal;
+    QLabel* gpuThermal;
     QLabel* status;
     QLabel* payoutAddress;
     QPushButton* start;

@@ -2,7 +2,7 @@ name: First-party pool worker QA
 
 on:
   push:
-    branches: [review/desktop-opencl-mining]
+    branches: [review/desktop-opencl-mining, release/2.1.5-thermal]
     paths:
       - '.github/workflows/first-party-pool-worker-qa.yml'
       - 'contrib/build-first-party-pool-qa.sh'
@@ -10,6 +10,8 @@ on:
       - 'src/qt/agrarian_pool_worker.cpp'
       - 'src/qt/poolframes.h'
       - 'src/qt/poolopencl.h'
+      - 'src/qt/poolthermal*.h'
+      - 'src/qt/pooltemperatures.h'
       - 'test/functional/*pool*'
 
 permissions:

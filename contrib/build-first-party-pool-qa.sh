@@ -37,5 +37,7 @@ objects+=("$dest/sha256.o")
     "$root/test/functional/poolframes_test.cpp" "${qt_flags[@]}" -o "$dest/poolframes-test"
 "$dest/poolwork-test"
 "$dest/poolframes-test"
+"${CXX:-c++}" -std=c++17 -O2 -I"$root/src" "$root/test/functional/poolthermal_test.cpp" -o "$dest/poolthermal-test"
+"$dest/poolthermal-test"
 python3 -B "$root/test/functional/first_party_pool_guard.py" "$dest/agrarian-pool-worker"
 printf 'First-party staged worker validated: %s\n' "$dest/agrarian-pool-worker"

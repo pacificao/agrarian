@@ -6,6 +6,8 @@
 #include "pooldestination.h"
 #include "poolframes.h"
 #include "poolopencl.h"
+#include "pooltemperatures.h"
+#include "poolthermalpolicy.h"
 #include "poolwork.h"
 
 #include <QCoreApplication>
@@ -110,11 +112,53 @@ bool Advance(QByteArray& extraNonce)
     return false;
 }
 
+class ThermalControl {
+public:
+    ThermalControl(int target, bool fallback, poolopencl::Scanner* gpu, unsigned threads, QString fixture)
+        : limit(target), allowFallback(fallback), maxThreads(threads),
+          sensors(gpu != nullptr, gpu ? gpu->Vendor() : 0, gpu ? gpu->PciAddress() : QString{}, std::move(fixture))
+    {
+        clock.start();
+    }
+
+    void Poll()
+    {
+        const auto time = clock.elapsed();
+        if (time < nextSample) return;
+        nextSample = time + 1000;
+        const auto temperatures = sensors.Read();
+        double delta = poolthermal::Missing();
+        poolthermal::Maximum(delta, temperatures.core - limit);
+        poolthermal::Maximum(delta, temperatures.hotspot - limit - poolthermal::kHotspotOffset);
+        load = policy.Sample(delta, maxThreads, allowFallback);
+        static const char* names[] = {"normal", "throttling", "cooling", "unavailable", "low-load"};
+        const auto display = [](double value) {
+            return std::isfinite(value) ? QByteArray::number(value, 'f', 1) : QByteArray("-");
+        };
+        std::printf("THERMAL %s %s %s\n", names[static_cast<int>(load.state)],
+                    display(temperatures.core).constData(), display(temperatures.hotspot).constData());
+        std::fflush(stdout);
+    }
+
+    unsigned Threads() const { return clock.elapsed() >= nextWork ? load.threads : 0; }
+    void Worked() { nextWork = clock.elapsed() + load.delayMs; }
+
+private:
+    int limit;
+    bool allowFallback;
+    unsigned maxThreads;
+    poolthermal::Sensors sensors;
+    poolthermal::Policy policy;
+    poolthermal::Load load;
+    QElapsedTimer clock;
+    qint64 nextSample{0}, nextWork{0};
+};
+
 class Worker {
 public:
-    Worker(QString payout, poolopencl::Scanner* gpu, unsigned threads)
+    Worker(QString payout, poolopencl::Scanner* gpu, unsigned threads, ThermalControl* control)
         : worker(std::move(payout) + (gpu ? QStringLiteral(".agrarian-qt-gpu") :
-                                           QStringLiteral(".agrarian-qt-cpu"))), scanner(gpu), cpuThreads(threads) {}
+                                           QStringLiteral(".agrarian-qt-cpu"))), scanner(gpu), cpuThreads(threads), thermal(control) {}
 
     void Run(quint16 port, bool mainnet)
     {
@@ -138,7 +182,7 @@ public:
             socket.connectToHost(QHostAddress::LocalHost, port);
             if (!socket.waitForConnected(5000)) throw RetryablePoolError("Cannot connect to the local test pool");
         }
-        Send(1, "mining.subscribe", {"Agrarian-FirstParty/2.1.4"});
+        Send(1, "mining.subscribe", {"Agrarian-FirstParty/2.1.5"});
         handshake.start();
         sinceLastFrame.start();
 
@@ -154,9 +198,12 @@ public:
                 throw RetryablePoolError("Pool no longer responding");
             if (pendingShare && sinceSubmission.elapsed() >= 30000)
                 throw RetryablePoolError("Pool did not acknowledge the last share");
-            if (subscribed && authorized && haveWork && !pendingShare) {
+            if (thermal) thermal->Poll();
+            const unsigned activeThreads = thermal ? thermal->Threads() : cpuThreads;
+            if (subscribed && authorized && haveWork && !pendingShare && activeThreads) {
                 const auto result = scanner ? scanner->Scan(header, job.target, nextNonce)
-                                            : poolwork::ScanCpuParallel(header, job.target, nextNonce, 1024, cpuThreads, runningStop);
+                                            : poolwork::ScanCpuParallel(header, job.target, nextNonce, 1024, activeThreads, runningStop);
+                if (thermal) thermal->Worked();
                 nextNonce = result.nextNonce;
                 if (result.found) {
                     Require(nextRequest < 2147483647, "Pool session request limit reached");
@@ -170,7 +217,7 @@ public:
                     if (haveWork) PrepareWork();
                 }
             } else {
-                socket.waitForReadyRead(200);
+                socket.waitForReadyRead(thermal ? 50 : 200);
             }
         }
         throw RetryablePoolError("Pool disconnected");
@@ -183,6 +230,7 @@ private:
     const QString worker;
     poolopencl::Scanner* const scanner;
     const unsigned cpuThreads;
+    ThermalControl* const thermal;
     QElapsedTimer handshake, sinceLastFrame, sinceSubmission, connectedWork;
     std::atomic<bool> runningStop{false}; // prototype stop uses process termination
     bool subscribed{false}, authorized{false}, haveWork{false}, hasJob{false};
@@ -309,7 +357,7 @@ private:
 };
 
 void RunWithReconnect(quint16 port, bool mainnet, const QString& payout, poolopencl::Scanner* scanner,
-                      unsigned threads)
+                      unsigned threads, ThermalControl* thermal)
 {
     unsigned delay = 1;
     for (;;) {
@@ -317,7 +365,7 @@ void RunWithReconnect(quint16 port, bool mainnet, const QString& payout, poolope
         // over the last job, nonce, authorization, or unacknowledged share.
         bool stable = false;
         try {
-            Worker session(payout, scanner, threads);
+            Worker session(payout, scanner, threads, thermal);
             try {
                 session.Run(port, mainnet);
                 return;
@@ -342,7 +390,7 @@ void RunWithReconnect(quint16 port, bool mainnet, const QString& payout, poolope
 int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
-    const auto args = app.arguments();
+    auto args = app.arguments();
     if (args.size() == 2 && args[1] == QStringLiteral("--check-tls-backend")) {
         if (!QSslSocket::supportsSsl()) {
             std::fputs("TLS backend unavailable\n", stderr);
@@ -351,17 +399,51 @@ int main(int argc, char** argv)
         std::puts("TLS backend available");
         return 0;
     }
+    int thermalLimit = 0;
+    bool overrideLimit = false, allowFallback = false;
+    QString fixture;
+    for (int i = 2; i < args.size();) {
+        const auto option = args[i];
+        if (option == QStringLiteral("--allow-unmonitored-low-load")) {
+            if (allowFallback) return 2;
+            allowFallback = true;
+            args.removeAt(i);
+        } else if (option == QStringLiteral("--temperature-limit")) {
+            bool parsed = false;
+            if (overrideLimit || i + 1 >= args.size()) return 2;
+            thermalLimit = args[i + 1].toInt(&parsed);
+            if (!parsed) return 2;
+            overrideLimit = true;
+            args.removeAt(i + 1);
+            args.removeAt(i);
+        } else if (option == QStringLiteral("--regtest-thermal-sensor")) {
+            if (!fixture.isEmpty() || i + 1 >= args.size() || args[i + 1].isEmpty()) return 2;
+            fixture = args[i + 1];
+            args.removeAt(i + 1);
+            args.removeAt(i);
+        } else {
+            ++i;
+        }
+    }
     const bool mainCpu = (args.size() == 3 || args.size() == 4) && args[1] == QStringLiteral("--pool-cpu");
     const bool mainGpu = args.size() == 4 && args[1] == QStringLiteral("--pool-gpu");
     const bool mainnet = mainCpu || mainGpu;
     const bool gpu = mainGpu || (args.size() == 5 && args[1] == QStringLiteral("--regtest-opencl"));
     const bool software = args.size() == 5 && args[1] == QStringLiteral("--regtest-opencl-software");
     const bool localCpu = (args.size() == 4 || args.size() == 5) && args[1] == QStringLiteral("--regtest-loopback");
+    if ((mainnet && !fixture.isEmpty()) || (!mainnet && !fixture.isEmpty() && !overrideLimit)) return 2;
     if (!mainnet && !gpu && !software && !localCpu) {
         std::fputs("Usage: agrarian-pool-worker --pool-cpu PUBLIC_PAYOUT [THREADS]\n"
                    "       agrarian-pool-worker --pool-gpu PUBLIC_PAYOUT PINNED_KERNEL\n"
                    "       agrarian-pool-worker --regtest-loopback PORT PUBLIC_PAYOUT [THREADS]\n"
                    "       agrarian-pool-worker --regtest-opencl PORT PUBLIC_PAYOUT PINNED_KERNEL\n", stderr);
+        return 2;
+    }
+    const bool gpuLoad = gpu || software;
+    if (!overrideLimit) thermalLimit = gpuLoad ? poolthermal::kGpuDefault : poolthermal::kCpuDefault;
+    if (thermalLimit < (gpuLoad ? poolthermal::kGpuMin : poolthermal::kCpuMin) ||
+        thermalLimit > (gpuLoad ? poolthermal::kGpuMax : poolthermal::kCpuMax)) {
+        std::fputs("Thermal limit is outside the supported range\n", stderr);
         return 2;
     }
     bool ok = mainnet;
@@ -398,7 +480,10 @@ int main(int argc, char** argv)
             std::printf("CPU worker configured for %d threads\n", threads);
             std::fflush(stdout);
         }
-        RunWithReconnect(port, mainnet, payout, scanner.get(), threads);
+        std::unique_ptr<ThermalControl> thermal;
+        if (mainnet || overrideLimit)
+            thermal = std::make_unique<ThermalControl>(thermalLimit, allowFallback, scanner.get(), threads, fixture);
+        RunWithReconnect(port, mainnet, payout, scanner.get(), threads, thermal.get());
     } catch (const std::exception& error) {
         std::fprintf(stderr, "%s\n", error.what());
         return 1;

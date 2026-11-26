@@ -23,18 +23,25 @@
 #include <QSpinBox>
 #include <QTextDocument>
 #include <QThread>
+#include "poolthermalpolicy.h"
 
 #include <algorithm>
 
 namespace {
 constexpr auto addressSetting = "poolMining/payoutAddress";
 constexpr auto threadSetting = "poolMining/cpuThreads";
+constexpr auto cpuLimitSetting = "poolMining/cpuTemperatureLimit";
+constexpr auto gpuLimitSetting = "poolMining/gpuTemperatureLimit";
+constexpr auto fallbackSetting = "poolMining/unmonitoredLowLoad";
 }
 
 PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     process(new QProcess(this)), gpuProcess(new QProcess(this)),
     cpuChoice(new QCheckBox(tr("CPU"), this)), gpuChoice(new QCheckBox(tr("GPU"), this)),
     threadCount(new QSpinBox(this)),
+    cpuLimit(new QSpinBox(this)), gpuLimit(new QSpinBox(this)),
+    unmonitored(new QCheckBox(tr("Allow low-load mining if a temperature sensor is unavailable"), this)),
+    cpuThermal(new QLabel(this)), gpuThermal(new QLabel(this)),
     status(new QLabel(this)), payoutAddress(new QLabel(this)),
     start(new QPushButton(tr("&Start pool mining"), this)),
     stop(new QPushButton(tr("S&top mining"), this)), output(new QPlainTextEdit(this))
@@ -75,12 +82,34 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     threadCount->setRange(1, std::clamp(QThread::idealThreadCount(), 1, pooldestination::kMaxCpuThreads));
     threadCount->setValue(QSettings().value(threadSetting, 1).toInt());
     form->addRow(tr("CPU &threads:"), threadCount);
+    cpuLimit->setObjectName(QStringLiteral("poolCpuTemperatureLimit"));
+    gpuLimit->setObjectName(QStringLiteral("poolGpuTemperatureLimit"));
+    cpuLimit->setRange(poolthermal::kCpuMin, poolthermal::kCpuMax);
+    gpuLimit->setRange(poolthermal::kGpuMin, poolthermal::kGpuMax);
+    cpuLimit->setSuffix(tr(" °C"));
+    gpuLimit->setSuffix(tr(" °C"));
+    cpuLimit->setValue(QSettings().value(cpuLimitSetting, poolthermal::kCpuDefault).toInt());
+    gpuLimit->setValue(QSettings().value(gpuLimitSetting, poolthermal::kGpuDefault).toInt());
+    cpuThermal->setText(tr("Not running"));
+    gpuThermal->setText(tr("Not running"));
+    form->addRow(tr("CPU temperature limit:"), cpuLimit);
+    form->addRow(tr("GPU core limit:"), gpuLimit);
+    const auto thermalHint = tr("Thermal Guard reduces mining near the limit and pauses when too warm. Without a supported sensor it pauses by default. GPU hotspot, when available, is checked separately at 10 °C above the core target.");
+    auto* thermalHelp = new QLabel(thermalHint, this);
+    thermalHelp->setWordWrap(true);
+    form->addRow(thermalHelp);
+    unmonitored->setObjectName(QStringLiteral("poolUnmonitoredLowLoad"));
+    unmonitored->setChecked(QSettings().value(fallbackSetting, false).toBool());
+    unmonitored->setToolTip(tr("Lower load is not temperature protection. Enable only if you can monitor cooling yourself."));
+    form->addRow(unmonitored);
+    form->addRow(tr("CPU Thermal Guard:"), cpuThermal);
+    form->addRow(tr("GPU Thermal Guard:"), gpuThermal);
     form->addRow(tr("Payout address:"), payoutAddress);
     form->addRow(support);
     form->addRow(start, stop);
     form->addRow(status);
     form->addRow(output);
-    resize(600, 450);
+    resize(620, 560);
 
     start->setAutoDefault(false);
     stop->setAutoDefault(false);
@@ -207,6 +236,9 @@ void PoolMiningDialog::startMining()
     }
     settings.setValue(addressSetting, address);
     settings.setValue(threadSetting, threadCount->value());
+    settings.setValue(cpuLimitSetting, cpuLimit->value());
+    settings.setValue(gpuLimitSetting, gpuLimit->value());
+    settings.setValue(fallbackSetting, unmonitored->isChecked());
     payoutAddress->setText(address);
     output->clear();
     if (missingGpuKernel) appendWorkerLog(true, tr("The bundled GPU kernel is missing. Starting only the selected CPU worker."));
@@ -214,13 +246,24 @@ void PoolMiningDialog::startMining()
     gpuPending.clear();
     stopping = false;
     status->setText(tr("Starting selected mining workers…"));
+    auto withThermal = [&](QStringList arguments, int limit) {
+        // Regtest preview has no sensor requirement unless the worker test
+        // explicitly supplies one. This never applies to mainnet mining.
+        if (Params().NetworkID() == CBaseChainParams::MAIN) {
+            arguments << QStringLiteral("--temperature-limit") << QString::number(limit);
+            if (unmonitored->isChecked()) arguments << QStringLiteral("--allow-unmonitored-low-load");
+        }
+        return arguments;
+    };
     if (runCpu) {
+        cpuThermal->setText(tr("Waiting for temperature…"));
         process->setWorkingDirectory(miner.absolutePath());
-        process->start(miner.absoluteFilePath(), firstPartyArguments(address, false, {}, threadCount->value()));
+        process->start(miner.absoluteFilePath(), withThermal(firstPartyArguments(address, false, {}, threadCount->value()), cpuLimit->value()));
     }
     if (runGpu) {
+        gpuThermal->setText(tr("Waiting for temperature…"));
         gpuProcess->setWorkingDirectory(miner.absolutePath());
-        gpuProcess->start(miner.absoluteFilePath(), firstPartyArguments(address, true, kernelPath()));
+        gpuProcess->start(miner.absoluteFilePath(), withThermal(firstPartyArguments(address, true, kernelPath()), gpuLimit->value()));
     }
     updateControls();
 }
@@ -257,6 +300,9 @@ void PoolMiningDialog::updateControls()
     cpuChoice->setEnabled(!running);
     gpuChoice->setEnabled(!running);
     threadCount->setEnabled(!running && cpuChoice->isChecked());
+    cpuLimit->setEnabled(!running && cpuChoice->isChecked());
+    gpuLimit->setEnabled(!running && gpuChoice->isChecked());
+    unmonitored->setEnabled(!running);
 }
 
 void PoolMiningDialog::attachWorker(QProcess* worker, bool gpu)
@@ -278,6 +324,7 @@ void PoolMiningDialog::attachWorker(QProcess* worker, bool gpu)
     connect(worker, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
             [this, worker, gpu](int code, QProcess::ExitStatus) {
         readOutput(worker, gpu, true);
+        (gpu ? gpuThermal : cpuThermal)->setText(tr("Not running"));
         appendWorkerLog(gpu, stopping ? tr("Worker stopped.") : tr("Worker exited (code %1).").arg(code));
         if (!isMining()) status->setText(stopping ? tr("Mining stopped.") : tr("Mining ended. See the log."));
         updateControls();
@@ -302,6 +349,24 @@ void PoolMiningDialog::readOutput(QProcess* worker, bool gpu, bool flush)
         line.remove(colors);
         line = line.trimmed();
         if (line.isEmpty()) continue;
+        if (line.startsWith(QStringLiteral("THERMAL "))) {
+            const auto values = line.split(QLatin1Char(' '));
+            if (values.size() != 4) continue;
+            const auto state = values[1];
+            QString summary;
+            if (state == QStringLiteral("normal")) summary = tr("Normal");
+            else if (state == QStringLiteral("throttling")) summary = tr("Throttling");
+            else if (state == QStringLiteral("cooling")) summary = tr("Paused · cooling");
+            else if (state == QStringLiteral("unavailable")) summary = tr("Paused · temperature unavailable");
+            else if (state == QStringLiteral("low-load")) summary = tr("Low load · temperature unavailable");
+            else continue;
+            if (values[2] != QStringLiteral("-"))
+                summary += gpu ? tr(" · Core %1 °C").arg(values[2]) : tr(" · %1 °C").arg(values[2]);
+            if (values[3] != QStringLiteral("-"))
+                summary += tr(" · Hotspot %1 °C").arg(values[3]);
+            (gpu ? gpuThermal : cpuThermal)->setText(summary);
+            continue;
+        }
         appendWorkerLog(gpu, line);
         if (stopping || !isMining()) continue;
         if (line.startsWith(QStringLiteral("Pool reconnecting in ")))

@@ -36,7 +36,7 @@ public:
         if (!library.load()) throw std::runtime_error("OpenCL driver is unavailable");
 #define AGR_BIND(symbol) p_##symbol = reinterpret_cast<decltype(p_##symbol)>(library.resolve(#symbol)); \
         if (!p_##symbol) throw std::runtime_error("Incomplete OpenCL 1.2 runtime");
-        AGR_BIND(clGetPlatformIDs) AGR_BIND(clGetDeviceIDs) AGR_BIND(clCreateContext)
+        AGR_BIND(clGetPlatformIDs) AGR_BIND(clGetDeviceIDs) AGR_BIND(clGetDeviceInfo) AGR_BIND(clCreateContext)
         AGR_BIND(clCreateCommandQueue) AGR_BIND(clCreateProgramWithSource) AGR_BIND(clBuildProgram)
         AGR_BIND(clCreateKernel) AGR_BIND(clCreateBuffer) AGR_BIND(clSetKernelArg)
         AGR_BIND(clEnqueueWriteBuffer) AGR_BIND(clEnqueueNDRangeKernel) AGR_BIND(clEnqueueReadBuffer)
@@ -57,6 +57,7 @@ public:
                 try {
                     Init(devices[j], source);
                     SelfTest();
+                    Identify(devices[j]);
                     return;
                 } catch (const std::runtime_error&) {
                     Release();
@@ -69,6 +70,8 @@ public:
     Scanner(const Scanner&) = delete;
     Scanner& operator=(const Scanner&) = delete;
     ~Scanner() { Release(); }
+    unsigned Vendor() const { return vendor; }
+    QString PciAddress() const { return pciAddress; }
 
     poolwork::BatchResult Scan(const poolwork::Header& header, const poolwork::Target& target,
                                uint64_t first)
@@ -90,7 +93,7 @@ private:
     static constexpr cl_uint kBatch = 256;
     QLibrary library;
 #define AGR_POINTER(symbol) decltype(&symbol) p_##symbol{nullptr};
-    AGR_POINTER(clGetPlatformIDs) AGR_POINTER(clGetDeviceIDs) AGR_POINTER(clCreateContext)
+    AGR_POINTER(clGetPlatformIDs) AGR_POINTER(clGetDeviceIDs) AGR_POINTER(clGetDeviceInfo) AGR_POINTER(clCreateContext)
     AGR_POINTER(clCreateCommandQueue) AGR_POINTER(clCreateProgramWithSource) AGR_POINTER(clBuildProgram)
     AGR_POINTER(clCreateKernel) AGR_POINTER(clCreateBuffer) AGR_POINTER(clSetKernelArg)
     AGR_POINTER(clEnqueueWriteBuffer) AGR_POINTER(clEnqueueNDRangeKernel) AGR_POINTER(clEnqueueReadBuffer)
@@ -102,6 +105,23 @@ private:
     cl_program program{nullptr};
     cl_kernel kernel{nullptr};
     cl_mem input{nullptr}, output{nullptr};
+    cl_uint vendor{0};
+    QString pciAddress;
+
+    void Identify(cl_device_id device)
+    {
+        p_clGetDeviceInfo(device, CL_DEVICE_VENDOR_ID, sizeof(vendor), &vendor, nullptr);
+        // OpenCL KHR PCI bus information. Do not guess using adapter order
+        // (OpenCL, NVML, and the operating system can order GPUs differently).
+        constexpr cl_device_info kPciBusInfo = 0x410f;
+        struct { cl_uint domain, bus, slot, function; } pci{};
+        size_t actual = 0;
+        if (p_clGetDeviceInfo(device, kPciBusInfo, sizeof(pci), &pci, &actual) != CL_SUCCESS ||
+            actual != sizeof(pci) || pci.domain > 0xffff || pci.bus > 0xff || pci.slot > 31 || pci.function > 7)
+            return;
+        pciAddress = QStringLiteral("%1:%2:%3.%4").arg(pci.domain, 4, 16, QLatin1Char('0'))
+            .arg(pci.bus, 2, 16, QLatin1Char('0')).arg(pci.slot, 2, 16, QLatin1Char('0')).arg(pci.function);
+    }
 
     static void Check(cl_int status)
     {

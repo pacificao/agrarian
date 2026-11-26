@@ -415,7 +415,7 @@ qt_agrarian_qt_LIBTOOLFLAGS = $(AM_LIBTOOLFLAGS) --tag CXX
 
 # Optional release worker. Not built by ordinary wallet or daemon builds.
 qt_agrarian_pool_worker_SOURCES = qt/agrarian_pool_worker.cpp qt/pooldestination.h \
-  qt/poolframes.h qt/poolopencl.h poolwork.h
+  qt/poolframes.h qt/poolopencl.h qt/pooltemperatures.h qt/poolthermalpolicy.h poolwork.h
 qt_agrarian_pool_worker_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(QT_INCLUDES) $(POOL_MINER_CPPFLAGS)
 qt_agrarian_pool_worker_CXXFLAGS = $(AM_CXXFLAGS) $(QT_PIE_FLAGS)
 qt_agrarian_pool_worker_LDADD = $(LIBBITCOIN_CRYPTO) $(QT_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)

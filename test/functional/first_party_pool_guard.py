@@ -24,8 +24,8 @@ def listener():
 
 
 @contextmanager
-def worker(binary, pool):
-    process = subprocess.Popen([str(binary), "--regtest-loopback", str(pool.getsockname()[1]), FIXTURE],
+def worker(binary, pool, *options):
+    process = subprocess.Popen([str(binary), "--regtest-loopback", str(pool.getsockname()[1]), FIXTURE, *options],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
         conn, _ = pool.accept()
@@ -60,6 +60,45 @@ def send_work(conn, job):
     send(conn, {"id": None, "method": "mining.set_difficulty", "params": [1e-12]})
     send(conn, {"id": None, "method": "mining.notify",
                 "params": [job, "0" * 64, "01", "02", [], "00000001", "1d00ffff", "65432100", True]})
+
+
+def expect_quiet(conn, duration):
+    conn.settimeout(duration)
+    try:
+        packet = conn.recv(4096)
+    except TimeoutError:
+        pass
+    else:
+        raise AssertionError(f"Miner sent traffic while thermally paused: {packet!r}")
+    finally:
+        conn.settimeout(12)
+
+
+def test_thermal_pause(binary):
+    with tempfile.TemporaryDirectory(prefix="agr-thermal-fixture-") as directory:
+        sensor = Path(directory) / "temperature"
+        with listener() as pool, worker(binary, pool, "--temperature-limit", "75",
+                                        "--regtest-thermal-sensor", str(sensor)) as (process, conn, stream):
+            authorize(conn, stream, "ab12cd34")
+            send_work(conn, "temperature-missing")
+            expect_quiet(conn, 1.3)
+            sensor.write_text("60000\n")
+            share = read(stream)
+            assert share["params"][1] == "temperature-missing"
+            sensor.write_text("80000\n")
+            time.sleep(1.25)
+            send(conn, {"id": share["id"], "result": True, "error": None})
+            send_work(conn, "after-cooldown")
+            expect_quiet(conn, 1.25)
+            sensor.write_text("65000\n")
+            start = time.monotonic()
+            share = read(stream)
+            assert time.monotonic() - start >= 3.5
+            assert share["params"][1] == "after-cooldown"
+            process.terminate()
+            stdout, _ = process.communicate(timeout=5)
+            for status in (b"THERMAL unavailable", b"THERMAL normal", b"THERMAL cooling", b"THERMAL throttling"):
+                assert status in stdout, stdout
 
 
 def test_reconnect(binary):
@@ -123,6 +162,10 @@ def test_reconnect(binary):
 
 
 def main(binary):
+    guarded = subprocess.run([str(binary), "--pool-cpu", FIXTURE, "--regtest-thermal-sensor", "ignored", "--temperature-limit", "75"],
+                             capture_output=True, timeout=5)
+    assert guarded.returncode == 2, "A fixture must never override mainnet temperatures"
+    test_thermal_pause(binary)
     for mode in ("--mainnet", "--url", "--connect"):
         process = subprocess.run([str(binary), mode, "3032", FIXTURE], capture_output=True, timeout=5)
         assert process.returncode == 2 and b"Usage:" in process.stderr
