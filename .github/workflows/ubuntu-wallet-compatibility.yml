@@ -1,0 +1,53 @@
+name: Published Ubuntu Wallet Compatibility
+
+on:
+  push:
+    branches: [qa/ubuntu-26.04-wallet]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Published stable release tag
+        default: v2.1.7
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  ubuntu-wallet:
+    name: Published x64 wallet on Ubuntu 26.04
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Download and verify the published wallet
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE: ${{ inputs.release || 'v2.1.7' }}
+        run: |
+          set -euo pipefail
+          [[ $RELEASE =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          mkdir "$RUNNER_TEMP/wallet-release"
+          cd "$RUNNER_TEMP/wallet-release"
+          asset=agrarian-ubuntu-24.04-x64.tar.gz
+          gh release download "$RELEASE" --repo "$GITHUB_REPOSITORY" \
+            --pattern "$asset" --pattern SHA256SUMS --pattern SHA256SUMS.asc \
+            --pattern agrarian-release-public.asc
+          export GNUPGHOME
+          GNUPGHOME=$(mktemp -d)
+          fingerprint=$(gpg --batch --show-keys --with-colons agrarian-release-public.asc \
+            | awk -F: '$1 == "pub" { primary=1; next } primary && $1 == "fpr" { print $10; primary=0 }')
+          test "$fingerprint" = 4F4FAD72FB968937E91FB946A43101DB0F93B0EA
+          gpg --batch --import agrarian-release-public.asc
+          gpg --batch --verify SHA256SUMS.asc SHA256SUMS
+          checksum=$(awk -v asset="$asset" '$2 == asset { print; count++ } END { if (count != 1) exit 1 }' SHA256SUMS)
+          printf '%s\n' "$checksum" | sha256sum --check --strict
+      - name: Build the clean Ubuntu 26.04 QA image
+        run: docker build --pull --platform linux/amd64 -f test/containers/ubuntu-wallet.Dockerfile -t agrarian-ubuntu-26.04-smoke .
+      - name: Exercise the wallet and worker without external network access
+        run: |
+          docker run --rm --network none --platform linux/amd64 \
+            -v "$RUNNER_TEMP/wallet-release/agrarian-ubuntu-24.04-x64.tar.gz:/package/wallet.tar.gz:ro" \
+            agrarian-ubuntu-26.04-smoke

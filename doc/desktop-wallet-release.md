@@ -49,6 +49,28 @@ appears. Check desktop launch, syncing from an empty data directory and opening
 a disposable `wallet.dat` made by the previous released version. CI tests
 alone do not establish these results. Never upload a live wallet to CI.
 
+Ubuntu 26.04 compatibility check
+--------------------------------
+
+Keep Ubuntu 24.04 as the build baseline. Test the same signed download on
+26.04 in a fresh container with runtime packages only. From the repository
+root, with an already verified release package in the current directory:
+
+```sh
+docker build --pull --platform linux/amd64 \
+  -f test/containers/ubuntu-wallet.Dockerfile -t agrarian-ubuntu-26.04-smoke .
+docker run --rm --network none --platform linux/amd64 \
+  -v "$PWD/agrarian-ubuntu-24.04-x64.tar.gz:/package/wallet.tar.gz:ro" \
+  agrarian-ubuntu-26.04-smoke
+```
+
+Use an x64 Docker host, or a Docker host with x64 emulation. The
+**Published Ubuntu Wallet Compatibility** workflow on the
+`qa/ubuntu-26.04-wallet` branch downloads the published package and verifies
+its signed SHA-256 checksum before running these commands on an x64 runner.
+This test exercises 26.04 userspace, not its kernel, physical GPU or sensors,
+or live mainnet/pool connectivity. No production wallets are used.
+
 Local release-preparation regression: the wallet smoke test found an RPC
 startup race during wallet encryption. The RPC table now returns the existing
 warmup error until initialization has finished. A native diagnostic daemon
