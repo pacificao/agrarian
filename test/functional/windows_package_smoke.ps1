@@ -32,6 +32,11 @@ try {
     # wait or report the process's exit code.
     $tls = Start-Process -FilePath $miner -ArgumentList '--check-tls-backend' -Wait -PassThru
     if ($tls.ExitCode -ne 0) { throw "Installed mining worker TLS check exited with $($tls.ExitCode)" }
+    $probe = Start-Process -FilePath $miner -ArgumentList '--probe-windows-cpu-thermal' -Wait -PassThru -RedirectStandardOutput (Join-Path $env:RUNNER_TEMP 'agr-thermal-probe.txt')
+    if ($probe.ExitCode -ne 0) { throw "Installed Windows CPU monitor check exited with $($probe.ExitCode)" }
+    $thermal = (Get-Content -Raw (Join-Path $env:RUNNER_TEMP 'agr-thermal-probe.txt')).Trim()
+    if ($thermal -notmatch '^(UNAVAILABLE|(?:CPU|PROXY) [0-9]+\.[0-9])$') { throw "Unexpected Windows thermal probe output: $thermal" }
+    Write-Host "Installed Windows CPU thermal probe: $thermal"
     python "$PSScriptRoot/first_party_pool_guard.py" "$miner"
     if ($LASTEXITCODE -ne 0) { throw 'First-party worker smoke test failed' }
     Set-Content -LiteralPath $legacy -Value 'Inert fixture representing the old helper'

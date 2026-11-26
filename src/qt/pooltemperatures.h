@@ -3,8 +3,10 @@
 #define AGRARIAN_QT_POOLTEMPERATURES_H
 
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QLibrary>
+#include <QProcess>
 #include <QRegularExpression>
 #include <QString>
 #ifdef Q_OS_WIN
@@ -22,7 +24,127 @@ inline double Missing() { return std::numeric_limits<double>::quiet_NaN(); }
 struct Reading {
     double core{Missing()};
     double hotspot{Missing()};
+    bool proxy{false};
+    bool fresh{true};
 };
+
+inline Reading ParseWindowsReading(const QByteArray& output, bool allowProxy)
+{
+    const auto fields = output.trimmed().split(' ');
+    if (fields.size() != 2 || (fields[0] != "CPU" && (fields[0] != "PROXY" || !allowProxy))) return {};
+    static const QRegularExpression numeric(QStringLiteral("^[0-9]{1,3}(\\.[0-9]{1,2})?$"));
+    if (!numeric.match(QString::fromLatin1(fields[1])).hasMatch()) return {};
+    const auto temperature = fields[1].toDouble();
+    if (temperature < 5 || temperature > 120) return {};
+    return {temperature, Missing(), fields[0] == "PROXY", true};
+}
+
+#ifdef Q_OS_WIN
+class WindowsCpuSensor {
+public:
+    WindowsCpuSensor()
+    {
+        timer.start();
+        process.setStandardErrorFile(QProcess::nullDevice());
+        process.setStandardInputFile(QProcess::nullDevice());
+        process.setCreateProcessArgumentsModifier([](QProcess::CreateProcessArguments* args) {
+            args->flags &= ~CREATE_NEW_CONSOLE;
+            args->flags |= CREATE_NO_WINDOW;
+        });
+        wchar_t folder[1024]{};
+        const auto length = GetSystemDirectoryW(folder, 1024);
+        if (length && length < 1024) {
+            process.setProgram(QString::fromWCharArray(folder, length) + QStringLiteral("/WindowsPowerShell/v1.0/powershell.exe"));
+        }
+    }
+
+    ~WindowsCpuSensor()
+    {
+        if (process.state() != QProcess::NotRunning) {
+            process.kill();
+            process.waitForFinished(1000);
+        }
+    }
+
+    Reading Read(bool allowProxy)
+    {
+        if (process.program().isEmpty()) return {};
+        const auto now = timer.elapsed();
+        if (running && process.state() == QProcess::NotRunning) {
+            running = false;
+            const auto result = process.readAllStandardOutput();
+            cached = !killed && process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0 && result.size() <= 100
+                ? ParseWindowsReading(result, allowProxy) : Reading{};
+            stamped = now;
+            return cached;
+        }
+        if (running && !killed && now - began >= 5500) {
+            killed = true;
+            cached = {};
+            process.kill();
+        }
+        if (!running && now >= next) {
+            began = now;
+            next = now + 6000;
+            killed = false;
+            running = true;
+            process.setArguments({QStringLiteral("-NoLogo"), QStringLiteral("-NoProfile"), QStringLiteral("-NonInteractive"),
+                                  QStringLiteral("-Command"), Script(allowProxy)});
+            process.start();
+        }
+        if (std::isfinite(cached.core) && now - stamped <= 8500) {
+            auto previous = cached;
+            previous.fresh = false; // A cached sample never counts toward cooldown.
+            return previous;
+        }
+        return {};
+    }
+
+private:
+    QProcess process;
+    QElapsedTimer timer;
+    Reading cached;
+    qint64 began{0}, next{0}, stamped{0};
+    bool running{false}, killed{false};
+
+    static QString Script(bool allowProxy)
+    {
+        const auto body = QString::fromLatin1(R"PS(
+$ErrorActionPreference='Stop'
+$culture=[Globalization.CultureInfo]::InvariantCulture
+function Emit($kind,$samples) {
+    $valid=@($samples | Where-Object {$_ -ge 5 -and $_ -le 120})
+    if($valid.Count) {
+        $max=($valid | Measure-Object -Maximum).Maximum
+        [Console]::WriteLine($kind+' '+([double]$max).ToString('F1',$culture))
+        exit 0
+    }
+}
+try {
+    $cpu = Get-CimInstance -Namespace 'root/LibreHardwareMonitor' -ClassName Sensor -OperationTimeoutSec 2 |
+        Where-Object {$_.SensorType -eq 'Temperature' -and $_.Identifier -match '^/(intelcpu|amdcpu)/[0-9]+/temperature/' -and
+            $_.Name -match '^(CPU Package|Core Max|CPU \(Tdie\)|Core \(Tctl/Tdie\)|CPU \(Tctl/Tdie\)|Core #[0-9]+\b.*)$' -and
+            $null -ne $_.Value} | ForEach-Object {[double]$_.Value}
+    Emit 'CPU' $cpu
+} catch {}
+)PS");
+        if (!allowProxy) return body;
+        return body + QString::fromLatin1(R"PS(
+try {
+    $acpi = Get-CimInstance -Namespace 'root/wmi' -ClassName MSAcpi_ThermalZoneTemperature -OperationTimeoutSec 2 |
+        Where-Object {$_.Active -eq $true -and $null -ne $_.CurrentTemperature} |
+        ForEach-Object {([double]$_.CurrentTemperature / 10.0) - 273.15}
+    Emit 'PROXY' $acpi
+} catch {}
+try {
+    $zone = Get-CimInstance -Namespace 'root/cimv2' -ClassName Win32_PerfFormattedData_Counters_ThermalZoneInformation -OperationTimeoutSec 2 |
+        Where-Object {$null -ne $_.Temperature} | ForEach-Object {[double]$_.Temperature - 273.15}
+    Emit 'PROXY' $zone
+} catch {}
+)PS");
+    }
+};
+#endif
 
 inline QByteArray Text(const QString& path)
 {
@@ -45,15 +167,19 @@ inline void Maximum(double& value, double next)
 
 class Sensors {
 public:
-    Sensors(bool gpu, unsigned vendor, QString pci, QString fixture = {})
-        : isGpu(gpu), vendorId(vendor), pciAddress(std::move(pci)), testFile(std::move(fixture)) {}
+    Sensors(bool gpu, unsigned vendor, QString pci, QString fixture = {}, bool allowProxy = false, bool proxyFixture = false)
+        : isGpu(gpu), vendorId(vendor), pciAddress(std::move(pci)), testFile(std::move(fixture)),
+          allowWindowsProxy(allowProxy), testIsProxy(proxyFixture) {}
 
     Sensors(const Sensors&) = delete;
     ~Sensors() { if (initialized && shutdown) shutdown(); }
 
     Reading Read()
     {
-        if (!testFile.isEmpty()) return {Millidegrees(testFile), Missing()};
+        if (!testFile.isEmpty()) return {Millidegrees(testFile), Missing(), testIsProxy, true};
+#ifdef Q_OS_WIN
+        if (!isGpu) return windowsCpu.Read(allowWindowsProxy);
+#endif
         if (isGpu && pciAddress.isEmpty()) return {};
         if (isGpu && vendorId == 0x10de) {
             const auto reading = Nvidia();
@@ -97,6 +223,10 @@ private:
     bool isGpu;
     unsigned vendorId;
     QString pciAddress, testFile;
+    bool allowWindowsProxy, testIsProxy;
+#ifdef Q_OS_WIN
+    WindowsCpuSensor windowsCpu;
+#endif
     QLibrary nvml;
     bool attempted{false}, initialized{false};
     void* device{nullptr};

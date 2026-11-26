@@ -114,9 +114,10 @@ bool Advance(QByteArray& extraNonce)
 
 class ThermalControl {
 public:
-    ThermalControl(int target, bool fallback, poolopencl::Scanner* gpu, unsigned threads, QString fixture)
-        : limit(target), allowFallback(fallback), maxThreads(threads),
-          sensors(gpu != nullptr, gpu ? gpu->Vendor() : 0, gpu ? gpu->PciAddress() : QString{}, std::move(fixture))
+    ThermalControl(int target, bool fallback, bool proxy, poolopencl::Scanner* gpu, unsigned threads,
+                   QString fixture, bool proxyFixture)
+        : limit(target), allowFallback(fallback), allowProxy(proxy), maxThreads(threads),
+          sensors(gpu != nullptr, gpu ? gpu->Vendor() : 0, gpu ? gpu->PciAddress() : QString{}, std::move(fixture), proxy, proxyFixture)
     {
         clock.start();
     }
@@ -126,26 +127,36 @@ public:
         const auto time = clock.elapsed();
         if (time < nextSample) return;
         nextSample = time + 1000;
-        const auto temperatures = sensors.Read();
+        auto temperatures = sensors.Read();
+        if (!temperatures.fresh) return;
+        // Never silently switch to a cooler system proxy if a real sensor
+        // disappears during the session. A valid direct reading must return.
+        if (temperatures.proxy && (!allowProxy || trustedSeen)) temperatures = {};
+        if (!temperatures.proxy && (std::isfinite(temperatures.core) || std::isfinite(temperatures.hotspot))) trustedSeen = true;
         double delta = poolthermal::Missing();
-        poolthermal::Maximum(delta, temperatures.core - limit);
+        const auto target = temperatures.proxy ? std::min(60, limit - 10) : limit;
+        poolthermal::Maximum(delta, temperatures.core - target);
         poolthermal::Maximum(delta, temperatures.hotspot - limit - poolthermal::kHotspotOffset);
-        load = policy.Sample(delta, maxThreads, allowFallback);
+        load = policy.Sample(delta, temperatures.proxy ? 1u : maxThreads, allowFallback && !allowProxy && !trustedSeen);
+        if (temperatures.proxy && load.threads) load.delayMs = std::max(250, load.delayMs);
         static const char* names[] = {"normal", "throttling", "cooling", "unavailable", "low-load"};
         const auto display = [](double value) {
             return std::isfinite(value) ? QByteArray::number(value, 'f', 1) : QByteArray("-");
         };
-        std::printf("THERMAL %s %s %s\n", names[static_cast<int>(load.state)],
-                    display(temperatures.core).constData(), display(temperatures.hotspot).constData());
+        std::printf("THERMAL %s %s %s %s\n", names[static_cast<int>(load.state)], display(temperatures.core).constData(),
+                    display(temperatures.hotspot).constData(), temperatures.proxy ? "proxy" : "direct");
         std::fflush(stdout);
     }
 
     unsigned Threads() const { return clock.elapsed() >= nextWork ? load.threads : 0; }
+    unsigned CpuBatch() const { return load.delayMs >= 250 ? 128 : 1024; }
     void Worked() { nextWork = clock.elapsed() + load.delayMs; }
 
 private:
     int limit;
     bool allowFallback;
+    bool allowProxy;
+    bool trustedSeen{false};
     unsigned maxThreads;
     poolthermal::Sensors sensors;
     poolthermal::Policy policy;
@@ -202,7 +213,8 @@ public:
             const unsigned activeThreads = thermal ? thermal->Threads() : cpuThreads;
             if (subscribed && authorized && haveWork && !pendingShare && activeThreads) {
                 const auto result = scanner ? scanner->Scan(header, job.target, nextNonce)
-                                            : poolwork::ScanCpuParallel(header, job.target, nextNonce, 1024, activeThreads, runningStop);
+                                            : poolwork::ScanCpuParallel(header, job.target, nextNonce,
+                                                                        thermal ? thermal->CpuBatch() : 1024, activeThreads, runningStop);
                 if (thermal) thermal->Worked();
                 nextNonce = result.nextNonce;
                 if (result.found) {
@@ -391,6 +403,24 @@ int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
     auto args = app.arguments();
+#ifdef Q_OS_WIN
+    if (args.size() == 2 && args[1] == QStringLiteral("--probe-windows-cpu-thermal")) {
+        poolthermal::Sensors sensors(false, 0, {}, {}, true);
+        QElapsedTimer timer;
+        timer.start();
+        while (timer.elapsed() < 7000) {
+            QCoreApplication::processEvents();
+            const auto sample = sensors.Read();
+            if (std::isfinite(sample.core)) {
+                std::printf("%s %s\n", sample.proxy ? "PROXY" : "CPU", QByteArray::number(sample.core, 'f', 1).constData());
+                return 0;
+            }
+            QThread::msleep(50);
+        }
+        std::puts("UNAVAILABLE");
+        return 0;
+    }
+#endif
     if (args.size() == 2 && args[1] == QStringLiteral("--check-tls-backend")) {
         if (!QSslSocket::supportsSsl()) {
             std::fputs("TLS backend unavailable\n", stderr);
@@ -400,13 +430,21 @@ int main(int argc, char** argv)
         return 0;
     }
     int thermalLimit = 0;
-    bool overrideLimit = false, allowFallback = false;
+    bool overrideLimit = false, allowFallback = false, allowProxy = false, proxyFixture = false;
     QString fixture;
     for (int i = 2; i < args.size();) {
         const auto option = args[i];
         if (option == QStringLiteral("--allow-unmonitored-low-load")) {
             if (allowFallback) return 2;
             allowFallback = true;
+            args.removeAt(i);
+        } else if (option == QStringLiteral("--allow-windows-thermal-proxy")) {
+            if (allowProxy) return 2;
+            allowProxy = true;
+            args.removeAt(i);
+        } else if (option == QStringLiteral("--regtest-thermal-proxy")) {
+            if (proxyFixture) return 2;
+            proxyFixture = true;
             args.removeAt(i);
         } else if (option == QStringLiteral("--temperature-limit")) {
             bool parsed = false;
@@ -431,7 +469,8 @@ int main(int argc, char** argv)
     const bool gpu = mainGpu || (args.size() == 5 && args[1] == QStringLiteral("--regtest-opencl"));
     const bool software = args.size() == 5 && args[1] == QStringLiteral("--regtest-opencl-software");
     const bool localCpu = (args.size() == 4 || args.size() == 5) && args[1] == QStringLiteral("--regtest-loopback");
-    if ((mainnet && !fixture.isEmpty()) || (!mainnet && !fixture.isEmpty() && !overrideLimit)) return 2;
+    if ((mainnet && (!fixture.isEmpty() || proxyFixture)) || (!mainnet && !fixture.isEmpty() && !overrideLimit)
+        || (proxyFixture && (fixture.isEmpty() || !allowProxy)) || (allowProxy && !(mainCpu || localCpu))) return 2;
     if (!mainnet && !gpu && !software && !localCpu) {
         std::fputs("Usage: agrarian-pool-worker --pool-cpu PUBLIC_PAYOUT [THREADS]\n"
                    "       agrarian-pool-worker --pool-gpu PUBLIC_PAYOUT PINNED_KERNEL\n"
@@ -482,7 +521,7 @@ int main(int argc, char** argv)
         }
         std::unique_ptr<ThermalControl> thermal;
         if (mainnet || overrideLimit)
-            thermal = std::make_unique<ThermalControl>(thermalLimit, allowFallback, scanner.get(), threads, fixture);
+            thermal = std::make_unique<ThermalControl>(thermalLimit, allowFallback, allowProxy, scanner.get(), threads, fixture, proxyFixture);
         RunWithReconnect(port, mainnet, payout, scanner.get(), threads, thermal.get());
     } catch (const std::exception& error) {
         std::fprintf(stderr, "%s\n", error.what());

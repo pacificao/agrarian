@@ -101,6 +101,29 @@ def test_thermal_pause(binary):
                 assert status in stdout, stdout
 
 
+def test_windows_thermal_proxy_policy(binary):
+    with tempfile.TemporaryDirectory(prefix="agr-thermal-proxy-") as directory:
+        sensor = Path(directory) / "temperature"
+        sensor.write_text("65000\n")
+        with listener() as pool, worker(binary, pool, "--temperature-limit", "75",
+                                        "--regtest-thermal-sensor", str(sensor), "--regtest-thermal-proxy",
+                                        "--allow-windows-thermal-proxy", "--allow-unmonitored-low-load") as (process, conn, stream):
+            authorize(conn, stream, "ab12cd34")
+            send_work(conn, "proxy-safe")
+            expect_quiet(conn, 1.3)  # 65°C is below CPU target but exceeds proxy target
+            sensor.write_text("50000\n")
+            share = read(stream)
+            assert share["params"][1] == "proxy-safe"
+            sensor.unlink()
+            time.sleep(1.2)
+            send(conn, {"id": share["id"], "result": True, "error": None})
+            send_work(conn, "proxy-lost")
+            expect_quiet(conn, 1.3)  # even when unmonitored mode was also requested
+            process.terminate()
+            stdout, _ = process.communicate(timeout=5)
+            assert b"THERMAL cooling 65.0 - proxy" in stdout and b"THERMAL unavailable" in stdout, stdout
+
+
 def test_reconnect(binary):
     with listener() as pool, worker(binary, pool) as (process, first, first_stream):
         authorize(first, first_stream, "ab12cd34")
@@ -166,6 +189,7 @@ def main(binary):
                              capture_output=True, timeout=5)
     assert guarded.returncode == 2, "A fixture must never override mainnet temperatures"
     test_thermal_pause(binary)
+    test_windows_thermal_proxy_policy(binary)
     for mode in ("--mainnet", "--url", "--connect"):
         process = subprocess.run([str(binary), mode, "3032", FIXTURE], capture_output=True, timeout=5)
         assert process.returncode == 2 and b"Usage:" in process.stderr

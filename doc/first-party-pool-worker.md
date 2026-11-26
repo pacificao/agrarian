@@ -103,7 +103,8 @@ wallet's opt-in workers can submit shares. Rollback is to remove the newly
 added TLS listener and firewall rule, without changing 3032, wallet files,
 or chain settings. Do not publish an installer that points to a disabled
 endpoint.
-# Thermal Guard (2.1.5)
+
+## Thermal Guard (2.1.5)
 
 In the wallet's **Pool mining** dialog, choose separate CPU and GPU core limits.
 The defaults are 75°C CPU and 70°C GPU core. These are mining targets, not
@@ -119,8 +120,16 @@ The optional low-load mode is not temperature protection and never resumes
 an overheated worker until valid cool readings return.
 
 Trusted sources in this candidate are Linux CPU hwmon, GPU hwmon for the
-selected OpenCL PCI device on Linux, and NVIDIA NVML on Linux or Windows when
-the OpenCL and NVML PCI identities match. The candidate does not yet read
-Windows CPU or AMD Windows temperatures; unsupported devices are shown as
-unavailable. Thermal Guard affects wallet pool mining, not daemon solo
-mining.
+selected OpenCL PCI device on Linux, NVIDIA NVML on Linux or Windows when
+the OpenCL and NVML PCI identities match, and Windows CPU package/core
+readings published in WMI by an already-running Libre Hardware Monitor
+instance. The wallet installs no sensor service or driver.
+
+On Windows, users can explicitly opt into ACPI system-temperature estimates
+if direct CPU readings are unavailable. This is not a CPU core measurement.
+It limits mining to one thread at low load and uses the lower of 60°C or
+10°C below the configured CPU target. Missing/stale readings pause the
+worker; the wallet does not switch from a lost direct sensor to a proxy
+while mining. Cached Windows samples never count toward the five cooldown
+samples. AMD Windows GPU sensors are not yet supported. Thermal Guard
+affects wallet pool mining, not daemon solo mining.

@@ -1,5 +1,6 @@
 // Standalone tests for the first-party Stratum message allowlist.
 #include "qt/poolframes.h"
+#include "qt/pooltemperatures.h"
 
 #include <cassert>
 #include <cstdio>
@@ -22,5 +23,13 @@ int main()
     assert(Classify("{}\n{}") == Kind::Invalid);
     assert(Classify(QByteArray("{}\0", 3)) == Kind::Invalid);
     assert(Classify(QByteArray(poolframes::kMaxFrameBytes + 1, ' ')) == Kind::Invalid);
+    const auto direct = poolthermal::ParseWindowsReading("CPU 72.5\r\n", false);
+    assert(direct.core == 72.5 && !direct.proxy && direct.fresh);
+    const auto proxy = poolthermal::ParseWindowsReading("PROXY 43.9\r\n", true);
+    assert(proxy.core == 43.9 && proxy.proxy);
+    assert(!std::isfinite(poolthermal::ParseWindowsReading("PROXY 43.9", false).core));
+    assert(!std::isfinite(poolthermal::ParseWindowsReading("CPU 273.15", true).core));
+    assert(!std::isfinite(poolthermal::ParseWindowsReading("CPU 54\nPROXY 40", true).core));
+    assert(!std::isfinite(poolthermal::ParseWindowsReading("CPU NAN", true).core));
     std::puts("First-party Stratum framing: allowlist, redirect rejection, ambiguity and input limits passed.");
 }
