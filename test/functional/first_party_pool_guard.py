@@ -167,8 +167,10 @@ def test_thermal_guard_disabled(binary):
             assert share["method"] == "mining.submit" and share["params"][1] == "over-cutoff"
             sensor.unlink()
             time.sleep(1.2)
-            send(conn, {"id": share["id"], "result": True, "error": None})
             send_work(conn, "sensor-missing")
+            # Replace the job before acknowledging the outstanding share.
+            # Otherwise an unrestricted worker can immediately mine the old job.
+            send(conn, {"id": share["id"], "result": True, "error": None})
             share = read(stream)
             assert share["method"] == "mining.submit" and share["params"][1] == "sensor-missing"
             process.terminate()
