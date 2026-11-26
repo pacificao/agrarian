@@ -1,0 +1,4 @@
+**
+!test/functional/desktop_package_smoke.py
+!test/functional/first_party_pool_guard.py
+!test/containers/ubuntu-wallet-smoke.sh
