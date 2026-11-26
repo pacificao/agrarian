@@ -51,6 +51,7 @@ private:
     QSpinBox* gpuLimit;
     QCheckBox* unmonitored;
     QCheckBox* windowsProxy;
+    QCheckBox* windowsProxyOverride;
     QLabel* cpuThermal;
     QLabel* gpuThermal;
     QLabel* status;

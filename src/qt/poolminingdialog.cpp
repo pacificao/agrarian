@@ -15,6 +15,7 @@
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QPushButton>
@@ -42,7 +43,8 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     threadCount(new QSpinBox(this)),
     cpuLimit(new QSpinBox(this)), gpuLimit(new QSpinBox(this)),
     unmonitored(new QCheckBox(tr("Allow low-load mining if a temperature sensor is unavailable"), this)),
-    windowsProxy(new QCheckBox(tr("Use Windows system temperature as an estimate for low-load CPU mining"), this)),
+    windowsProxy(new QCheckBox(tr("Use Windows system temperature as a CPU estimate"), this)),
+    windowsProxyOverride(new QCheckBox(tr("Override the one-thread limit for this run"), this)),
     cpuThermal(new QLabel(this)), gpuThermal(new QLabel(this)),
     status(new QLabel(this)), payoutAddress(new QLabel(this)),
     start(new QPushButton(tr("&Start pool mining"), this)),
@@ -107,10 +109,14 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
 #ifdef Q_OS_WIN
     windowsProxy->setObjectName(QStringLiteral("poolWindowsTemperatureProxy"));
     windowsProxy->setChecked(QSettings().value(proxySetting, false).toBool());
-    windowsProxy->setToolTip(tr("Approximate system temperature, not CPU temperature. Limits mining to one thread at low load, using a separate target of 60 °C or 10 °C below your CPU limit, whichever is lower. Mining pauses if the reading is unavailable."));
+    windowsProxy->setToolTip(tr("Not a CPU temperature reading. Defaults to one thread at low load, using a target of 60 °C or 10 °C below your CPU limit, whichever is lower. Mining pauses if the estimate is unavailable."));
     form->addRow(windowsProxy);
+    windowsProxyOverride->setObjectName(QStringLiteral("poolWindowsProxyOverride"));
+    windowsProxyOverride->setToolTip(tr("Allows the selected CPU thread count while the system estimate is cool. Thermal Guard still throttles or pauses based on that estimate, not actual CPU temperature. Monitor CPU temperature independently."));
+    form->addRow(windowsProxyOverride);
 #else
     windowsProxy->hide();
+    windowsProxyOverride->hide();
 #endif
     form->addRow(tr("CPU Thermal Guard:"), cpuThermal);
     form->addRow(tr("GPU Thermal Guard:"), gpuThermal);
@@ -119,7 +125,7 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     form->addRow(start, stop);
     form->addRow(status);
     form->addRow(output);
-    resize(620, 560);
+    resize(620, 590);
 
     start->setAutoDefault(false);
     stop->setAutoDefault(false);
@@ -127,6 +133,10 @@ PoolMiningDialog::PoolMiningDialog(QWidget* parent) : QDialog(parent),
     connect(stop, &QPushButton::clicked, this, &PoolMiningDialog::stopMining);
     connect(cpuChoice, &QCheckBox::toggled, this, &PoolMiningDialog::updateControls);
     connect(gpuChoice, &QCheckBox::toggled, this, &PoolMiningDialog::updateControls);
+    connect(windowsProxy, &QCheckBox::toggled, this, [this](bool checked) {
+        if (!checked) windowsProxyOverride->setChecked(false);
+        updateControls();
+    });
     attachWorker(process, false);
     attachWorker(gpuProcess, true);
     updateControls();
@@ -222,6 +232,11 @@ void PoolMiningDialog::startMining()
     const bool runCpu = cpuChoice->isChecked();
     bool runGpu = gpuChoice->isChecked();
     if (!runCpu && !runGpu) return;
+    const bool overrideProxy = runCpu && windowsProxy->isChecked() && windowsProxyOverride->isChecked()
+        && Params().NetworkID() == CBaseChainParams::MAIN;
+    if (overrideProxy && QMessageBox::warning(this, tr("Override CPU low-load limit?"),
+            tr("A Windows system temperature estimate can miss CPU overheating. Only continue if you can monitor your CPU temperature separately. Thermal Guard will still pause if the estimate is missing or too warm. This override lasts for this mining run only."),
+            QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel) != QMessageBox::Yes) return;
     bool missingGpuKernel = false;
     if (runGpu) {
         const QFileInfo kernel(kernelPath());
@@ -264,11 +279,13 @@ void PoolMiningDialog::startMining()
             arguments << QStringLiteral("--temperature-limit") << QString::number(limit);
             if (unmonitored->isChecked()) arguments << QStringLiteral("--allow-unmonitored-low-load");
             if (cpu && windowsProxy->isChecked()) arguments << QStringLiteral("--allow-windows-thermal-proxy");
+            if (cpu && overrideProxy) arguments << QStringLiteral("--override-windows-proxy-load-cap");
         }
         return arguments;
     };
     if (runCpu) {
         cpuThermal->setText(tr("Waiting for temperature…"));
+        if (overrideProxy) appendWorkerLog(false, tr("One-thread limit overridden for this run; monitor CPU temperature separately."));
         process->setWorkingDirectory(miner.absolutePath());
         process->start(miner.absoluteFilePath(), withThermal(firstPartyArguments(address, false, {}, threadCount->value()), cpuLimit->value(), true));
     }
@@ -316,6 +333,8 @@ void PoolMiningDialog::updateControls()
     gpuLimit->setEnabled(!running && gpuChoice->isChecked());
     unmonitored->setEnabled(!running);
     windowsProxy->setEnabled(!running && cpuChoice->isChecked());
+    windowsProxyOverride->setEnabled(!running && cpuChoice->isChecked() && windowsProxy->isChecked()
+                                     && Params().NetworkID() == CBaseChainParams::MAIN);
 }
 
 void PoolMiningDialog::attachWorker(QProcess* worker, bool gpu)
@@ -326,7 +345,7 @@ void PoolMiningDialog::attachWorker(QProcess* worker, bool gpu)
     connect(worker, &QProcess::stateChanged, this, [this] { updateControls(); });
     connect(worker, &QProcess::started, this, [this, gpu] {
         appendWorkerLog(gpu, tr("Worker started."));
-        status->setText(tr("Mining worker running; waiting for an accepted share."));
+        status->setText(gpu ? tr("GPU worker started; connecting to the pool…") : tr("CPU worker started; connecting to the pool…"));
     });
     connect(worker, &QProcess::errorOccurred, this, [this, worker, gpu](QProcess::ProcessError error) {
         if (error == QProcess::FailedToStart) {
@@ -338,6 +357,7 @@ void PoolMiningDialog::attachWorker(QProcess* worker, bool gpu)
             [this, worker, gpu](int code, QProcess::ExitStatus) {
         readOutput(worker, gpu, true);
         (gpu ? gpuThermal : cpuThermal)->setText(tr("Not running"));
+        if (!gpu) windowsProxyOverride->setChecked(false);
         appendWorkerLog(gpu, stopping ? tr("Worker stopped.") : tr("Worker exited (code %1).").arg(code));
         if (!isMining()) status->setText(stopping ? tr("Mining stopped.") : tr("Mining ended. See the log."));
         updateControls();
@@ -383,13 +403,32 @@ void PoolMiningDialog::readOutput(QProcess* worker, bool gpu, bool flush)
             (gpu ? gpuThermal : cpuThermal)->setText(summary);
             continue;
         }
+        if (line.startsWith(QStringLiteral("MINING "))) {
+            const auto parts = line.split(QLatin1Char(' '));
+            QString activity;
+            if (line == QStringLiteral("MINING awaiting-job")) activity = tr("Connected; waiting for a pool job.");
+            else if (line == QStringLiteral("MINING paused")) activity = tr("Hashing paused by Thermal Guard. See the temperature status above.");
+            else if (gpu && line == QStringLiteral("MINING hashing")) activity = tr("Hashing pool work.");
+            else if (!gpu && parts.size() == 5 && parts[1] == QStringLiteral("hashing")) {
+                activity = tr("Hashing pool work with %1 of %2 selected CPU threads.").arg(parts[2], parts[3]);
+                if (parts[4] == QStringLiteral("estimate")) {
+                    activity += windowsProxyOverride->isChecked()
+                        ? tr(" Using a system temperature estimate; one-thread limit overridden.")
+                        : tr(" Low-load mode: using a system temperature estimate.");
+                } else if (parts[4] == QStringLiteral("unmonitored")) {
+                    activity += tr(" Low-load mode: temperature unavailable.");
+                }
+            }
+            if (activity.isEmpty()) continue;
+            appendWorkerLog(gpu, activity);
+            if (!stopping && isMining()) status->setText(gpu ? tr("GPU: %1").arg(activity) : tr("CPU: %1").arg(activity));
+            continue;
+        }
         appendWorkerLog(gpu, line);
         if (stopping || !isMining()) continue;
         if (line.startsWith(QStringLiteral("Pool reconnecting in ")))
             status->setText(gpu ? tr("GPU miner reconnecting to the pool…") : tr("CPU miner reconnecting to the pool…"));
-        else if (line == QStringLiteral("Pool authorized; waiting for shares"))
-            status->setText(gpu ? tr("GPU miner connected; waiting for shares.") : tr("CPU miner connected; waiting for shares."));
-        else if (line == QStringLiteral("Share accepted"))
-            status->setText(tr("The pool accepted a share. Mining is running."));
+        else if (line == QStringLiteral("Pool authorized"))
+            status->setText(gpu ? tr("GPU miner authorized by the pool.") : tr("CPU miner authorized by the pool."));
     }
 }

@@ -132,9 +132,18 @@ On Windows, users can explicitly opt into ACPI system-temperature estimates
 if direct CPU readings are unavailable. This is not a CPU core measurement.
 CPU-labeled thermal zones are preferred over generic system zones, and
 known battery, GPU, skin, charger, or fan zones are excluded.
-It limits mining to one thread at low load and uses the lower of 60°C or
-10°C below the configured CPU target. Missing/stale readings pause the
+It limits mining to one thread at low load by default and uses the lower of
+60°C or 10°C below the configured CPU target. The Windows-only **Override the
+one-thread limit for this run** option permits up to the selected CPU thread
+count when the estimate is cool. Confirm it each run and monitor actual CPU
+temperature separately. It does not bypass throttling, the temperature cutoff,
+or a missing reading; it has no effect on GPU mining. Missing/stale readings pause the
 worker; the wallet does not switch from a lost direct sensor to a proxy
 while mining. Cached Windows samples never count toward the five cooldown
 samples. AMD Windows GPU sensors are not yet supported. Thermal Guard
 affects wallet pool mining, not daemon solo mining.
+
+The mining log distinguishes pool authorization, waiting for a job, actual
+hashing (including effective vs. selected CPU threads), and a thermal pause.
+A share is found by the miner and submitted to the pool; no accepted share yet
+does not by itself mean hashing has stopped.

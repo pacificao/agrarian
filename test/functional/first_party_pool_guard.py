@@ -105,7 +105,7 @@ def test_windows_thermal_proxy_policy(binary):
     with tempfile.TemporaryDirectory(prefix="agr-thermal-proxy-") as directory:
         sensor = Path(directory) / "temperature"
         sensor.write_text("65000\n")
-        with listener() as pool, worker(binary, pool, "--temperature-limit", "75",
+        with listener() as pool, worker(binary, pool, "2", "--temperature-limit", "75",
                                         "--regtest-thermal-sensor", str(sensor), "--regtest-thermal-proxy",
                                         "--allow-windows-thermal-proxy", "--allow-unmonitored-low-load") as (process, conn, stream):
             authorize(conn, stream, "ab12cd34")
@@ -122,6 +122,36 @@ def test_windows_thermal_proxy_policy(binary):
             process.terminate()
             stdout, _ = process.communicate(timeout=5)
             assert b"THERMAL cooling 65.0 - proxy" in stdout and b"THERMAL unavailable" in stdout, stdout
+            assert b"MINING hashing 1 2 estimate" in stdout and b"MINING hashing 2 2 estimate" not in stdout, stdout
+
+
+def test_windows_proxy_load_override(binary):
+    with tempfile.TemporaryDirectory(prefix="agr-thermal-override-") as directory:
+        sensor = Path(directory) / "temperature"
+        sensor.write_text("35000\n")
+        with listener() as pool, worker(binary, pool, "2", "--temperature-limit", "75",
+                                       "--regtest-thermal-sensor", str(sensor), "--regtest-thermal-proxy",
+                                       "--allow-windows-thermal-proxy", "--allow-unmonitored-low-load",
+                                       "--override-windows-proxy-load-cap") as (process, conn, stream):
+            authorize(conn, stream, "ab12cd34")
+            expect_quiet(conn, 0.5)
+            send_work(conn, "two-threads")
+            share = read(stream)
+            assert share["params"][1] == "two-threads"
+            sensor.write_text("65000\n")
+            time.sleep(1.25)
+            send(conn, {"id": share["id"], "result": True, "error": None})
+            send_work(conn, "overheat")
+            expect_quiet(conn, 1.3)
+            sensor.unlink()
+            time.sleep(1.2)
+            send_work(conn, "sensor-lost")
+            expect_quiet(conn, 1.3)
+            process.terminate()
+            stdout, _ = process.communicate(timeout=5)
+            for status in (b"MINING awaiting-job", b"MINING hashing 2 2 estimate", b"MINING paused",
+                           b"THERMAL cooling 65.0 - proxy", b"THERMAL unavailable"):
+                assert status in stdout, stdout
 
 
 def test_reconnect(binary):
@@ -190,6 +220,13 @@ def main(binary):
     assert guarded.returncode == 2, "A fixture must never override mainnet temperatures"
     test_thermal_pause(binary)
     test_windows_thermal_proxy_policy(binary)
+    test_windows_proxy_load_override(binary)
+    for args in (("--regtest-loopback", "3032", FIXTURE, "--allow-windows-thermal-proxy"),
+                 ("--regtest-opencl", "3032", FIXTURE, "unused.cl", "--allow-windows-thermal-proxy"),
+                 ("--pool-cpu", FIXTURE)):
+        process = subprocess.run([str(binary), *args, "--override-windows-proxy-load-cap"],
+                                 capture_output=True, timeout=5)
+        assert process.returncode == 2, args
     for mode in ("--mainnet", "--url", "--connect"):
         process = subprocess.run([str(binary), mode, "3032", FIXTURE], capture_output=True, timeout=5)
         assert process.returncode == 2 and b"Usage:" in process.stderr
