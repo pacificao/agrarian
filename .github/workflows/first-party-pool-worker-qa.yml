@@ -2,7 +2,7 @@ name: First-party pool worker QA
 
 on:
   push:
-    branches: [review/desktop-opencl-mining, release/2.1.5-thermal]
+    branches: [review/desktop-opencl-mining, release/2.1.5-thermal, release/2.1.6-stake-label]
     paths:
       - '.github/workflows/first-party-pool-worker-qa.yml'
       - 'contrib/build-first-party-pool-qa.sh'
@@ -13,11 +13,23 @@ on:
       - 'src/qt/poolthermal*.h'
       - 'src/qt/pooltemperatures.h'
       - 'test/functional/*pool*'
+      - 'test/functional/windows_cpu_temperature_fixtures.ps1'
 
 permissions:
   contents: read
 
 jobs:
+  windows-temperature-fixtures:
+    runs-on: windows-2022
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Exercise the worker's PowerShell sensor selection
+        shell: pwsh
+        run: ./test/functional/windows_cpu_temperature_fixtures.ps1
+
   build-qa:
     runs-on: ubuntu-24.04
     timeout-minutes: 15

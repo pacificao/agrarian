@@ -78,21 +78,21 @@ public:
             stamped = now;
             return cached;
         }
-        if (running && !killed && now - began >= 5500) {
+        if (running && !killed && now - began >= 7000) {
             killed = true;
             cached = {};
             process.kill();
         }
         if (!running && now >= next) {
             began = now;
-            next = now + 6000;
+            next = now + 7500;
             killed = false;
             running = true;
             process.setArguments({QStringLiteral("-NoLogo"), QStringLiteral("-NoProfile"), QStringLiteral("-NonInteractive"),
                                   QStringLiteral("-Command"), Script(allowProxy)});
             process.start();
         }
-        if (std::isfinite(cached.core) && now - stamped <= 8500) {
+        if (std::isfinite(cached.core) && now - stamped <= 10000) {
             auto previous = cached;
             previous.fresh = false; // A cached sample never counts toward cooldown.
             return previous;
@@ -121,26 +121,38 @@ function Emit($kind,$samples) {
     }
 }
 try {
-    $cpu = Get-CimInstance -Namespace 'root/LibreHardwareMonitor' -ClassName Sensor -OperationTimeoutSec 2 |
-        Where-Object {$_.SensorType -eq 'Temperature' -and $_.Identifier -match '^/(intelcpu|amdcpu)/[0-9]+/temperature/' -and
-            $_.Name -match '^(CPU Package|Core Max|CPU \(Tdie\)|Core \(Tctl/Tdie\)|CPU \(Tctl/Tdie\)|Core #[0-9]+\b.*)$' -and
-            $null -ne $_.Value} | ForEach-Object {[double]$_.Value}
+    $cpu = Get-CimInstance -Namespace 'root\LibreHardwareMonitor' -ClassName Sensor -OperationTimeoutSec 2 |
+        Where-Object {
+            $_.SensorType -eq 'Temperature' -and $null -ne $_.Value -and
+            ($_.Parent -match '^/(intelcpu|amdcpu)/[0-9]+$' -or $_.Identifier -match '^/(intelcpu|amdcpu)/[0-9]+/temperature/') -and
+            $_.Name -match '^(CPU Package|Core Max|(?:CPU|Core) \(T(?:die|ctl/Tdie)\)|CCD(?:[0-9]+|s Max) \(Tdie\)|(?:CPU )?(?:(?:P|E)-)?Core\s*#?\s*[0-9]+\b.*)$'
+        } | ForEach-Object {[double]$_.Value}
     Emit 'CPU' $cpu
 } catch {}
 )PS");
         if (!allowProxy) return body;
         return body + QString::fromLatin1(R"PS(
+function PlausibleZone($name, $celsius) {
+    if (!$name -or $celsius -lt 5 -or $celsius -gt 120 -or
+        $name -match '(^|[^A-Za-z0-9])(BAT[A-Z0-9]*|GFX[A-Z0-9]*|GPU[A-Z0-9]*|SKN[A-Z0-9]*|CHG[A-Z0-9]*|FAN[A-Z0-9]*)([^A-Za-z0-9]|$)') {
+        return
+    }
+    [pscustomobject]@{C=$celsius; Cpu=($name -match '(^|[^A-Za-z0-9])(CPU[A-Z0-9]*|DTS[A-Z0-9]*|PKG[A-Z0-9]*|PROCESSOR)([^A-Za-z0-9]|$)')}
+}
+$zones=@()
 try {
-    $acpi = Get-CimInstance -Namespace 'root/wmi' -ClassName MSAcpi_ThermalZoneTemperature -OperationTimeoutSec 2 |
-        Where-Object {$_.Active -eq $true -and $null -ne $_.CurrentTemperature} |
-        ForEach-Object {([double]$_.CurrentTemperature / 10.0) - 273.15}
-    Emit 'PROXY' $acpi
+    $zones += @(Get-CimInstance -Namespace 'root\wmi' -ClassName MSAcpi_ThermalZoneTemperature -OperationTimeoutSec 2 |
+        Where-Object {$_.Active -ne $false -and $null -ne $_.CurrentTemperature} |
+        ForEach-Object {PlausibleZone $_.InstanceName (([double]$_.CurrentTemperature / 10.0) - 273.15)})
+    Emit 'PROXY' ($zones | Where-Object Cpu | ForEach-Object C)
 } catch {}
 try {
-    $zone = Get-CimInstance -Namespace 'root/cimv2' -ClassName Win32_PerfFormattedData_Counters_ThermalZoneInformation -OperationTimeoutSec 2 |
-        Where-Object {$null -ne $_.Temperature} | ForEach-Object {[double]$_.Temperature - 273.15}
-    Emit 'PROXY' $zone
+    $zones += @(Get-CimInstance -Namespace 'root\cimv2' -ClassName Win32_PerfFormattedData_Counters_ThermalZoneInformation -OperationTimeoutSec 2 |
+        Where-Object {$null -ne $_.Temperature} |
+        ForEach-Object {PlausibleZone $_.Name ([double]$_.Temperature - 273.15)})
 } catch {}
+Emit 'PROXY' ($zones | Where-Object Cpu | ForEach-Object C)
+Emit 'PROXY' ($zones | ForEach-Object C)
 )PS");
     }
 };

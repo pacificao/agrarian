@@ -124,9 +124,14 @@ selected OpenCL PCI device on Linux, NVIDIA NVML on Linux or Windows when
 the OpenCL and NVML PCI identities match, and Windows CPU package/core
 readings published in WMI by an already-running Libre Hardware Monitor
 instance. The wallet installs no sensor service or driver.
+On systems with multiple CPU readings, Thermal Guard uses the hottest
+supported package, die, core, or chiplet reading. An AMD Tctl-only control
+value is not treated as a measured die temperature.
 
 On Windows, users can explicitly opt into ACPI system-temperature estimates
 if direct CPU readings are unavailable. This is not a CPU core measurement.
+CPU-labeled thermal zones are preferred over generic system zones, and
+known battery, GPU, skin, charger, or fan zones are excluded.
 It limits mining to one thread at low load and uses the lower of 60°C or
 10°C below the configured CPU target. Missing/stale readings pause the
 worker; the wallet does not switch from a lost direct sensor to a proxy

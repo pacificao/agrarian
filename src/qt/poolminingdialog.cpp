@@ -376,7 +376,7 @@ void PoolMiningDialog::readOutput(QProcess* worker, bool gpu, bool flush)
             else continue;
             if (values[2] != QStringLiteral("-")) {
                 if (proxy) summary += tr(" · System temperature (estimate): %1 °C").arg(values[2]);
-                else summary += gpu ? tr(" · Core %1 °C").arg(values[2]) : tr(" · %1 °C").arg(values[2]);
+                else summary += gpu ? tr(" · Core %1 °C").arg(values[2]) : tr(" · CPU sensor: %1 °C").arg(values[2]);
             }
             if (values[3] != QStringLiteral("-"))
                 summary += tr(" · Hotspot %1 °C").arg(values[3]);

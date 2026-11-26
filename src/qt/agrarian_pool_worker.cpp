@@ -408,7 +408,7 @@ int main(int argc, char** argv)
         poolthermal::Sensors sensors(false, 0, {}, {}, true);
         QElapsedTimer timer;
         timer.start();
-        while (timer.elapsed() < 7000) {
+        while (timer.elapsed() < 8500) {
             QCoreApplication::processEvents();
             const auto sample = sensors.Read();
             if (std::isfinite(sample.core)) {
